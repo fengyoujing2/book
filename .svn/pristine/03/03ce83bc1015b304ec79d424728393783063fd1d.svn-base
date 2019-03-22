@@ -1,0 +1,78 @@
+package com.dbsun.service.finance;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.background.BacConfMapper;
+import com.dbsun.mapper.finance.FinSignMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+public class FinSignService {
+
+    @Autowired
+    private FinSignMapper finSignMapper;
+
+    @Autowired
+    private BacConfMapper bacConfMapper;
+
+    @Autowired
+    private FinNumService finNumService;
+
+
+    public List<PageData> getPageConfSignLst(Page page) {
+        return finSignMapper.getPageConfSignLst(page);
+    }
+
+    /***
+     *  财务确认签单-瑞信版本此方法过期
+     *  修改方法为 {@link #updateConfSignAuto(com.dbsun.entity.system.PageData)}
+     */
+    @Deprecated
+    public int updateConfSign(PageData pd) {
+        return finSignMapper.updateConfSign(pd);
+    }
+
+    /**
+     * 财务确认签单-瑞信版本
+     * 增加 1.后台自动确认签单功能 + 如果是网贷则财务自动编号
+     *
+     * @Author: zhao yi
+     * @Date : 2018/11/14 10:07
+     * @Param : [pd]
+     * @return: int
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.NESTED, rollbackFor = RuntimeException.class)
+    public int updateConfSignAuto(PageData pd) {
+        int rs = 0;
+        //财务确认签单
+        finSignMapper.updateConfSignAuto(pd);
+        //网贷状态码
+        final String WD_YBCS009_TP = "WD";
+        //获得 产品前缀 YBCS009_TP
+        PageData pdPrefix = finNumService.getGeneratedFinNum(pd);
+
+        boolean hasPrefix = pdPrefix != null && pdPrefix.get("YBCT008") != null && WD_YBCS009_TP.equals(pdPrefix.getString("YBCT008"));
+        if (hasPrefix) {
+            //1.获得财务编号
+            String num = finNumService.getFinancialNumber(pd);
+            pd.put("YBCS007", num);
+            //2.添加 签单编号
+            finNumService.updateFinNum(pd);
+        }
+        rs = 1;
+        return rs;
+    }
+
+
+    public int updateSign(PageData pd) {
+        return finSignMapper.updateSign(pd);
+    }
+
+
+}

@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dbsun.mapper.settleAccounts.SettleAccountsMapper">
+    <!--未结账数据-签单 YBCS056_TP = 0-->
+    <select id="getPageAccountListIsUnsettledAccount" resultType="com.dbsun.entity.system.PageData">
+
+        SELECT
+        s.YBCS001,
+        s.YBCS038,
+        c.YBC002,
+        c.YBC003,
+        s.YBCS007, <!-- 财务编号 -->
+        (SELECT YBCT002 FROM ybc_type t WHERE s.YBCS009_TP = t.YBCT001) AS YBCT002,<!-- 贷款类型 -->
+        (SELECT d.`DEPT_NAME` FROM sys_dept d WHERE d.DEPT_LAYERORDER = s.DEPT_LAYERORDER)AS DEPT_NAME,
+        SUM(m.YBCMA030)AS YBCMA030_SUM <!--放贷合计金额 -->
+        FROM
+        ybc_match m
+        JOIN ybc c
+        ON c.YBC001 = m.YBC001
+        JOIN ybc_sign s
+        ON s.YBCS001 = m.YBCS001
+        WHERE 1 = 1
+        AND m.YBCMA029_TM IS NOT NULL  <!--已放贷 -->
+        AND s.YBCS056_TP = 0  <!--未结账数据-签单 YBCS056_TP=0-->
+
+        <if test="pd.YBC002 != null">
+            and c.YBC002 like concat(#{pd.YBC002},'%')
+        </if>
+        <if test="pd.YBC003 != null">
+            and c.YBC003 like concat(#{pd.YBC003},'%')
+        </if>
+        <if test="pd.YBCS007 != null">
+            and s.YBCS007 like concat(#{pd.YBCS007},'%')
+        </if>
+
+
+        <if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+            and s.USER_ID = #{pd.USER_ID_Sea}
+        </if>
+        <if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+        </if>
+        <!--时间搜素  时间-->
+        <if test='  pd.dateStart != "" and pd.dateStart != null   '>
+            AND s.YBCS049_TM <![CDATA[>=]]> #{pd.dateStart}
+        </if>
+        <if test='  pd.dateEnd != "" and pd.dateEnd != null   '>
+            AND s.YBCS049_TM <![CDATA[<=]]> #{pd.dateEnd}
+        </if>
+
+        GROUP BY m.YBCS001
+        ORDER BY s.DEPT_LAYERORDER  <!--放贷时间 -->
+
+    </select>
+    <!--已结账  1未完全结账数据  2完全结账数据 -签单 YBCS056_TP -->
+    <select id="getPageAccountListIsHasTheInvoicing" resultType="com.dbsun.entity.system.PageData">
+
+        SELECT
+        s.YBCS001,
+        s.YBCS038,
+        c.YBC002,
+        c.YBC003,
+        s.YBCS007,
+        (CASE s.YBCS056_TP
+        WHEN 1 THEN '未完全结账'
+        WHEN 2 THEN '完全结账'
+        ELSE '未结账' END)AS YBCS056_TP,
+        (SELECT YBCT002 FROM ybc_type t WHERE s.YBCS009_TP = t.YBCT001) AS YBCT002,<!--贷款类型 -->
+        (SELECT d.`DEPT_NAME` FROM sys_dept d WHERE d.DEPT_LAYERORDER = s.DEPT_LAYERORDER)AS DEPT_NAME,
+        SUM(m.YBCMA030)AS YBCMA030_SUM,
+        (SELECT SUM(YBCAC006)FROM ybc_account WHERE YBCS001 = s.YBCS001 GROUP BY YBCS001)AS YBCAC006_SUM,<!--已付款金额合计 -->
+        IFNULL((SELECT SUM(YBCR004) FROM ybc_refund WHERE YBCS001 = s.YBCS001 GROUP BY YBCS001 ),0)AS YBCR004_SUM<!--退款金额合计 -->
+
+
+        FROM
+        ybc_match m
+        JOIN ybc c
+        ON c.YBC001 = m.YBC001
+        JOIN ybc_sign s
+        ON s.YBCS001 = m.YBCS001
+
+        WHERE
+        m.YBCMA029_TM IS NOT NULL
+        AND s.YBCS056_TP != 0 <!--未结账-->
+
+        <if test="pd.YBCS056_TP != null">
+            AND s.YBCS056_TP = #{pd.YBCS056_TP} <!--1未完全结账 2 完全结账-->
+        </if>
+
+        <if test="pd.YBC002 != null">
+            and c.YBC002 like concat(#{pd.YBC002},'%')
+        </if>
+        <if test="pd.YBC003 != null">
+            and c.YBC003 like concat(#{pd.YBC003},'%')
+        </if>
+        <if test="pd.YBCS007 != null">
+            and s.YBCS007 like concat(#{pd.YBCS007},'%')
+        </if>
+
+        <if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+            and s.USER_ID = #{pd.USER_ID_Sea}
+        </if>
+        <if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+        </if>
+        <!--时间搜素  时间-->
+        <if test='  pd.dateStart != "" and pd.dateStart != null   '>
+            AND s.YBCS049_TM <![CDATA[>=]]> #{pd.dateStart}
+        </if>
+        <if test='  pd.dateEnd != "" and pd.dateEnd != null   '>
+            AND s.YBCS049_TM <![CDATA[<=]]> #{pd.dateEnd}
+        </if>
+
+        GROUP BY m.YBCS001
+        ORDER BY s.DEPT_LAYERORDER
+
+    </select>
+
+
+    <!--获得指定签单-结账明细-->
+    <select id="getPageSettledStatement" resultType="com.dbsun.entity.system.PageData">
+            SELECT
+           (SELECT YBCS056_TP FROM ybc_sign WHERE YBCS001=a.YBCS001)AS YBCS056_TP,
+            a.*
+            FROM ybc_account a
+            WHERE
+            YBCS001=#{pd.YBCS001}
+    </select>
+
+    <!--根据签单显示涉及人员 (添加账单 初始化化信息)-->
+    <select id="getAddCheckoutInitialization" resultType="com.dbsun.entity.system.PageData">
+
+        SELECT
+        s.YBCS001,
+        s.YBCS007 as YBCAC003 ,<!-- 合同:财务编号 -->
+        (SELECT YBCT002 FROM ybc_type WHERE YBCT001=s.YBCS009_TP)AS YBCAC004,<!-- 合同类型 -->
+        (SELECT ybc002 FROM ybc WHERE ybc001 = s.YBC001)AS YBCAC002, <!-- 客户姓名 -->
+        s.YBCS038 as YBCAC008,<!-- 客户经理 -->
+        s.USER_ID as YBCAC009,<!-- 客户经理ID -->
+        (SELECT DEPT_NAME FROM sys_dept WHERE DEPT_LAYERORDER = s.DEPT_LAYERORDER)as YBCAC010,
+        (SELECT NAME FROM sys_user WHERE DEPT_LAYERORDER = s.DEPT_LAYERORDER AND POSITION = '1' and STATUS = '0' LIMIT
+        1)as YBCAC011,   <!-- 客户经理 组长-->
+        (SELECT NAME FROM sys_user WHERE DEPT_LAYERORDER =SUBSTRING_INDEX(s.DEPT_LAYERORDER ,'-',3)AND POSITION = '1' AND STATUS = '0' LIMIT 1
+        )AS YBCAC012,   <!-- 客户经理 部长总监-->
+        m.YBCMA041 as YBCAC019, <!--做单人员-->
+        (SELECT NAME FROM sys_user WHERE DEPT_LAYERORDER = m.DEPT_LAYERORDER AND POSITION = '1' and STATUS = '0' LIMIT
+        1)as YBCAC020,  <!-- 做单人员 组长 -->
+        s.YBCS039 AS YBCAC021,<!-- 做单人员 部长-->
+        s.YBCS056_TP AS YBCS056_TP
+        FROM
+        ybc_match m
+        JOIN ybc_sign s ON s.YBCS001 =m.YBCS001
+        WHERE
+        m.YBCS001= #{YBCS001}
+        LIMIT 1
+
+    </select>
+
+    <!--根据签单显示所有渠道(添加账单 初始化化信息) -->
+    <select id="getAllchannels" resultType="com.dbsun.entity.system.PageData">
+    SELECT
+    (SELECT YBTL002 FROM ybt_list WHERE m.YBTL001 = YBTL001)AS YBTL003
+    FROM
+    ybc_match m
+    WHERE m.YBCS001 = #{YBCS001}
+    GROUP BY m.YBTL001
+    </select>
+
+    <!--添加账单-->
+    <insert id="addAccount">
+
+        INSERT INTO ybc_account (
+        YBCAC001,
+        YBCS001,
+        YBCAC002,
+        YBCAC003,
+        YBCAC004,
+        YBCAC005,
+        YBCAC006,
+        YBCAC007,
+        YBCAC008,
+        YBCAC009,
+        YBCAC010,
+        YBCAC011,
+        YBCAC012,
+        YBCAC013,
+        YBCAC014,
+        YBCAC015,
+        YBCAC016,
+        YBCAC017,
+        YBCAC018,
+        YBCAC019,
+        YBCAC020,
+        YBCAC021,
+        YBCAC022_TM,
+        USER_ID,
+        YBCAC024,
+        YBCAC025_TM,
+        YBCAC026_TP,
+        YBCAC027
+        )
+        VALUES
+        (
+        uuid(),
+        #{YBCS001},
+        #{YBCAC002},
+        #{YBCAC003},
+        #{YBCAC004},
+        #{YBCAC005},
+        #{YBCAC006},
+        #{YBCAC007},
+        #{YBCAC008},
+        #{YBCAC009},<!--客户经理-->
+        #{YBCAC010},<!--客户经理部门-->
+        #{YBCAC011},
+        #{YBCAC012},
+        #{YBCAC013},
+        #{YBCAC014},
+        #{YBCAC015},
+        #{YBCAC016},
+        #{YBCAC017},
+        #{YBCAC018},
+        #{YBCAC019},
+        #{YBCAC020},
+        #{YBCAC021},
+        #{YBCAC022_TM}, <!--结账时间-->
+        #{USER_ID},
+        #{NAME},
+        now(),     <!--操作时间-->
+        #{YBCAC026_TP},
+        #{YBCAC027}
+        )
+
+
+    </insert>
+    <!--修改账单-->
+    <update id="updAccount">
+        UPDATE
+        ybc_account
+        <set>
+            <if test="YBCS001 !=null">YBCS001 = #{YBCS001},</if>
+            <if test="YBCAC002 !=null">YBCAC002 = #{YBCAC002},</if>
+            <if test="YBCAC003 !=null">YBCAC003 = #{YBCAC003},</if>
+            <if test="YBCAC004 !=null">YBCAC004 = #{YBCAC004},</if>
+            <if test="YBCAC005 !=null">YBCAC005 = #{YBCAC005},</if>
+            <if test="YBCAC006 !=null">YBCAC006 = #{YBCAC006},</if>
+            <if test="YBCAC007 !=null">YBCAC007 = #{YBCAC007},</if>
+            <if test="YBCAC008 !=null">YBCAC008 = #{YBCAC008},</if>
+            <if test="YBCAC009 !=null">YBCAC009 = #{YBCAC009},</if>
+            <if test="YBCAC010 !=null">YBCAC010 = #{YBCAC010},</if>
+            <if test="YBCAC011 !=null">YBCAC011 = #{YBCAC011},</if>
+            <if test="YBCAC012 !=null">YBCAC012 = #{YBCAC012},</if>
+            <if test="YBCAC013 !=null">YBCAC013 = #{YBCAC013},</if>
+            <if test="YBCAC014 !=null">YBCAC014 = #{YBCAC014},</if>
+            <if test="YBCAC015 !=null">YBCAC015 = #{YBCAC015},</if>
+            <if test="YBCAC016 !=null">YBCAC016 = #{YBCAC016},</if>
+            <if test="YBCAC017 !=null">YBCAC017 = #{YBCAC017},</if>
+            <if test="YBCAC018 !=null">YBCAC018 = #{YBCAC018},</if>
+            <if test="YBCAC019 !=null">YBCAC019 = #{YBCAC019},</if>
+            <if test="YBCAC020 !=null">YBCAC020 = #{YBCAC020},</if>
+            <if test="YBCAC021 !=null">YBCAC021 = #{YBCAC021},</if>
+            <if test="YBCAC022_TM !=null">YBCAC022_TM = #{YBCAC022_TM},</if>
+            <if test="YBCAC026_TP !=null">YBCAC026_TP = #{YBCAC026_TP},</if>
+            <if test="YBCAC027 !=null">YBCAC027 = #{YBCAC027},</if>
+        </set>
+        WHERE YBCAC001 = #{YBCAC001}
+
+    </update>
+    <!--修改 签单表的结账状态 YBCS056_TP-->
+    <update id="updSighYBCS056_TP">
+        UPDATE
+        ybc_sign
+        SET
+        YBCS056_TP = #{YBCS056_TP}
+        WHERE YBCS001 = #{YBCS001}
+    </update>
+
+    <!--********************************************** 退款处理 ***********************************************-->
+
+
+    <!--查询指定签单的退款明细-->
+    <select id="getPageRefundListByYBCS001" resultType="com.dbsun.entity.system.PageData">
+        SELECT * ,
+        (case YBCR003_TP
+        when 1 then '退款'
+        when 2 then '套现'
+        when 3 then '转介绍'
+        end)as YBCR003
+
+        FROM ybc_refund
+        where
+        YBCS001=#{pd.YBCS001}
+        ORDER BY YBCR011_TM <!--申请时间排序-->
+    </select>
+
+
+    <!--根据签单显示涉及人员 (添加退款 初始化化信息)   -->
+    <select id="getRefundInitializationByYBCS001" resultType="com.dbsun.entity.system.PageData">
+
+        SELECT
+        s.YBCS001,
+        (SELECT YBCT002 FROM ybc_type WHERE YBCT001=s.YBCS009_TP)AS YBCR005,<!-- 贷款类型 -->
+        (SELECT ybc002 FROM ybc WHERE ybc001 = s.YBC001)AS YBCR002, <!-- 客户姓名 -->
+        s.YBCS038  ,<!-- 客户经理 -->
+        s.USER_ID ,<!-- 客户经理ID -->
+        (SELECT NAME FROM sys_user WHERE DEPT_LAYERORDER =SUBSTRING_INDEX(s.DEPT_LAYERORDER ,'-',3) AND POSITION = '1' AND STATUS = '0' LIMIT 1
+        )AS YBCR007,   <!-- 客户经理 部长-->
+        m.YBCMA041 as YBCR008 <!--做单人员-->
+        FROM
+        ybc_match m
+        JOIN ybc_sign s ON s.YBCS001 =m.YBCS001
+        WHERE
+        m.YBCS001= #{YBCS001}
+        LIMIT 1
+
+    </select>
+
+
+
+    <!--增加-->
+    <insert id="addRefund">
+        INSERT INTO ybc_refund (
+        YBCR001,
+        YBCS001, <!--签单ID-->
+        YBCR002, <!--客户姓名-->
+        YBCR003_TP, <!--退款类型(1退款2套现3转介绍)-->
+        YBCR004, <!--退款金额-->
+        YBCR005, <!--贷款类型-->
+        YBCR006, <!--退款账户-->
+        YBCR007, <!--销售总监-->
+        YBCR008, <!--后台做单人-->
+        YBCR009, <!--申请人ID-->
+        YBCR010, <!--申请人姓名-->
+        YBCR011_TM, <!--申请时间-->
+        YBCR012, <!--操作人 ID-->
+        YBCR013,<!--操作人姓名-->
+        YBCR014_TM,<!--操作时间-->
+        YBCR015    <!--退款说明-->
+        )
+        VALUES
+        (
+        uuid(),
+        #{YBCS001},
+        #{YBCR002},
+        #{YBCR003_TP},
+        #{YBCR004},
+        #{YBCR005},
+        #{YBCR006},
+        #{YBCR007},
+        #{YBCR008},
+        #{YBCR009},
+        #{YBCR010},
+        #{YBCR011_TM},
+        #{USER_ID},<!--操作人 ID-->
+        #{NAME},
+        now(),
+        #{YBCR015}
+        )
+
+    </insert>
+    <!--修改-->
+    <update id="updRefund">
+        UPDATE
+        ybc_refund
+        <set>
+            <if test="YBCR002 !=null">YBCR002 = #{YBCR002},</if>
+            <if test="YBCR003_TP !=null">YBCR003_TP = #{YBCR003_TP},</if>
+            <if test="YBCR004 !=null">YBCR004 = #{YBCR004},</if>
+            <if test="YBCR005 !=null">YBCR005 = #{YBCR005},</if>
+            <if test="YBCR006 !=null">YBCR006 = #{YBCR006},</if>
+            <if test="YBCR007 !=null">YBCR007 = #{YBCR007},</if>
+            <if test="YBCR008 !=null">YBCR008 = #{YBCR008},</if>
+            <if test="YBCR009 !=null">YBCR009 = #{YBCR009},</if>
+            <if test="YBCR010 !=null">YBCR010 = #{YBCR010},</if>
+            <if test="YBCR011_TM !=null">YBCR011_TM = #{YBCR011_TM},</if>
+            <if test="YBCR015 !=null">YBCR015 = #{YBCR015},</if>
+        </set>
+        WHERE YBCR001 = #{YBCR001}
+    </update>
+
+
+</mapper>

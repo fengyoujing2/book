@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+    <title>会员异常</title>
+
+    <link rel="shortcut icon" href="favicon.ico"> 
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+    
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0]; 
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+    
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    
+    <script src="../static/js/jquery.min.js"></script>
+    <style>
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        .tips{
+            display: inline-block;
+            width: 100%;
+            padding: 1rem;
+            background-color: #4aa5fb;
+            color: #fff;
+            font-size: 16px;
+        }
+        .cusMTable{
+            margin-top: 20px;
+        }
+        .cusMTable .el-table tr{
+            background-color: #4aa5fb;
+            color:#fff;
+        }
+        .el-table .odd-row {
+            background: #f1f7fe !important;
+            color:#878787 !important;
+        }
+        .el-table .even-row {
+            background: #ffffff !important;
+            color:#878787 !important;
+        }
+        .el-input-group__append{
+            color: #4aa5fb !important;
+        }
+        .top_divR{
+            margin-right: 6px;
+        }
+        #resL{
+            width:100%;
+            float:left;
+        }
+        #test{
+            display: none;
+            float:right;
+            width: 30%;
+            padding-left:10px;
+            margin-top: 20px;
+            animation:move 1s;
+        }
+        @keyframes move{
+            0%{
+                opacity: 0;
+                transform: translateX(300px);
+            }
+            100%{
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .testDiv{
+            min-height: 600px;
+            background-color: #fff;
+        }
+        .elBtn{
+            border-radius: 30px !important;
+            padding: 6px 20px !important;
+        }
+/*        // 去掉input[type=number]默认的加减号*/
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .el-table td{
+            padding: 4px 0 !important;
+        }
+        .el-message-box {
+            margin-top: -300px;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:10px;">
+    <div id="signFollowApp" v-cloak>
+        <div>
+            <el-input size="mini" placeholder="客户姓名" v-model="soMoreUserIpt.YBC002" style="width:120px;"  class="top_divR"></el-input>
+                <el-input size="mini" type="number" placeholder="联系电话" v-model="soMoreUserIpt.YBC003" style="width:120px;"  class="top_divR"></el-input>
+                <span v-if="moreAlloatArr1.length>0">
+                    <el-cascader size="mini" v-model="selParment"
+                        :options="moreAlloatArr1"
+                                 placeholder="请选择部门"
+                        change-on-select
+                                 style="width:120px;"
+                        @change="handleChangeMore" class="top_divR">
+                    </el-cascader>
+                    <el-cascader
+                        :options="moreAlloatArr2" size="mini"
+                                 placeholder="请选择人员"
+                                 style="width:120px;"
+                        v-model="selMana"  class="top_divR">
+                    </el-cascader>
+                </span>
+                <el-select v-model="soMoreUserIpt.VIPT001" size="mini" style="width:120px;" placeholder="会员级别">
+                    <el-option v-for="item in vipGrades" :label="item.VIPT002" :value="item.VIPT001"></el-option>
+                </el-select>
+                <el-select v-model="soMoreUserIpt.YBC036_TP" size="mini" style="width:120px;" placeholder="会员状态">
+                    <el-option label="准会员" value="1"></el-option>
+                    <el-option label="正式会员" value="2"></el-option>
+                </el-select>
+                <el-select v-model="soMoreUserIpt.VIPE003_IP" size="mini" style="width:120px;" placeholder="异常分类">
+                    <el-option label="一般咨询类问题" value="1"></el-option>
+                    <el-option label="服务类问题" value="2"></el-option>
+                    <el-option label="产品质量问题" value="3"></el-option>
+                    <el-option label="升级投诉" value="4"></el-option>
+                    <el-option label="预警" value="5"></el-option>
+                    <el-option label="其他" value="6"></el-option>
+                </el-select>
+<!--
+                <el-date-picker
+                  v-model="time" size="mini"
+                  type="daterange"
+                          value-format="yyyy-MM-dd"
+                  range-separator="至"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期">
+                </el-date-picker>
+-->
+            <el-button size="mini" type="warning" style="background-color:#fd8c12;margin-left:6px;" class="top_divR" @click="checkUser">查询</el-button>
+            <el-button size="mini" type="primary" class="top_divR btnBGC" @click="clearCheck">清空</el-button>
+        </div>
+        <div style="width:100%">
+            <div class="cusMTable" id="resL"
+            v-loading="loading">
+                <el-table
+                ref="allotTable"
+                :data="cusTableLstInit"
+                style="width: 100%"
+                :row-class-name="tableRowClassName">
+                    <el-table-column
+                      prop="YBC002"
+                      label="客户姓名" min-width="100">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBC003"
+                      label="联系电话" min-width="120">
+                    </el-table-column>
+                    <el-table-column
+                      prop="DEPTNAME"
+                      label="客户归属" min-width="100">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBC036"
+                      label="会员状态" min-width="100">
+                    </el-table-column>
+                    <el-table-column
+                      prop="VIPGRADE"
+                      label="会员级别" min-width="160">
+                    </el-table-column>
+                    <el-table-column
+                      prop="NAME"
+                      label="客户经理" min-width="100">
+                    </el-table-column>
+                    <el-table-column
+                      prop="VIPE003_IP"
+                      label="异常分类" min-width="120">
+                    </el-table-column>
+                    <el-table-column
+                      prop="VIPV002_TM"
+                      label="跟进时间" min-width="160">
+                    </el-table-column>
+                    <el-table-column
+                      prop="VIPV003"
+                      label="跟进描述" min-width="200">
+                    </el-table-column>
+                    <el-table-column label="操作" fixed="right" width="100">
+                        <template slot-scope="scope">
+                        <el-button
+                          size="mini"
+                          @click="handleUserInfo(scope.$index, scope.row)">查看详情</el-button>
+<!--
+                        <el-button
+                          size="mini"
+                          type="text"
+                                   style="color:green;"
+                          @click="changeMbr0(scope.$index, scope.row)">转为准会员</el-button>
+                        <el-button
+                          size="mini"
+                          type="text"
+                                   style="color:red;"
+                          @click="changeMbr1(scope.$index, scope.row)">转为正式会员</el-button>
+-->
+                      </template>
+                    </el-table-column>
+                </el-table>
+                <div style="text-align:right;">
+                    <el-pagination
+                      @current-change="handleCurrentChange"
+                      :current-page="pageInit.currentPage"
+                      :page-size="10"
+                      layout="total, prev, pager, next, jumper"
+                      :total="pageInit.totalResult">
+                    </el-pagination>
+                </div>
+            </div>
+            <div id="test">
+                <div class="testDiv">
+                    <div>
+                        <span class="tips">转为正式会员</span>
+                    </div>
+                    <div style="margin-top:30px;">
+                        <el-form ref="signForm" :model="signForm" label-width="100px">
+                            <el-form-item label="会员等级" :rules="[
+                      { required: true, message: '会员等级不能为空'}
+                    ]">
+                                <el-select v-model="VIPT001" placeholder="请选择">
+                                    <el-option label="一级会员" value="1"></el-option>
+                                    <el-option label="二级会员" value="2"></el-option>
+                                    <el-option label="三级会员" value="3"></el-option>
+                                  </el-select>
+                            </el-form-item>
+                            <el-form-item label="起始时间" :rules="[
+                      { required: true, message: '起始时间不能为空'}
+                    ]">
+                                <el-date-picker
+                                  v-model="signForm.YBC039_TM"
+                                  type="date"
+                          value-format="yyyy-MM-dd"
+                                  placeholder="选择日期">
+                                </el-date-picker>
+                            </el-form-item>
+                        </el-form>
+                    </div>
+                    <div style="text-align:center;margin-top:20px;">
+                        <el-button type="primary" class="elBtn" @click="qxSure">取消</el-button>
+                        <el-button type="primary" class="elBtn" @click="submits" style="margin-left:40px;">确定</el-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script th:inline="javascript">
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+    
+    new Vue({
+        el:"#signFollowApp",
+        data(){
+            return {
+//                从后台模板里面获取
+                pageInit:{},
+                cusTableLstInit:[],
+//                做单分配提交的data
+                signForm:{},
+//                搜索客户条件
+                soMoreUserIpt:{},
+//                搜索时间范围
+                time:[],
+                moreAlloatArr1:[],
+                moreAlloatArr2:[],
+                selParment:[],
+                selMana:[],
+                loading:false,
+                VIPT001:'',
+                vipGrades:[]
+            }
+        },
+//        DOM渲染前执行
+        mounted(){
+            this.getDepartment();
+            this.handleCurrentChange(1);
+            this.getVip();
+        },
+        methods:{
+            getVip(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_vip/getVipLevel`,
+                    data:"",
+                    success:function(data){
+                        console.log(data);
+                        if(data.msg=="200"){
+                            that.vipGrades=data.result;
+                        }
+                    }
+                })
+            },
+//            转为准会员
+            changeMbr0(index,row){
+                this.signForm={
+                    YBC001:row.YBC001,
+                    YBC036_TP:2,
+                    USER_ID_sea:row.USER_ID_sea,
+                    DEPT_LAYERORDER_Sea:row.DEPT_LAYERORDER_Sea,
+                    POSITION_Sea:row.POSITION_Sea,
+                }
+//                css展示
+                $("#resL").animate({width:'70%'},100);
+                $("#test").css("display","block")
+            },
+            //            获取部门列表
+            getDepartment(){
+//                DEPT_ID   获取部门
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/searchDeptAndMeAllLst`,
+                    data:"",
+                    success:function(data){
+                        console.log(data);
+                        if(data.msg=="200"){
+                            that.moreAlloatArr1=data.result;
+                        }
+                    }
+                })
+            },
+//            改变部门选择人员
+            handleChangeMore(value){
+                this.soMoreUserIpt.DEPT_LAYERORDER_Sea=(value[value.length-1]).DEPT_LAYERORDER;
+                let DEPT_ID=(value[value.length-1]).DEPT_ID;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/deptAndUserLst`,
+                    data:{DEPT_ID:DEPT_ID},
+                    success:function(data){
+                        that.moreAlloatArr2=data.result;
+                    }
+                })
+            },
+//            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                if(rowIndex==1){
+                    
+                }else if (rowIndex%2 == 0) {
+                    return 'odd-row';
+                }
+                return 'even-row';
+            },
+//            查询搜索客户
+            checkUser(){
+                if(this.time){
+                    if(this.time.length !=0){
+                        this.soMoreUserIpt.dateStart=this.time[0]+' 00:00:00';
+                        this.soMoreUserIpt.dateEnd=this.time[1]+' 23:59:59';
+                    }
+                }else{
+                    delete this.soMoreUserIpt.dateStart;
+                    delete this.soMoreUserIpt.dateEnd;
+                }
+                if(this.selMana !=""){
+                    this.soMoreUserIpt.USER_ID_Sea=this.selMana.toString();
+                }
+                this.handleCurrentChange(1);
+            },
+//            清空搜索条件，并回到初始状态
+            clearCheck(){
+                this.selParment=[];
+                this.selMana=[];
+                this.soMoreUserIpt={};
+                this.time=[];
+                this.handleCurrentChange(1);
+            },
+//            当前页翻页
+            handleCurrentChange(val){
+                this.loading=true;
+                this.soMoreUserIpt.currentPage=val;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/vip_visit_exc/getPageYbcVisitExceptionVipLst`,
+                    data:that.soMoreUserIpt,
+                    success:function(data){
+                        that.cusTableLstInit=data.rows;
+                        that.pageInit.totalResult=data.total;
+                        that.pageInit.currentPage=val;
+                        that.loading=false;
+                    }
+                })
+            },
+//            成为正式会员
+            changeMbr1(index,row){
+                console.log(row);
+                this.signForm={
+                    YBC001:row.YBC001,
+                    YBC036_TP:2,
+                    USER_ID_sea:row.USER_ID_sea,
+                    DEPT_LAYERORDER_Sea:row.DEPT_LAYERORDER_Sea,
+                    POSITION_Sea:row.POSITION_Sea,
+                }
+//                css展示
+                $("#resL").animate({width:'70%'},100);
+                $("#test").css("display","block")
+            },
+//            选择跟进状态后提交
+            submits(){
+                if(this.VIPT001.length>0){
+                    this.signForm.VIPT001=this.VIPT001;
+                    let that=this;
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/cus_vip/updateVip`,
+                        data:that.signForm,
+                        success:function(data){
+                            if(data.msg=="200"){
+                                that.$message({
+                                  message: '恭喜你，客户身份变更成功',
+                                  type: 'success'
+                                });
+    //                          css隐藏
+                                $("#resL").animate({width:'100%'},100);
+                                $("#test").css("display","none");
+                                that.handleCurrentChange(1);
+                                that.signForm={};
+                                that.VIPT001="";
+                            }else{
+                                that.$message.error('客户会员身份变更失败，请重试');
+                            }
+                        },
+                        error:function(data){
+                            console.log("服务出错，请取消重试");
+                        }
+                    }) 
+                }else{
+                    this.$message({
+                        message: '请先选择会员等级！',
+                        type: 'warning'
+                    });
+                }
+            },
+//            查看客户详情
+            handleUserInfo(index,row){
+                let url=`${basePath}/cus_vip/detail?YBC001=${row.YBC001}`
+                let newTabs={
+                    name:"客户详情",
+                    url
+                }
+                for(let index in app.$data.editableTabs){
+                    if(app.$data.editableTabs[index].name=="客户详情"){
+                        app.$data.editableTabs.splice(index,1)
+                    }
+                }
+                app.$data.editableTabs.push(newTabs);
+                setTimeout(function(){
+                    app.$data.editableTabsValue="客户详情";
+                },500)
+            },
+//            取消
+            qxSure(){
+//              css隐藏
+                $("#resL").animate({width:'100%'},100);
+                $("#test").css("display","none");
+                this.signForm={};
+                this.VIPT001="";
+            }
+        }
+    })
+    
+</script>
+</html>

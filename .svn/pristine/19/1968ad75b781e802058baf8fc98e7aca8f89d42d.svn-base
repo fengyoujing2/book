@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.importallot.ImpAllotSecondMapper">
+<!-- 第二次分配 -->
+
+	<select id="getPageCanSecondAltLst" parameterType="page" resultType="pd" useCache="false">
+		select 
+			a.*,  
+			(SELECT NAME from sys_user WHERE USER_ID = b.USER_ID2) AS userName, 
+			(SELECT DEPT_NAME from sys_dept WHERE DEPT_ID = b.DEPT_ID2) AS deptName 
+		from imptable a,imptable2 b 
+		where a.ybc001=b.ybc001 
+		and b.dept_id2 = (select dept_id from sys_user where user_id = #{pd.USER_ID}) 
+		and b.POSITION=#{pd.POSITION} 
+		and b.imp003_tp = 0 
+		<if test="pd.YBC008_TP != null and pd.YBC008_TP != ''">
+		and b.YBC008_TP = #{pd.YBC008_TP}
+		</if>
+		<!-- order by b.ybc001 -->
+	</select>
+	
+	<!-- 第二次可分配数量 -->
+	<select id="getCountOfCanSecondAlt" parameterType="pd" resultType="pd" useCache="false">
+		select 
+			count(a.YBC001) as canAltSize
+		from imptable a,imptable2 b 
+		where a.ybc001=b.ybc001 
+		and b.dept_id2 = (select dept_id from sys_user where user_id = #{USER_ID}) 
+		and b.POSITION=#{POSITION} 
+		and b.imp003_tp = 0 
+		and b.YBC008_TP = #{YBC008_TP}
+		order by b.ybc001
+	</select>
+	
+	<insert id="addIMP2OfDpt" parameterType="pd" flushCache="false">
+		INSERT 
+			INTO 
+				IMPTABLE2 
+					(
+						YBC001, 
+						IMP002_TM, 
+						DEPT_ID, 
+						DEPT_LAYERORDER, 
+						USER_ID, 
+						DEPT_LAYERORDER2, 
+						DEPT_ID2,
+						USER_ID2,
+						IMP003_TP,
+						POSITION, 
+						YBC008_TP
+					) 
+		SELECT 
+						YBC001, 
+			 			now(), 
+			 			(select dept_id from sys_user where user_id = #{USER_ID}), 
+			 			#{DEPT_LAYERORDER}, 
+			 			#{USER_ID}, <!-- 分配人 -->
+			 			(select DEPT_LAYERORDER from sys_dept where dept_id = #{DEPT_ID2}), 
+			 			#{DEPT_ID2}, <!-- 被分配部门，USER_ID2可能为空但DEPT_ID2不能为空 -->
+			 			#{USER_ID2}, <!-- 被分配人员 -->
+			 			<choose>
+			                <when test="USER_ID2 != null and USER_ID2 !=''">
+			                    1, 
+			                </when>
+			                <otherwise>
+			                    0, 
+			                </otherwise>
+		            	</choose>
+			 			1, 
+			 			#{YBC008_TP}
+		FROM IMPTABLE2 
+		WHERE IMP003_TP='0' 
+		AND DEPT_ID2 = (select dept_id from sys_user where user_id = #{USER_ID})  <!-- 当前操作员的部门ID -->
+		and POSITION = #{POSITION} 
+		and YBC008_TP = #{YBC008_TP}
+		order by ybc001 
+		limit 0,#{branchNum}
+	</insert>
+	
+	<!-- 组长再往下级部门分配，非客户经理时删除之前分配的数据 -->
+	<delete id="delAltEdToHdm" parameterType="pd" flushCache="false">
+		delete from IMPTABLE2 
+		WHERE 
+			IMP001 
+				IN 
+					(
+						SELECT 
+							tt.IMP001 
+						FROM 
+							(
+								SELECT 
+									IMP001 
+								FROM IMPTABLE2 
+								WHERE IMP003_TP='0' 
+								AND DEPT_ID2 = (select dept_id from sys_user where user_id = #{USER_ID}) 
+								AND POSITION = #{POSITION} 
+								and YBC008_TP = #{YBC008_TP} 
+								ORDER BY IMP001 <!-- 按照自增主键排序，删除的还是之前选择的老数据 -->
+								LIMIT 0,#{branchNum}
+							) 
+							as tt
+					)
+	</delete>
+	
+	<insert id="addIMP2OfEmp" parameterType="pd" flushCache="false">
+		INSERT 
+			INTO 
+				IMPTABLE2 
+					(
+						YBC001, 
+						IMP002_TM, 
+						DEPT_ID, 
+						DEPT_LAYERORDER, 
+						USER_ID, 
+						DEPT_LAYERORDER2, 
+						DEPT_ID2,
+						USER_ID2,
+						IMP003_TP,
+						POSITION, 
+						YBC008_TP
+					) 
+		SELECT 
+						YBC001, 
+			 			now(), 
+			 			(select dept_id from sys_user where user_id = #{USER_ID}), 
+			 			#{DEPT_LAYERORDER}, 
+			 			#{USER_ID}, <!-- 分配人 -->
+			 			(select DEPT_LAYERORDER from sys_dept where dept_id = #{DEPT_ID2}), 
+			 			#{DEPT_ID2}, <!-- 被分配部门，USER_ID2可能为空但DEPT_ID2不能为空 -->
+			 			#{USER_ID2}, <!-- 被分配人员 -->
+			 			<choose>
+			                <when test="USER_ID2 != null and USER_ID2 !=''">
+			                    1, 
+			                </when>
+			                <otherwise>
+			                    0, 
+			                </otherwise>
+		            	</choose>
+			 			1, 
+			 			#{YBC008_TP}
+		FROM IMPTABLE2 
+		WHERE IMP003_TP='0' 
+		AND DEPT_ID2 = (select dept_id from sys_user where user_id = #{USER_ID})  <!-- 选择的部门ID -->
+		and POSITION=#{POSITION} 
+		and YBC008_TP = #{YBC008_TP}
+		order by ybc001 
+		limit 0,#{branchNum}
+	</insert>
+	
+	<!-- 批量更新分配人员 -->
+	<update id="updateIMP2ToAltEdForDpt" parameterType="pd" flushCache="false">
+		UPDATE 
+			IMPTABLE2 
+				SET 
+					IMP003_TP = 1 
+		WHERE IMP001 
+			IN 
+				(
+					SELECT 
+						tt.IMP001 
+					FROM 
+						(
+							SELECT 
+								IMP001 
+							FROM IMPTABLE2 
+							WHERE IMP003_TP='0' 
+							AND DEPT_ID2 = (select dept_id from sys_user where user_id = #{USER_ID}) 
+							AND POSITION = #{POSITION} 
+							and YBC008_TP = #{YBC008_TP} 
+							ORDER BY IMP001 
+							LIMIT 0,#{branchNum}
+						) 
+						as tt
+				)
+	</update>
+	
+	<select id="getCusIds" parameterType="pd" resultType="pd" useCache="false">
+		SELECT 
+			YBC001 
+		FROM IMPTABLE2 
+		where dept_id2 = (select dept_id from sys_user where user_id = #{USER_ID}) <!-- 当前登陆者的ID -->
+		and POSITION = #{POSITION} 
+		and imp003_tp = '0' 
+		and YBC008_TP = #{YBC008_TP}
+		order by ybc001 
+		limit 0,#{branchNum}
+	</select>
+	
+	<!-- 第二次分配到具体的某个业务员侯将信息保存到ybc -->
+	<insert id="addCus" parameterType="Map" flushCache="false">
+		INSERT 
+			INTO 
+				YBC (
+					YBC001, 
+					YBC002, 
+					YBC003, 
+					YBC004_TP, 
+					YBC005, 
+					YBC006, 
+					YBC007_TP, 
+					YBC008_TP, 
+					YBC009_TP, 
+					YBC010, 
+					YBC011, 
+					YBC012, 
+					YBC013, 
+					YBC014_TM, 
+					YBC015_TM, 
+					USER_ID, 
+					YBC016_TP, 
+					YBC017_TP, 
+					PYBC001, 
+					YBC018_TP, 
+					DEPT_LAYERORDER,
+					POSITION, 
+					YBC029,
+					YBC024, 
+					YBC026_TP, 
+					YBC031_TP, 
+					YBC033_TP
+		)
+		SELECT 	
+			 		YBC001, 
+			 		YBC002, 
+			 		YBC003, 
+			 		YBC004_TP, 
+			 		YBC005, 
+			 		YBC006, 
+			 		YBC007_TP, 
+			 		<!-- 选择大类，小类（10） -->
+					YBC008_TP, 
+			 		YBC009_TP, 
+			 		YBC010, 
+			 		YBC011, 
+			 		YBC012, 
+			 		"", 
+			 		now(), 
+			 		now(), 
+			 		#{pd.USER_ID2}, 
+			 		1, 
+			 		0, 
+			 		"", 
+			 		YBC018_TP, 
+			 		#{pd.DEPT_LAYERORDER}, 
+			 		1, 
+			 		#{pd.NAME},<!-- 当前所有者姓名 -->
+			 		0, 
+			 		0, 
+			 		0,
+			 		0
+		FROM  IMPTABLE 
+		WHERE YBC001 
+				IN 
+		  			 <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+		                  #{item.YBC001}
+		             </foreach>
+	</insert>
+	
+	<!-- 删除已经分配到客户经理的数据（从IMP2中） -->
+	<delete id="delAltEdDb" parameterType="Map" flushCache="false">
+		delete from IMPTABLE
+		where
+			YBC001 
+					IN 
+			  			 <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+			                  #{item.YBC001}
+			             </foreach>
+	</delete>
+	
+	<!-- 分配到客户经理后删除之前属于组长的待分配的数据 -->
+	<delete id="delAlledFromIMP2" parameterType="pd" flushCache="false">
+		delete from imptable2 
+		where 
+			IMP001
+				in
+					(
+						SELECT 
+							tt.IMP001 
+						FROM 
+							(
+								SELECT 
+									IMP001 
+								FROM IMPTABLE2 
+								where dept_id2 = (select dept_id from sys_user where user_id = #{USER_ID}) <!-- 当前登陆者的ID -->
+								and POSITION = #{POSITION} 
+								and imp003_tp = '0' 
+								and YBC008_TP = #{YBC008_TP}
+								order by ybc001 
+								limit 0,#{branchNum}
+							) as tt
+					)
+	</delete>
+	
+	<update id="updateIMP2ToAltEdForEmp" parameterType="pd" flushCache="false">
+		UPDATE 
+			imptable2 
+		SET imp003_tp = 1 
+		where ybc001 
+			in 
+				(
+					select 
+						tt.ybc001 
+					from 
+						(	
+							select 
+								ybc001 
+							from imptable2 
+							where dept_id2=(select dept_id from sys_user where user_id = #{USER_ID}) 
+							and POSITION = #{POSITION}  
+							and imp003_tp='0' 
+							and YBC008_TP = #{YBC008_TP}
+							order by ybc001 
+							limit 0,#{branchNum}
+						) as tt
+				)
+	</update>
+	
+</mapper>

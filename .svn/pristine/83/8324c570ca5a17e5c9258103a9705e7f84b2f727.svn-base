@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.fluxswitch.FSMapper">
+	<!-- 流程切换 -->
+
+	<!--根据贷款类型查询流程切换记录-->
+	<select id="getFluexByType" parameterType="pd" resultType="pd" useCache="false">
+		select
+			*
+		from YBC_FLUXSWITCH
+		where YBCT001 = #{YBCT001}
+	</select>
+
+	<!--更改签单最终状态-->
+	<update id="updateSignFinStatus" parameterType="pd" flushCache="false">
+		UPDATE YBC_SIGN
+		SET YBCS021_TP = #{YBCS021_TP}
+		where YBCS001 = #{YBCS001}
+	</update>
+
+	<!-- 添加流程配置 -->
+	<insert id="addFluxSwitch" parameterType="pd" flushCache="false">
+		insert
+			into
+				YBC_FLUXSWITCH
+					(
+						YBCFS001,
+						YBCFS001_TP,
+						YBCFS002_TP,
+						YBCFS003_TP,
+						YBCFS004_TM,
+						YBCT001,
+						USER_ID
+					)
+				values(
+						select REPLACE(uuid(), '-', ''),
+						#{YBCFS001_TP},
+						#{YBCFS002_TP},
+						#{YBCFS003_TP},
+						now(),
+						#{YBCT001},
+						#{USER_ID}
+					)
+	</insert>
+
+
+
+	
+</mapper>

@@ -1,0 +1,60 @@
+package com.dbsun.mapper;
+
+import com.dbsun.entity.SysUserq;
+import com.dbsun.entity.system.Menu;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+import java.util.List;
+
+
+/**
+ * 
+ *
+ */
+public interface NoticeMapper {
+
+	/**
+	 * 新增通知信息
+	 *
+	 * */
+	public int addNotice(PageData pd);
+	/**
+	 * 修改通知信息
+	 *
+	 * */
+	public int updateNotice(PageData pd);
+	/**
+	 * 获取所有待办数据
+	 *
+	 * */
+	public List<PageData> getNeedById(Page pd);
+	/**
+	 * 新增待办信息
+	 *
+	 * */
+	public int addNeed(PageData pd);
+	/**
+	 * 修改待办信息
+	 *
+	 * */
+	public int updateNeed(PageData pd);
+
+	/**
+	 * 获取所有需要通知的待办数据
+	 *
+	 * */
+	public List<PageData> getNeedByTime();
+
+	/**
+	 * 删除数据
+	 *
+	 * */
+	public int delNeedForOne(PageData pd);
+	/**
+	 * 获取所有需要通知的待办数据(具体某个员工的数据)
+	 * 传入处理类型(未处理/已处理)
+	 *
+	 * */
+	public List<PageData> getNoticeLst(PageData pd);
+}

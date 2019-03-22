@@ -1,0 +1,80 @@
+package com.dbsun.controller.msg;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.msg.MsgDimissionService;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+/**
+ * @author zhao yi
+ * @create 2018-07-12 20:48
+ * @desc 发送短信 -客户经理离职消息
+ **/
+@Controller
+@RequestMapping("/cus_msgdim")
+public class MsgDimissionController extends BaseController {
+
+    @Autowired
+    private MsgDimissionService msgDimissionService;
+
+    /***
+     * 跳转页面
+     * @return
+     */
+    @RequestMapping("/showQuitMsg")
+    public String show() {
+        return "html/system/message/quitMsg";
+    }
+
+
+    /***
+     * 获得已离职的客户经理
+     * @return
+     */
+    @RequestMapping("/getPageDimissionUsers")
+    @ResponseBody
+    public JSONObject getPageDimissionUsers() {
+        Page page = this.getPage();
+        PageData pd = this.getPageData();
+        page.setPd(this.putUserPd(pd));
+        return this.viewReturnPageData(page, msgDimissionService.getPageDimissionUsers(page));
+    }
+
+
+    /***
+     * 根据部门查询离职客户经理
+     * @param DEPT_ID
+     * @return
+     */
+    @RequestMapping("/getDeptAllDimissionUserLst")
+    @ResponseBody
+    public JSONObject getDeptAllDimissionUserLst() {
+        PageData pd = this.getPageData();
+        return getSucJson(msgDimissionService.getDeptAllDimissionUserLst(pd));
+    }
+
+
+    /***
+     * 发送短信
+     * @param   USER_ID
+     * @return
+     */
+    @RequestMapping("/sendMsg")
+    @ResponseBody
+    public JSONObject sendMsg() {
+        PageData pd = this.getPageData();
+        try {
+            return this.getAddOrUpdJson(msgDimissionService.sendMsg(pd));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return this.getFalJson();
+        }
+    }
+
+
+}

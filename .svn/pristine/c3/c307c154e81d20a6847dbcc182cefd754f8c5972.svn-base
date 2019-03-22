@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.TtttMapper">
+	
+	<select id="getLst" parameterType="String" resultType="Integer">
+		SELECT 
+			count(*)
+		FROM tttt l
+	</select>
+	
+	<select id="addLst1" parameterType="String" resultType="Integer">
+		SELECT 
+			count(*)
+		FROM tttt l
+	</select>
+	
+	<insert id="addLst" parameterType="Tttt">
+		insert into tttt (
+			a, b
+		) values(
+			#{a}, #{b} 
+		);
+	</insert>
+</mapper>

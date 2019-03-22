@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.background.BacSingleMapper">
+	<!-- 待做单 -->
+
+	<select id="getPageWtSingleLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			b.*, 
+			c.YBC003, 
+			c.YBC002, 
+			s.YBCS017, 
+			s.YBCS007, 
+			s.YBCS010, 
+			s.YBCS053_TM, 
+			s.YBCS054_TM, <!-- 分配到做单员的时间 -->
+			(select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName<!-- 产品类型名称 -->
+			 
+		from ybc_branch2 b, ybc_sign s, ybc c
+		where b.ybcs001 = s.ybcs001 
+		and s.ybc001 = c.ybc001 
+		and b.YBCBR009_TM is not null <!-- 组长分配到员工的时间不为空，不用YBCS053_TM（有撤销等操作难以维护） -->
+		and b.YBCBR010_TM is null <!-- 显示没有做过单的客户  -->
+	<!-- 权限 start -->
+		and (
+				(
+					b.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+					and 
+					b.POSITION	= #{pd.POSITION}
+				)<!-- 主管 -->
+				or
+				b.USER_ID = #{pd.USER_ID} <!-- 当前登录者=被分配人 --> 
+		)
+	<!-- 权限 end -->
+	<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+			and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+		</if>
+		<if test="pd.YBC003 != null and pd.YBC003 != ''">
+			and c.YBC003 like concat_ws(#{pd.YBC003}, "%", "%")
+		</if>
+		<if test="pd.YBCS017 != null and pd.YBCS017 != ''"><!-- 合同编号 -->
+			and s.YBCS017 like concat_ws(#{pd.YBCS017}, "%", "%")
+		</if>
+		<if test="pd.YBCS038 != null and pd.YBCS038 != ''"><!-- 签单客户经理 -->
+			and s.YBCS038 like concat_ws(#{pd.YBCS038}, "%", "%")
+		</if>
+		<if test="pd.signTmStart != null and pd.signTmStart != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[>=]]> #{pd.signTmStart} 
+		</if>
+		<if test="pd.signTmEnd != null and pd.signTmEnd != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[<=]]> #{pd.signTmEnd} 
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and 
+				(
+					s.USER_ID = #{pd.USER_ID_Sea} <!-- 签单客户 -->
+					or 
+					b.USER_ID = #{pd.USER_ID_Sea} <!-- 做单客户 -->
+				) 
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and 
+				(
+					s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+					or
+					b.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") <!-- 做单客户 -->
+				)
+		</if>
+	<!-- 搜索 end -->
+	
+		order by s.YBCS054_TM desc<!-- 分配到做单员的时间 -->
+	</select>
+	
+	<insert id="addSingle" parameterType="pd" flushCache="false">
+		insert 
+			into 
+				ybc_match 
+					(
+						YBCMA001,
+						YBC001,
+						YBTL001,
+						YBCBR002,
+						USER_ID, 
+						YBCMA041, <!-- 做单员姓名 -->
+						YBCMA003_TM,
+						YBCMA004,
+						DEPT_LAYERORDER,
+						POSITION,
+						YBCMA006,
+						YBCS001, 
+						YBCMA005_TP, 
+						DEPT_LAYERORDER2, 
+						POSITION2, 
+						USER_ID2, <!-- 签单人员ID，用于任务统计，数据都从match表获取 -->
+						YBCMA044 <!-- 签单人员姓名 -->
+					)
+				values
+					(
+						#{YBCMA001},
+						#{YBC001},
+						#{YBTL001},
+						#{YBCBR002},<!-- 客户姓名 -->
+						#{USER_ID},
+						(select name from sys_user where user_id = #{USER_ID}), <!-- 做单员姓名 -->
+						now(),
+						#{YBCMA004},<!-- 备注 -->
+						#{DEPT_LAYERORDER},
+						1,
+						#{YBCMA006},<!-- 进度备注 -->
+						#{YBCS001}, 
+						1,<!-- 产品跟进状态默认为已收件 -->
+						(select DEPT_LAYERORDER from ybc_sign where YBCS001 = #{YBCS001}), <!-- 将签单表的DEPT_LAYERORDER转移到做单表 -->
+						1, 
+						(select USER_ID from ybc_sign where YBCS001 = #{YBCS001}), 
+						(select YBCS038 from ybc_sign where YBCS001 = #{YBCS001})
+					)
+	</insert>
+	
+	<!-- 做单回写分配表做单时间 -->
+	<update id="updateAllotOfSgl" parameterType="pd" flushCache="false">
+		update	
+			ybc_branch2
+				set
+					YBCBR010_TM		= now()
+				where 
+					YBCBR001		= #{YBCBR001}
+	</update>
+	
+</mapper>

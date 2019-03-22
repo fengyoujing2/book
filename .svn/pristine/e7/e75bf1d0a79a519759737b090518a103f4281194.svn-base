@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>奖励规则</title>
+	<link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">  
+    <style>
+        a:hover{
+            text-decoration: none;
+        }
+
+        a:visited{
+            text-decoration: none;
+        }
+
+        a:active{
+            text-decoration: none;
+        }
+
+        .yangshi{
+            display: block;
+            padding: 3px 20px;
+            clear: both;
+            font-weight: 400;
+            line-height: 1.42857143;
+            color: #333;
+            white-space: nowrap;
+        }
+
+    </style>
+
+</head>
+<body style="background:white">
+
+
+
+<div class="container-fluid jianju"  id="contain" >
+
+
+    <div class="row"  style="margin-top: 25px">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 0">
+            <div style="padding: 15px;border: 1px solid white;width: 100%;border-radius: 10px;background: #ffffff;box-shadow: 0px 1px 9px #ecd1c2;padding-top: 0;padding-bottom: 0">
+                <div style="width: 100%;background: white;padding-top: 15px;border-bottom: 1px solid #D2D2D2;padding-bottom: 10px">
+                    <div style="display:inline-block;vertical-align: middle">
+                        <div style="width: 30px;height: 30px;vertical-align: middle;display: inline-block;background:url('../static/img/jiangliguize2_03.png');background-size: 100%;background-position-y: -10px;background-position-x: 0px;"></div>
+                        <span style="font-weight: bold;font-size: 15px">如何获得积分</span>
+                    </div>
+                </div>
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left" style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            	<span>注册成功</span><span style="float: right;">+50</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left" style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            <span>完善资料并提交审核</span><span style="float: right;">+50</span>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left" style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                           <span> 按时还款并结清贷款</span><span style="float: right;">+100</span>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;border-bottom: 1px solid #D2D2D2;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left" style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                           <span>邀请好友注册成功</span><span style="float: right;">+100</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left  " style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            <span>连续签到（7天为一周期，中断重新计算）</span><span style="float: right;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left" style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                           <span>第1天</span><span style="float: right;">+10</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left" style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            <span>第2天</span><span style="float: right;">+15</span>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left" style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            <span>第3天</span><span style="float: right;">+20</span>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left" style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            <span>第4天</span><span style="float: right;">+25</span>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left" style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            <span>第5天</span><span style="float: right;">+30</span>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left" style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            <span>第6天</span><span style="float: right;">+35</span>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left" style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            <span>第7天</span><span style="float: right;">+40</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 0">
+            <div style="padding: 15px;border: 1px solid white;width: 100%;border-radius: 10px;background: #ffffff;box-shadow: 0px 1px 9px #ecd1c2;padding-top: 0;padding-bottom: 0">
+
+                <div style="width: 100%;background: white;padding-top: 15px;border-bottom: 1px solid #D2D2D2;padding-bottom: 10px">
+                    <div style="display:inline-block;vertical-align: middle">
+                        <div style="width: 30px;height: 30px;vertical-align: middle;display: inline-block;background:url('../static/img/jiangliguize2_03.png');background-size: 100%;background-position-y: -64px;background-position-x: 0px;"></div>
+                        <span style="font-weight: bold;font-size: 15px">如何使用积分</span>
+                    </div>
+                </div>
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left  " style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            1.积分可用于兑换贷款额度，1积分=1元额度。
+                        </div>
+                    </div>
+                </div>
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left  " style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            2.额度兑换为单次贷款临时额度，单次贷款额度= 积分兑换额度+原有额度。最高可用积分兑换1000额度。
+                        </div>
+                    </div>
+                </div>
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-left  " style="padding: 10px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            3.单次贷款完成后，回复原有额度，需要增加额度仍可用 您的可用积分兑换。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html>

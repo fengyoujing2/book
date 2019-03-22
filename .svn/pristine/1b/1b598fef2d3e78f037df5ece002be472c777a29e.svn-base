@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dbsun.mapper.msg.MsgDimissionMapper">
+
+
+    <!--获得已离职的客户经理-->
+    <select id="getPageDimissionUsers" parameterType="page" resultType="com.dbsun.entity.system.PageData">
+        SELECT
+        ( SELECT DEPT_NAME FROM sys_dept WHERE DEPT_LAYERORDER = u.DEPT_LAYERORDER) DEPT_NAME ,
+        u.`NAME`,
+        u.`USER_ID`,
+        <!--group_concat(distinct s.`YBC001`)as YBC001s,-->
+        (LENGTH(GROUP_CONCAT(DISTINCT s.`YBC001`)) - LENGTH(REPLACE(GROUP_CONCAT(DISTINCT s.`YBC001`), ',', '')) + 1 )AS YBC_SUM
+        FROM sys_user u JOIN ybc_sign s ON s.`USER_ID` = u.`USER_ID`
+        WHERE u.`STATUS`= '1'
+
+        <if test="pd.NAME != null">
+            AND u.NAME like concat(#{pd.NAME},'%')
+        </if>
+        <if test="pd.DEPT_LAYERORDER_Sea == null">
+            AND u.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER},'%')
+        </if>
+        <if test="pd.DEPT_LAYERORDER_Sea != null">
+            AND u.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea},'%')
+        </if>
+        <if test="pd.USER_ID_Sea != null"> <!--客户经理-->
+            AND u.USER_ID=#{pd.USER_ID_Sea}
+        </if>
+
+        GROUP BY s.`USER_ID`
+        order by u.DEPT_LAYERORDER
+    </select>
+
+    <!--查询电话集合 签单号接-->
+    <select id="getPhonesAndSignatures" resultType="com.dbsun.entity.system.PageData">
+        SELECT
+        c.`YBC003`, <!--手机号码-->
+        (SELECT `NAME` FROM sys_user WHERE USER_ID= s.USER_ID) AS `NAME`
+        FROM sys_user u
+        JOIN ybc_sign s ON u.`USER_ID` = s.`USER_ID`
+        JOIN ybc c ON c.`YBC001` = s.`YBC001`
+        WHERE
+        u.`STATUS`= '1' <!--已禁用-->
+        AND s.`USER_ID` =#{USER_ID}
+        <!--按造客户 客户,客户经理分组-->
+        GROUP BY c.`YBC001`
+    </select>
+    <!--根据部门查询离职用户-->
+    <select id="getDeptAllDimissionUserLst" resultType="com.dbsun.entity.system.PageData">
+        select
+        u.USER_ID value,
+        u.NAME label,
+        u.LEV LEV
+        from
+        SYS_USER u
+        where dept_id = #{DEPT_ID}
+        and STATUS = '1'
+    </select>
+
+
+</mapper>

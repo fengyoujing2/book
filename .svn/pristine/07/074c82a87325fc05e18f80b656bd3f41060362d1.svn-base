@@ -1,0 +1,12 @@
+package com.dbsun.mapper.background;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface BacLendingMapper {
+	
+	public List<PageData> getPageWtLendingLst(Page page);
+	public int updateForAdLending(PageData pd);
+}

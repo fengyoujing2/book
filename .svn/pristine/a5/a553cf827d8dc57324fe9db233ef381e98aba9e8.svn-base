@@ -1,0 +1,69 @@
+package com.dbsun.service.customer;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.customer.CusDoorMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.FollowUtil;
+
+@Service
+public class CusDoorService extends BaseService {
+
+	@Autowired
+	private CusDoorMapper doorMapper;
+	
+	public int addDoor(PageData pd, PageData userPd) {
+		pd.put("YBCD001", this.get32UUID());
+		//获取当前的用户信息
+		pd.put("YBCD007", userPd.get("NAME"));
+		int res = doorMapper.addDoor(pd);
+		return res;
+	}
+	
+	public int addDoorPlu(PageData pd, PageData userPd) {
+		int ret = 0;
+		try {
+			addDoor(pd, userPd);
+			this.addCusFlw(userPd, FollowUtil.CUS_ADD_DOOR_STR, FollowUtil.CUS_ADD_DOOR_CODE, pd.getString("YBC001"));
+			this.updateCusFlw(userPd, FollowUtil.CUS_ADD_DOOR_STR, pd.getString("YBC001"));
+		
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		return ret;
+	}
+	
+	public List<PageData> getDoorsByYbc001(PageData pd){
+		return doorMapper.getDoorsByYbc001(pd);
+	}
+	
+	public PageData getDoorById(PageData pd){
+		return doorMapper.getDoorById(pd);
+	}
+
+	public int updateDoor(PageData pd){
+		return doorMapper.updateDoor(pd);
+	}
+	
+	public int updateDoorPlu(PageData pd, PageData userPd){
+		int ret= 0;
+		try {
+			updateDoor(pd);
+			this.addCusFlw(userPd, FollowUtil.CUS_UPDATE_DOOR_STR, FollowUtil.CUS_UPDATE_DOOR_CODE, pd.getString("YBC001"));
+			this.updateCusFlw(userPd, FollowUtil.CUS_UPDATE_DOOR_STR, pd.getString("YBC001"));
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+}

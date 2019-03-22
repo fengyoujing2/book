@@ -1,0 +1,70 @@
+package com.dbsun.service.background;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.background.BacConfMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.service.finance.FinNumService;
+import com.dbsun.util.FollowUtil;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+public class BacConfService extends BaseService {
+
+    @Autowired
+    private BacConfMapper bacConfMapper;
+    @Autowired
+    private FinNumService finNumService;
+
+    public List<PageData> getPageConfLst(Page page) {
+        return bacConfMapper.getPageConfLst(page);
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED)
+    public int updateForConfSingle(PageData pd) throws NullPointerException, Exception {
+        int ret = 0;
+
+        try {
+            bacConfMapper.updateForConfSingle(pd);
+            //添加-不能做单-跟进记录
+            if (pd.containsKey("YBCS014_TP") && StringUtils.isNotBlank(pd.getString("YBCS014_TP")) && pd.getString("YBCS014_TP").equals("2")) {
+                String ybcs044 = pd.getString("YBCS044");
+                ybcs044 = StringUtils.isNotBlank(ybcs044) ? FollowUtil.CUS_WTRCPT_STR + " 理由: " + pd.getString("YBCS044") : FollowUtil.CUS_WTRCPT_STR;
+                this.addCusFlw(pd, ybcs044, FollowUtil.CUS_WTRCPT, pd.getString("YBC001"));
+                ret = 1;
+                return ret;
+            }
+
+
+            try {
+                //瑞信公司 自动生成财务编号 2018.06.20 新增需求 原财务编号功能,自动编号
+                final String WD_YBCS009_TP = "WD";//网贷
+                //1.获得 产品前缀
+                PageData pdPrefix = finNumService.getGeneratedFinNum(pd);
+                if (pd.getString("YBCS014_TP").equals("1") && pdPrefix != null &&  WD_YBCS009_TP.equals(pdPrefix.getString("YBCT008"))) {
+                    //1.获得财务编号
+                    final String num = finNumService.getFinancialNumber(pd);
+                    pd.put("YBCS007", num);
+                    //2.添加 签单编号
+                    finNumService.updateFinNum(pd);
+                }
+
+                ret = 1;
+            } catch (NullPointerException e) {
+                throw new NullPointerException("YBCT008 空指针异常");
+            }
+        } catch (Exception e) {
+            throw new Exception();
+        }
+        return ret;
+    }
+
+
+}

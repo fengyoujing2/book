@@ -1,0 +1,17 @@
+package com.dbsun.mapper.importallot;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+
+public interface ImpAllotFirstMapper {
+	
+	public List<PageData> getPageCanFirstAltLst(Page page);
+	public int updateImpToAltEd(PageData pd);
+	public int addIMP2(PageData pd);
+	public int addCus(PageData pd);
+	public PageData getCountOfCanFirstAlt(PageData pd);
+	public int delAltEdDb(PageData pd);
+}

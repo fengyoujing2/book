@@ -1,0 +1,291 @@
+package com.dbsun.service.statistics;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.product.ProdectMapper;
+import com.dbsun.mapper.statistics.StatisticsMapper;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class StatisticsService {
+    /**
+     * 获取产品类型
+     */
+    @Autowired
+    private StatisticsMapper statisticsMapper;
+    @Autowired
+    private ProdectMapper prodectMapper;
+
+    /**
+     * 获取签单明细
+     */
+    public List<PageData> getChartSignLst(Page pd) {
+        List<PageData> pdaLst = statisticsMapper.getPageChartSign(pd);
+        return pdaLst;
+    }
+
+    /**
+     * 获取签单当月签单总数
+     */
+    public PageData getChartSignMonthCont(PageData pd) {
+        PageData pda = statisticsMapper.getChartSignMonthSum(pd);
+        return pda;
+    }
+
+    /**
+     * 获取退单明细
+     */
+    public List<PageData> getChartBackSignLst(Page pd) {
+        List<PageData> pdaLst = statisticsMapper.getPageChartBackSign(pd);
+        return pdaLst;
+    }
+
+    /**
+     * 获取退单当月总数
+     */
+    public PageData getChartBackSignMonthCont(PageData pd) {
+        PageData pda = statisticsMapper.getChartBackSignMonthSum(pd);
+        return pda;
+    }
+
+    /**
+     * 获取过件明细
+     */
+    public List<PageData> getChartPieceLst(Page pd) {
+        List<PageData> pdaLst = statisticsMapper.getPageChartPiece(pd);
+        return pdaLst;
+    }
+
+    /**
+     * 获取过件相关总数
+     */
+    public PageData getChartPieceAllCont(PageData pd) {
+        PageData pda = new PageData();
+        //获取过件总金额
+        //获取放贷总金额
+        pda.putAll(statisticsMapper.getChartPieceAllSum(pd));
+        //获取本月过件总数量
+        //获取本月过件金额
+        //获取本月放贷金额
+        pda.putAll(statisticsMapper.getChartPieceMonthSum(pd));
+        return pda;
+    }
+
+    /**
+     * 获取放贷明细
+     */
+    public List<PageData> getChartLendLst(Page pd) {
+        List<PageData> pdaLst = statisticsMapper.getPageChartLending(pd);
+        return pdaLst;
+    }
+
+    /**
+     * 获取放贷相关总数
+     */
+    public PageData getChartLendAllCont(PageData pd) {
+        PageData pda = new PageData();
+        //获取放贷总金额
+        pda.putAll(statisticsMapper.getChartLendAllSum(pd));
+        //获取本月放贷总数量
+        //获取本月放贷金额
+        pda.putAll(statisticsMapper.getChartLendMonthSum(pd));
+        return pda;
+    }
+//****------------------------------------------------------------------财务统计--------------------------********//
+
+    /**
+     * 获取收款明细表
+     */
+    public List<PageData> getChartReceivablesLst(Page pd) {
+        List<PageData> pdaLst = statisticsMapper.getPageChartReceivables(pd);
+        return pdaLst;
+    }
+
+    /**
+     * 获取网贷收款明细表
+     */
+    public List<PageData> getNetChartReceivablesLst(Page pd) {
+        List<PageData> pdaLst = statisticsMapper.getPageChartNetReceivables(pd);
+        return pdaLst;
+    }
+
+    /**
+     * 获取渠道收款明细表
+     */
+    public List<PageData> getChartChannelReceivablesLst(Page pd) {
+        List<PageData> pdaLst = statisticsMapper.getPageChartChannelReceivables(pd);
+        return pdaLst;
+    }
+
+    /**
+     * 获取已结账明细表
+     */
+    public List<PageData> getChartCheckoutReceivablesLst(Page pd) {
+        List<PageData> pdaLst = statisticsMapper.getPageChartCheckoutReceivables(pd);
+        return pdaLst;
+    }
+
+    /**
+     * 获取指定负责人下的产品信息 2018-5-7 新增需求
+     */
+    public PageData getProductByYBCT004ForLst(PageData pd) {
+        //判定当前操作人员是否有负责的产品
+        PageData pda = prodectMapper.getProductByYBCT004ForLst(pd);
+        return pda;
+    }
+
+    /***
+     * 后台用户上传数据来源-汇总信息
+     * @Desc 2018.05.11
+     */
+    public PageData getUploadTheSourceSum(PageData pd) {
+        PageData sumAll = statisticsMapper.getUploadTheSourceSum(pd);
+        return sumAll;
+    }
+
+    /***
+     *新增需求
+     *后台用户 导入客户数据来源-汇总明细
+     * @Desc 2018.06.15
+     */
+    public List<PageData> getPageUploadTheSourceList(Page page) {
+        final PageData pd = page.getPd();
+        final String state = pd.getString("STATE");
+        if (state == null) return null;
+        List<PageData> dataList = null;
+        if (state.equals("0") || state.equals("1") || state.equals("2")) {
+            dataList = statisticsMapper.getPageUploadTheSourceListByYBC008TP(page);
+        }
+        if (state.equals("3")) {
+            dataList = statisticsMapper.getPageUploadTheSourceListBySign(page);
+        }
+        if (state.equals("4")) {
+            dataList = statisticsMapper.getPageUploadTheSourceListByLending(page);
+        }
+        return dataList;
+    }
+
+
+    /***
+     *后台用户 签单汇总
+     *所有签单汇总,无效单(门拒不要,退单,不能做单),有效单(已放贷,已收款,已结账)
+     *@参数: YBCS009_TP 贷款类型(房贷/信贷/网贷..)
+     * @Desc 2018.05.11
+     */
+    public JSONObject getChartSignByNormalSum(PageData pd) {
+
+        String ybcs009_tp = pd.getString("YBCS009_TP");//贷款类型
+        switch (ybcs009_tp) {
+            case "1"://房贷
+                ybcs009_tp = "b1251ef4b74c4046966dc2125e6513ee";
+                break;
+            case "2"://信贷
+                ybcs009_tp = "bb6718447a5a4db596417d5f8b621046";
+                break;
+            case "3"://网贷
+                ybcs009_tp = "15d5af3b1ffd4e7e8f23968bd6280e3b";
+                break;
+        }
+        pd.put("YBCS009_TP", ybcs009_tp);
+
+        PageData sumAll = statisticsMapper.getChartSignByNormalSumAll(pd);
+        PageData isFlag = statisticsMapper.getChartSignByNormalSumByFlag(pd);
+        long isTrue = (Long) sumAll.get("sumAll") - (Long) isFlag.get("isFlag");
+        PageData true_lendingSum = statisticsMapper.getChartSignByNormalSumByLending(pd);
+        PageData true_closedAccountSum = statisticsMapper.getChartSignByNormalSumByClosedAccount(pd);
+
+        JSONObject job = new JSONObject();
+        job.put("sumAll", sumAll.get("sumAll"));//所有单
+        job.put("isFlag", isFlag.get("isFlag"));//异常单
+        job.put("isTrue", isTrue);//正常单
+        job.put("true_lendingSum", true_lendingSum.get("true_lendingSum"));//放贷
+        job.put("true_closedAccountSum", true_closedAccountSum.get("true_closedAccountSum"));//已结账
+
+
+        return job;
+    }
+
+    /***
+     *后台用户 签单明细列表
+     *所有签单明细
+     * @参数:
+     *  STATU  1.有效单 2.无效单  有效单:3.已放贷 4已结账 ;
+     * YBCS009_TP 贷款类型(房贷/信贷/网贷..)
+     *@Desc 2018.05.11
+     */
+    public List<PageData> getPageChartSignByNormal(Page pd) {
+        List<PageData> pdaLst = null;
+
+
+        String ybcs009_tp = pd.getPd().getString("YBCS009_TP");//贷款类型
+        switch (ybcs009_tp) {
+            case "1"://房贷
+                ybcs009_tp = "b1251ef4b74c4046966dc2125e6513ee";
+                break;
+            case "2"://信贷
+                ybcs009_tp = "bb6718447a5a4db596417d5f8b621046";
+                break;
+            case "3"://网贷
+                ybcs009_tp = "15d5af3b1ffd4e7e8f23968bd6280e3b";
+                break;
+        }
+        pd.getPd().put("YBCS009_TP", ybcs009_tp);
+
+
+        String statu = pd.getPd().getString("STATU");
+        int temp = 0;
+        if (statu != null) {
+            temp = Integer.parseInt(statu);
+        }
+        //1.有效单 2.无效单  有效单:3.已放贷 4已结账
+        switch (temp) {
+            case 1:
+                pdaLst = statisticsMapper.getPageChartSignByNormalBySingle(pd);
+                break;
+            case 2:
+                pdaLst = statisticsMapper.getPageChartSignByNormalBySingle(pd);
+                break;
+            case 3:
+                pdaLst = statisticsMapper.getPageChartSignByNormal(pd);//已放贷
+                break;
+            case 4:
+                pdaLst = statisticsMapper.getPageChartSignByNormalIsClosedAccount(pd);//已结账
+                break;
+            default:
+                pdaLst = statisticsMapper.getPageChartSignByNormalBySingle(pd);
+        }
+
+        return pdaLst;
+    }
+
+    /**********************************************营销X中心 数据报表********************************************/
+
+    /**
+     * 营销X中心日数据报表
+     *
+     * @Author: zhao yi
+     * @Date : 2018/6/27 15:27
+     * @Param : []
+     * @return: net.sf.json.JSONObject
+     */
+    public List<PageData> marketingCenterStatisticReport(PageData pd) {
+        List<PageData> list = statisticsMapper.marketingCenterStatisticReport(pd);
+        return list;
+    }
+
+    /**
+     * 营销X中心 周数据报表
+     *
+     * @Author: zhao yi
+     * @Date : 2018/6/28 14:30
+     * @Param : []
+     * @return: net.sf.json.JSONObject
+     */
+    public List<PageData> weeklyReportOfMarketingCenter(PageData pd) {
+        return statisticsMapper.weeklyReportOfMarketingCenter(pd);
+    }
+}

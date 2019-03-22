@@ -1,0 +1,22 @@
+package com.dbsun.service.stm;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.stm.SysDeptMapper;
+
+@Service
+public class SysDeptService {
+
+	@Autowired
+	private SysDeptMapper sysDeptMapper;
+	
+	public PageData getUserIdByDLR(PageData pd){
+		return sysDeptMapper.getUserIdByDLR(pd);
+	}
+	
+	public PageData getLeaderByDeptId(PageData pd){
+		return sysDeptMapper.getLeaderByDeptId(pd);
+	}
+}

@@ -1,0 +1,45 @@
+package com.dbsun.controller.system;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.dbsun.base.BaseController;
+
+/**
+ * 消息中心
+ * 
+ * @author DongZai
+ * 
+ */
+@Controller
+@RequestMapping("/wx_msg")
+public class MessageController extends BaseController {
+
+	/**去我的消息页面*/
+	@RequestMapping("/goMyMsg")
+	public String goMyMsg(Model model) {
+		return wxReturnvalidataPage("/html/wechat/message/wodexiaoxi");
+	}
+	
+	/**去消息中心页面*/
+	@RequestMapping("/goMsgCenter")
+	public String goMsgCenter(Model model) {
+		return wxReturnvalidataPage("/html/wechat/message/xiaoxizhongxin");
+	}
+	
+	/**去系统公告页面*/
+	@RequestMapping("/goSysNotice")
+	public String goSysNotice(Model model) {
+		return wxReturnvalidataPage("/html/wechat/message/xitonggonggao");
+	}
+	
+	/**去最新活动页面*/
+	@RequestMapping("/goNewAct")
+	public String goNewAct(Model model) {
+		return wxReturnvalidataPage("/html/wechat/message/zuixinhuodong");
+	}
+	
+	
+	
+}

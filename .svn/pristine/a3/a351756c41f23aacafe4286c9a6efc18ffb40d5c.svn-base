@@ -1,0 +1,25 @@
+package com.dbsun.mapper;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+/**
+ * crm系统方法入口
+ * @author DongZai
+ *
+ */
+public interface CrmMapper {
+	
+	
+	/**
+	 * 获取用户
+	 * 传入电话号码 YBC003
+	 * @return name
+	 * time
+	 * state
+	 * */
+	public List<PageData> getCrmData(PageData pd);
+	
+}

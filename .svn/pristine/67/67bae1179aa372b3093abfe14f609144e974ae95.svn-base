@@ -1,0 +1,47 @@
+package com.dbsun.service.customer;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.customer.CusSignMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.FollowUtil;
+
+@Service
+public class CusSignService extends BaseService {
+
+	@Autowired
+	private CusSignMapper signMapper;
+	
+	public List<PageData> getSignsByYBC001(PageData pd){
+		return signMapper.getSignsByYBC001(pd);
+	}
+	
+	public PageData getSignByYBCS001(PageData pd){
+		return signMapper.getSignByYBCS001(pd);
+	}
+	
+	public int addSign(PageData pd, PageData userPd){
+		pd.put("YBCS001", this.get32UUID());
+		return signMapper.addSign(pd);
+	}
+	
+	public int addSignPlu(PageData pd, PageData userPd){
+		int ret = 0;
+		try {
+			addSign(pd, userPd);
+			this.addCusFlw(userPd, FollowUtil.CUS_ADD_SIGN_STR, FollowUtil.CUS_ADD_SIGN_CODE, pd.getString("YBC001"));
+			this.updateCusFlw(userPd, FollowUtil.CUS_ADD_SIGN_STR, pd.getString("YBC001"));
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+
+}

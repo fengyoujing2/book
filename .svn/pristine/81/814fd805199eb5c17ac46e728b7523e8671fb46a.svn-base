@@ -1,0 +1,69 @@
+package com.dbsun.service.msg;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.msg.MsgDimissionMapper;
+import com.dbsun.util.JuheSmsPushUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author zhao yi
+ * @create 2018-07-12 20:52
+ * @desc
+ **/
+@Service
+public class MsgDimissionService {
+
+    @Autowired
+    private MsgDimissionMapper msgDimissionMapper;
+
+    /**
+     * 获得已离职的客户经理
+     * 查看离职客户经理下的,所有已经结账的客户信息
+     *
+     * @param page
+     * @return
+     */
+    public List<PageData> getPageDimissionUsers(Page page) {
+        return msgDimissionMapper.getPageDimissionUsers(page);
+    }
+
+
+    /***
+     *  发送短信
+     * @param pd ybc003s 手机号码集合
+     * @return
+     * @Desc 查询离职客服经理, 已结账 下的所有客户电话, 遍历发送短信,如果发送成功,更新短信发送状态
+     */
+    public int sendMsg(PageData pd) throws Exception {
+        int rs = 0;
+        try {
+            List<PageData> data = msgDimissionMapper.getPhonesAndSignatures(pd);//USER_ID
+            if (data == null || data.size() == 0) return 0;
+            //遍历 所用的客户,发送短信接口
+            for (PageData user : data) {
+                Map map = JuheSmsPushUtil.sendDimissionMsgCus(user.getString("YBC003"), user.getString("NAME"));
+                if ("0".equals(map.get("code").toString())) rs++;
+            }
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception();
+        }
+        return rs;
+    }
+
+    /***
+     * 根据部门查询离职客户经理
+     * @param pd DEPT_ID
+     * @return
+     */
+    public List<PageData> getDeptAllDimissionUserLst(PageData pd) {
+        return msgDimissionMapper.getDeptAllDimissionUserLst(pd);
+    }
+}

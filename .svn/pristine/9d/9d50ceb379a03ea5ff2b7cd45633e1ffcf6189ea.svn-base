@@ -1,0 +1,25 @@
+package com.dbsun.service.homepage;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.homepage.HmPRankingListMapper;
+
+@Service
+public class HmPRankingListService {
+
+	@Autowired
+	private HmPRankingListMapper hmPRankingListMapper;
+	
+	public List<PageData> getRankForSign(PageData pd){
+		return hmPRankingListMapper.getRankForSign(pd);
+	}
+	
+	public List<PageData> getRankForAchi(PageData pd){
+		return hmPRankingListMapper.getRankForAchi(pd);
+	}
+	
+}

@@ -1,0 +1,52 @@
+package com.dbsun.service.customer;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.customer.CusFollowMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.FollowUtil;
+
+@Service
+public class CusFollowService extends BaseService {
+
+	@Autowired
+	private CusFollowMapper followMapper;
+	
+	public int addFollow(PageData pd) {
+		//获取当前的用户信息
+		pd.put("YBCF001", this.get32UUID());
+		int res = 0;
+		try {
+			res = followMapper.addFollow(pd);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+	
+	public int addFollowPlu(PageData pd, PageData userPd) {
+		int ret = 0;
+		try {
+			addFollow(pd);
+			//添加跟进记录时系统不需要再添加
+			//this.addCusFlw(userPd, FollowUtil.CUS_ADD_FOLLOW__STR, FollowUtil.CUS_ADD_FOLLOW_CODE, pd.getString("YBC001"));
+			//跟新客户表的跟进记录
+			this.updateCusFlw(userPd, FollowUtil.CUS_ADD_FOLLOW__STR, pd.getString("YBC001"));
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+	public List<PageData> getFollowsByYbc001(PageData pd){
+		return followMapper.getFollowsByYbc001(pd);
+	}
+	
+
+}

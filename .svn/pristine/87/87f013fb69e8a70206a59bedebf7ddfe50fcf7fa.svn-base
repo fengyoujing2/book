@@ -1,0 +1,39 @@
+package com.dbsun.mapper;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+import java.util.List;
+
+
+/**
+ * 
+ *
+ */
+public interface SysImpMapper {
+
+
+	/**
+	 * 导入文件快速写入临时表
+	 *
+	 * */
+	public void addImp(String  impFilePath);
+
+	/**
+	 * 清空导入表数据
+	 *
+	 * */
+	public int delImp(PageData pd);
+
+	/**
+	 * 根据写入的临时表直接插入有效的名单数据进入导入分配的正式表
+	 * 返回成功的数据
+	 * */
+	public int addTmpTable(PageData pd);
+
+	/**
+	 * 清空导入表数据
+	 *
+	 * */
+	public int updateImpYbc003(PageData pd);
+}

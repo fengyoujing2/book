@@ -1,0 +1,69 @@
+package com.dbsun.service.finance;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.finance.FinNumMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+public class FinNumService {
+
+    @Autowired
+    private FinNumMapper finNumMapper;
+
+
+    public List<PageData> getPageConfNumLst(Page page) {
+        return finNumMapper.getPageConfNumLst(page);
+    }
+
+    public int updateFinNum(PageData pd) {
+        return finNumMapper.updateFinNum(pd);
+    }
+
+
+    /**
+     * 瑞信公司
+     * 生成财务编号
+     *
+     * @Author: zhao yi
+     * @Date : 2018/6/20 14:26
+     * @Param : 产品id YBCS009_TP  签单DEPT_LAYERORDER
+     * @return: com.dbsun.entity.system.PageData
+     * 例 PREFIX_TYPE + PREFIX_DEPT FD + 1
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED)
+    public String getFinancialNumber(PageData pd) {
+        //1.获得 产品前缀
+        PageData pdPrefix = getGeneratedFinNum(pd);
+
+        //2.获得编号 拆分取数值 进行累加 +1   根据前缀查询
+        PageData pdNum = null;
+        synchronized (this) {
+            pdNum = finNumMapper.getFinNumByPrefix(pdPrefix);
+        }
+
+        //3.组装
+        //前缀 FD1-  贷款类型前缀 + 部门中心前缀 +编号
+        StringBuilder rs = new StringBuilder(pdPrefix.getString("YBCT008")).append(pdNum.getString("num"));
+        return rs.toString();
+
+
+    }
+
+    /***
+     * 产品前缀
+     * @param pd
+     * @return
+     */
+    public PageData getGeneratedFinNum(PageData pd) {
+        return finNumMapper.getGeneratedFinNum(pd);
+    }
+
+
+}

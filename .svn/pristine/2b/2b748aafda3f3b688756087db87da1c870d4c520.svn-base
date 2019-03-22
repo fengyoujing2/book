@@ -1,0 +1,18 @@
+package com.dbsun.mapper.customer;
+
+import java.util.List;
+import java.util.Map;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+@SuppressWarnings("rawtypes")
+public interface CusReAllotMapper {
+	
+	public List<PageData> getPageCanReAllotLst(Page page);
+	public int updateCusToReAllot(PageData pd);
+	public Object distributionAgainMany(Map map);
+	public List<PageData> getPageCusesByUserIdLst(Page page);
+	public PageData getUserids(PageData pd);
+	public Object backUser_oneOrMany(Map map);
+	public Object backUser_forUser(Map map);
+}

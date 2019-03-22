@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.phonesys.PhoDtaMapper">
+<!-- 呼叫相关统计 -->
+
+
+	<!-- 首页的当天通话统计 所有的呼出类型 呼出总数、通话总时长 -->
+	<select id="getTodayPhoCount" parameterType="pd" resultType="pd" useCache="false">
+		select
+		ifnull(count(1),0) as  callOutCount, <!-- 外呼数 -->
+		ifnull(sum(YBCF0012),0) as totalDialBridgeDuration<!-- 外呼接通时长（秒）-->
+		from ybc_follow  f
+		where YBCF007_TP = 2
+		and   YBCF002_TM like concat(DATE(NOW()), "%")
+		<!-- 权限 start -->
+		and (
+		(
+		f.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+		and
+		f.POSITION	= #{POSITION}
+		)<!-- 主管 -->
+		or
+		f.USER_ID = #{USER_ID} <!-- 客户经理 -->
+		)
+		<!-- 权限 end -->
+	</select>
+	<!-- 首页的当天通话统计 所有的呼出类型 接通数 -->
+	<select id="getTodayPhoOpenCount" parameterType="pd" resultType="pd" useCache="false">
+		select
+		ifnull(count(1),0) as  conOpen<!-- 外呼接通数-->
+		from ybc_follow f
+		where YBCF007_TP  = 2
+		and   YBCF0010_TP = 1
+		and   YBCF002_TM like concat(DATE(NOW()), "%")
+		<!-- 权限 start -->
+		and (
+		(
+		f.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+		and
+		f.POSITION	= #{POSITION}
+		)<!-- 主管 -->
+		or
+		f.USER_ID = #{USER_ID} <!-- 客户经理 -->
+		)
+		<!-- 权限 end -->
+	</select>
+
+</mapper>

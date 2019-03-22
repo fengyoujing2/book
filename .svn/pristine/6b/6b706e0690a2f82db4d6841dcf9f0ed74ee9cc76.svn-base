@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.homepage.HmPBacMapper">
+	<!-- 后台人员看的首页数据 -->
+	
+	<select id="getTotalSingle" parameterType="pd" resultType="pd" useCache="false">
+		select
+			count(m.YBCMA001) as singleTotal, <!-- 做单总数 --> 
+			count(if(m.YBCMA005_TP = 12, true, null)) as overSgleTotal, <!-- 退单数量 -->
+			count(if(m.YBCMA029_TM is not null, true, null)) as lendingTotal, <!-- 已放贷数量 -->
+			count(if(m.YBCMA005_TP = 6, true, null)) as passSgleTotal, <!-- 过件数 -->
+			sum(m.YBCMA030) as lendingSum, <!-- 放贷金额 -->
+			left(overSgleTotal / singleTotal * 100, 5) as overSglRate, <!-- 退单率  -->
+			left(passSgleTotal / singleTotal * 100, 5) as passSglRate <!-- 过件率 -->
+		from ybc_match m
+		where 1 = 1
+		<!-- 判断登陆者当前身份 -->
+		<if test="POSITION == 1"><!-- 主管：计算所有他能看到的数据 -->
+			and m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+		</if>
+		<if test="POSITION == 2"><!-- 非主管：查看属于自己的数据 -->
+			and m.USER_ID = #{USER_ID}
+		</if>
+	</select>
+	
+	<!-- 获取新增的单子（做单员）  -->
+	<select id="getAddSgle" parameterType="pd" resultType="pd" useCache="false">
+		select
+			count(m.YBCMA001) as sglSize, <!-- 总做单数 -->
+			count(if(DATE(m.YBCMA003_TM) = curdate(), true, null)) as newOfDayNum, <!-- 当日新增做单数 -->
+			count(if(m.YBCMA029_TM is null, true, null)) as wtLendingNum <!-- 待放贷单数 -->
+		from ybc_match m
+		where 1 = 1 
+		and m.USER_ID = #{USER_ID}
+	</select>
+	
+	<!-- 主管看新增的数据（leader） -->
+	<select id="getNewDbForLeador" parameterType="pd" resultType="pd" useCache="false">
+		select
+			count(b.YBCBR001) as cusNum,  <!-- 分配池 --> 
+			count(if(b.USER_ID is null, true, null)) as wtSglNum, <!-- 待分配客户 -->
+			count(if(m.YBCMA001 is not null, true, null)) as newSglNUm  <!-- 新增做单量 -->
+		from ybc_branch2 b
+		left join ybc_match m 
+		on b.ybcs001 = m.ybcs001 
+		where 1 = 1 
+		and month(b.YBCBR003_TM) = month(now()) <!-- 当月的数据 -->
+		<!-- 主管：计算所有他能看到的数据 -->
+		and b.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+		<!-- group by b.YBCBR001 --> <!-- 以分配表分组 -->
+	</select>
+	
+</mapper>

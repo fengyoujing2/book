@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+
+    <title>瑞信坐席状态</title>
+
+    <link rel="shortcut icon" href="favicon.ico"> 
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+    
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0]; 
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+    
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+
+    <style>
+        body{
+            min-height: 2000px !important;
+            overflow-y: scroll;
+        }
+        a{
+            text-decoration: none;
+            color: #fff;
+        }
+        .title{
+            width: 200px;
+            padding-bottom: 10px;
+            border-radius: 10px;
+            background-color: #4AA5FB;
+            margin: 0 auto;
+        }
+        .title img{
+            width: 120px;
+        }
+        .flexJ{
+            display: flex;
+            text-align: center;
+        }
+        .font20{
+            font-size: 16px;
+        }
+        .color54{
+            color:#54DE9E;
+            font-size: 14px;
+            flex-grow: 1;
+            text-align: center;
+            border-right: 2px solid #4AA5FB;
+        }
+        .colorFC{
+            color:#FC5C7E;
+            font-size: 14px;
+            flex-grow: 1;
+            text-align: center;
+        }
+        .ctitleC{
+            height: 60px;
+            line-height: 60px;
+            font-size: 24px;
+            text-align: center;
+            color:#fff;
+            background-color: #4AA5FB;
+            border-radius: 10px;
+/*            border-top-right-radius: 10px;*/
+        }
+        .ctitleC2{
+            height: 40px;
+            line-height: 40px;
+            font-size: 18px;
+            text-align: center;
+            color:#fff;
+            background-color: #4AA5FB;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        .level1{
+            width: 300px;
+            margin: 0 auto;
+        }
+        .level2{
+            width: 220px;
+            margin: 0 auto;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+        }
+        .borderlv1{
+            border: 2px solid #4AA5FB;
+            height: 40px;
+            line-height: 40px;
+        }
+        .borderlv2{
+            border: 2px solid #4AA5FB;
+            border-top: 0;
+        }
+        .conlv2{
+            text-align: left;
+            height: 30px;
+            line-height: 30px;
+            border-bottom: 1px solid #4AA5FB;
+        }
+        .conlv2 span{
+            font-size: 12px;
+            margin-right: 15px;
+        }
+        .conlv2 span:first-child{
+            margin-left:5px;
+            margin-right: 0;
+            display: inline-block;
+            width: 20px;
+        }
+        .ctitleC img{
+            width: 40px;
+        }
+        .ctitleC2 img{
+            width: 36px;
+        }
+        .lineDiv1{
+            width: 1px;
+            height: 20px;
+            margin: auto;
+            border: 1px solid #4AA5FB;
+        }
+        .lineDiv2{
+            width: 75%;
+            height: 1px;
+            border-top: 1px solid #4AA5FB;
+            margin: auto;
+        }
+    </style>
+</head>
+
+<body style="background-color:#fff;margin:0;">
+    <div id="seatStateApp">
+        <div style="text-align:center;">
+            <div class="title">
+                <img src="../static/img/rxlogowhite.png"/>
+            </div>
+        </div>
+        <el-row>
+<!--            一中心-->
+            <el-col v-for="(item,index) in callData" key="index" style="margin-top:80px;">
+                <div class="level1">
+                    <div class="ctitleC">
+                        <img src="../static/img/person3.png"/>{{item.name}}
+                    </div>
+<!--
+                    <div class="flexJ borderlv1">
+                        <div class="color54">空闲:<span class="font20">人</span></div>
+                        <div class="colorFC">忙碌:<span class="font20">人</span></div>
+                    </div>
+-->
+                </div>
+                <el-row style="margin-top:20px;margin-right:40px;">
+                    <div class="lineDiv2"></div>
+                    <div class="flexJ">
+                        <el-col v-for="(t,i) in item.children"  key="index" style="text-align:center;margin:0 10px;">
+                            <div class="lineDiv1"></div>
+                            <div class="level2">
+                                <div class="ctitleC2"><img src="../static/img/person2.png"/>{{t.name}}</div>
+                                <div class="flexJ borderlv1">
+                                    <div class="color54">空闲:<span class="font20">{{t.seatLst ?t.seatState.onlineNum : ''}}人</span></div>
+                                    <div class="colorFC">忙碌:<span class="font20">{{t.seatLst ? t.seatState.busyNum : ''}}人</span></div>
+                                </div>
+                                <div class="borderlv2">
+                                    <div class="conlv2" v-for="(m,x) in t.seatLst">
+                                        <span>{{x+1}}.</span>
+                                        <span>{{m.name}}</span>
+                                        <span>坐席号：{{m.staffId}}</span>
+                                        <span v-if="m.state=='0'" style="color:#ccc;">离线</span>
+                                        <span v-else-if="m.state=='1'" style="color:#54DE9E">在线</span>
+                                        <span v-else-if="m.state=='2'" style="color:#FC5C7E">忙碌</span>
+                                        <span v-else-if="m.state=='3'" style="color:#000">离开</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </el-col>
+                    </div>
+                </el-row>
+            </el-col>
+        </el-row>
+    </div>
+</body>
+<script  th:inline="javascript">
+    
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+    
+    var seatState=new Vue({
+        el:"#seatStateApp",
+        data(){
+            return {
+                callData:[]
+//                callData:[{
+//                    lv1Name:"一中心",
+//                    freeNum:"11",
+//                    busyNum:"111",
+//                    children:[{
+//                        lv2Name:"1",
+//                        freeNum:"3",
+//                        busyNum:"12",
+//                        children:[{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        }]
+//                    },{
+//                        lv2Name:"2",
+//                        freeNum:"3",
+//                        busyNum:"12",
+//                        children:[{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        }]
+//                    },{
+//                        lv2Name:"3",
+//                        freeNum:"3",
+//                        busyNum:"12",
+//                        children:[{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        }]
+//                    }]
+//                },{
+//                    lv1Name:"二中心",
+//                    freeNum:"11",
+//                    busyNum:"111",
+//                    children:[{
+//                        lv2Name:"1",
+//                        freeNum:"3",
+//                        busyNum:"12",
+//                        children:[{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        }]
+//                    },{
+//                        lv2Name:"2",
+//                        freeNum:"3",
+//                        busyNum:"12",
+//                        children:[{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        }]
+//                    },{
+//                        lv2Name:"3",
+//                        freeNum:"3",
+//                        busyNum:"12",
+//                        children:[{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:1
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        },{
+//                            lv3Name:"张三",
+//                            callNum:"22",
+//                            sate:2
+//                        }]
+//                    }]
+//                }]
+            }
+        },
+        mounted(){
+            console.log([[${SeatLst}]])
+            this.callData=([[${SeatLst}]])[0].children;
+        },
+        methods:{
+            
+        }
+    })
+    
+</script>
+</html>

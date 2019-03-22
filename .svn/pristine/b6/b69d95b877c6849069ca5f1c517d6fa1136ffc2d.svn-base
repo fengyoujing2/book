@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title> - Bootstrap Table</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <style>
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+    </style>
+</head>
+
+<body class="gray-bg">
+    <div class="wrapper wrapper-content animated fadeInRight">
+               <!-- Panel Other -->
+        <div class="ibox float-e-margins">
+	            <div class="ibox-title">
+	                <h5>菜单管理</h5>
+	                <div class="ibox-tools">
+	                    <a href="projects.html" class="btn btn-primary btn-xs">新增用户</a>
+	                </div>
+	            </div>
+	            <table 
+									id="datalist"
+									data-toggle="table"
+									data-url="userLst"
+									data-side-pagination="server"
+									data-mobile-responsive="true"
+									data-height="500"   
+									data-pagination="true" 
+									data-icon-size="outline" >
+									<thead>
+										<tr>
+											<th data-field="state" data-checkbox="true"></th>
+											<th data-field="NAME">用户名字</th>
+		                                    <th data-field="USERNAME">用户账号</th>
+		                                    <th data-field="PASSWORD">用户密码</th>
+		                                    <th data-field="RIGHTS">用户权限</th>
+		                                    <th data-field="ROLE_ID">用户角色</th>
+		                                    
+		                                    <th data-field="operation" 
+										        data-formatter="actionFormatter"
+										        data-events="actionEvents">操作</th>
+										</tr>
+									</thead>
+								</table>
+			
+                </div>
+            </div>
+        </div>
+        <div th:include="html/page/contentpublic :: html"></div>
+        <!-- End Panel Other -->
+    </div>
+
+    
+	<script type="text/javascript">
+		//添加如下代码
+	    function actionFormatter(value, row, index) {
+        	return '<a class="mod" > 修改</a> ' + '<a class="delete">删除</a>';
+    	}
+	  //表格  - 操作 - 事件
+	    window.actionEvents = {
+	        'click .mod': function(e, value, row, index) {      
+	              //修改操作
+	             editOpen();
+	            },
+	        'click .delete' : function(e, value, row, index) {
+	              //删除操作 
+	        	editOpen();
+	            }
+	        }
+	   /*  function queryParams(params) { 
+            return {
+                pageSize: params.limit, 
+                offset: params.offset, 
+                roleName: $('#seachVal').val(),
+                name: params.sort,
+                order: params.order
+            };
+        } */
+	  //查询方法
+	    $(function () {
+            //$('#datalist').bootstrapTable('refresh', { url: '/Home/GetPaginationData2' });
+            $('#search').click(function () {
+                var seachVal = $('#seachVal').val();
+                $('#datalist').bootstrapTable('refresh', { url: 'menuIndex3?seachVal=' + seachVal });
+            });
+        });
+      //iframe窗
+      function editOpen(){
+    	  parent.layer.open({
+              type: 2,
+              title: '标题',
+              //closeBtn: 0, //不显示关闭按钮
+              shade: [0.8],//透明度背景
+              area: ['50%', '50%'],
+              //offset: 'rb', //右下角弹出
+              //time: 2000, //2秒后自动关闭
+              anim: 2,
+              content: ['menu/menuOpen'] //iframe的url，no代表不显示滚动条
+              
+            });
+      }
+      //删除
+      function delTree(data){
+      var basePath = "/"+getContextPath();
+      var url = basePath+"/menu/delMenu";
+      //获取选中值
+      	var checkedArr = $('#treeview1').treeview('getChecked','');
+			var a = "";
+			$.each(checkedArr,function(index,value)
+			{
+				a += value.id +",";		
+			});
+		$.ajax({
+					type: "get",
+			        url: url,
+			        async: false,
+			        data: {"MENU_ID":a},
+			        success: function (data)
+			        {
+			        	//getTreeJSON();
+			        }
+		});
+      }
+       //新增菜单
+      function addMenu(){
+      		
+      		//把主ID制空就表示新增
+      		$('#MENU_ID').val(null);//ID
+      		savesubmit();
+      }
+      //编辑菜单
+      function editMenu(){
+      		
+			//选中行数据
+			var checkedArr1 = $('#treeview1').treeview('getSelected', '');
+			var b = "";
+			$.each(checkedArr1,function(index,value)
+			{
+				b += value.id +",";		
+			});
+			if(b==null || b==''){
+				alert("请选中要操作的菜单!");
+				return;
+			}else{
+				$("#menuForm").submit();
+			}
+      }
+      //新增子菜单菜单
+      function addSubMenu(){
+      		
+      		//先植入在值空
+      		//把父ID设置成新数据的主ID
+      		$('#PARENT_ID').val($('#MENU_ID').val());
+      		//把主ID制空就表示新增
+      		$('#MENU_ID').val(null);//ID
+      		savesubmit();
+      }
+      //新增子菜单菜单
+      function savesubmit(){
+      		//勾选数据
+      		var checkedArr = $('#treeview1').treeview('getChecked','');
+			var a = "";
+			$.each(checkedArr,function(index,value)
+			{
+				a += value.id +",";		
+			});
+			//选中行数据
+			var checkedArr1 = $('#treeview1').treeview('getSelected', '');
+			var b = "";
+			$.each(checkedArr1,function(index,value)
+			{
+				b += value.id +",";		
+			});
+			if(a==null || a==''){
+				alert("请勾选要操作的菜单!");
+				return;
+			}else if(b==null || b==''){
+				alert("请选中要操作的菜单!");
+				return;
+			}else{
+				$("#menuForm").submit();
+			}
+			
+      }
+	</script>
+    
+    
+
+</body>
+
+</html>

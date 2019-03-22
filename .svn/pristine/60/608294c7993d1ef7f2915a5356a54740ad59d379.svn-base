@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.SysUserMapper">
+
+	<!-- 更新登录时间 -->
+	<update id="updateLastLogin" parameterType="pd" flushCache="false">
+		update SYS_USER set 
+		LAST_LOGIN = #{LAST_LOGIN} 
+		where USER_ID = #{USER_ID}
+	</update>
+	
+	<!-- 判断用户名和密码 -->
+	<select id="getLoginValidation" parameterType="pd" resultType="pd">
+		select 
+			*
+		 from SYS_USER  u
+		where 1=1
+		<if test="USERNAME != null and PASSWORD != null">
+	  		and	 USERNAME = #{USERNAME} and PASSWORD = #{PASSWORD}
+		</if>
+		<if test="USER_ID != null and USER_ID != ''">
+		and USER_ID = #{USER_ID}
+		</if>
+	</select>
+	
+	<!-- 存入IP -->
+	<update id="saveIP" parameterType="pd" flushCache="false">
+		update SYS_USER 
+			set 
+				IP = #{IP}
+			where 
+				USERNAME = #{USERNAME}
+	</update>
+	
+	<!-- 修改 -->
+	<update id="updateSysUser" parameterType="pd" flushCache="false">
+		update  SYS_USER
+			set USERNAME				= #{USERNAME},
+				NAME 					= #{NAME},
+				ROLE_ID 				= #{ROLE_ID},
+				EMAIL					= #{EMAIL},	
+				NUMBER					= #{NUMBER}, 
+				PHONE					= #{PHONE}, 
+				DEPT_ID					= #{DEPT_ID}, 
+				BANKCARD				= #{BANKCARD}, 
+				BANKNAME				= #{BANKNAME}, 
+				BIRTHDAY				= #{BIRTHDAY},
+				DEPT_LAYERORDER			= (select DEPT_LAYERORDER from sys_dept where DEPT_ID = #{DEPT_ID}), 
+				POSITION				= #{POSITION}
+				<!-- 非必改字段都要加上if -->
+			<if test="PASSWORD != null and PASSWORD != ''">
+				,PASSWORD				= #{PASSWORD}
+			</if>
+			where 
+				USER_ID = #{USER_ID}
+	</update>
+	<!-- 禁用用户 -->
+	<update id="updateDisableSysUser" parameterType="pd" flushCache="false">
+		update  SYS_USER set
+		STATUS 					= #{STATUS}<!-- 1是禁用0是未禁用 -->
+		where
+		USER_ID = #{USER_ID}
+	</update>
+
+	<select id="getRoleAllLst" parameterType="pd" resultType="pd" useCache="false">
+		select
+		ROLE_ID as value,
+		ROLE_NAME as label
+		from
+		SYS_Role
+	</select>
+	<!-- 只获取user的数据 -->
+	<select id="getSysUserById" parameterType="pd" resultType="pd" useCache="false">
+		select 
+			u.USER_ID,
+			u.USERNAME,
+			u.PASSWORD,
+			u.NAME,
+			u.RIGHTS,
+			u.ROLE_ID,
+			u.LAST_LOGIN,
+			u.IP,
+			u.STATUS,
+			u.BZ,
+			u.SKIN,
+			u.EMAIL,
+			u.NUMBER,
+			u.PHONE, 
+			u.DEPT_ID, 
+			u.BANKCARD, 
+			u.BANKNAME, 
+			u.BIRTHDAY, 
+			u.DEPT_LAYERORDER, 
+			u.POSITION
+		from 
+			SYS_USER u 
+		where u.USER_ID = #{USER_ID}
+	</select>
+	
+	<!-- 获取所有user的数据 -->
+	<select id="getPageSysUserLst" parameterType="page" resultType="pd" useCache="false">
+		select 
+			u.USER_ID,
+			u.USERNAME,
+			u.PASSWORD,
+			u.NAME,
+			u.RIGHTS,
+			u.ROLE_ID,
+			u.LAST_LOGIN,
+			u.IP,
+			u.STATUS,
+			u.BZ,
+			u.SKIN,
+			u.EMAIL,
+			u.NUMBER,
+			u.PHONE, 
+			u.DEPT_ID,
+		    (select role_name from sys_role where role_id = u.role_id) ROLENAME, <!--用户角色 -->
+		    (select dept_name from sys_dept where dept_id = u.dept_id) DEPTNAME, <!--用户所在部门 -->
+			CASE WHEN u.STATUS = '1' THEN '禁用' ELSE '正常' END STATUSNAME, <!--是否禁用 -->
+			u.BANKCARD, 
+			u.BANKNAME, 
+			u.BIRTHDAY, 
+			u.DEPT_LAYERORDER, 
+			u.POSITION
+		from 
+			SYS_USER u
+		order by u.status
+	</select>
+	
+	<!-- 通过user_id获取数据 -->
+	<select id="findByUiId" parameterType="pd" resultType="pd" useCache="false">
+		select 
+			u.USER_ID,
+			u.USERNAME,
+			u.PASSWORD,
+			u.NAME,
+			u.RIGHTS,
+			u.ROLE_ID,
+			u.LAST_LOGIN,
+			u.IP,
+			u.STATUS,
+			u.BZ,
+			u.SKIN,
+			u.EMAIL,
+			u.NUMBER,
+			u.PHONE, 
+			u.DEPT_ID, 
+			u.BANKCARD, 
+			u.BANKNAME, 
+			u.BIRTHDAY, 
+			u.DEPT_LAYERORDER, 
+			u.POSITION, 
+			d.DEPT_NAME
+		from 
+			SYS_USER u, SYS_DEPT d 
+		where 
+			u.DEPT_ID = d.DEPT_ID
+		and 
+			u.USER_ID = #{USER_ID}
+	</select>
+	
+	<!-- 新增用户 -->
+	<insert id="addSysUser" parameterType="pd" flushCache="false">
+		insert into SYS_USER (
+			USER_ID,
+			USERNAME,
+			PASSWORD,
+			NAME,
+			RIGHTS,
+			ROLE_ID,
+			LAST_LOGIN,
+			IP,
+			STATUS,
+			BZ,
+			SKIN,
+			EMAIL,
+			NUMBER,
+			PHONE, 
+			DEPT_ID, 
+			BANKCARD, 
+			BANKNAME, 
+			BIRTHDAY, 
+			DEPT_LAYERORDER, 
+			POSITION
+		) values (
+			#{USER_ID},
+			#{USERNAME},
+			#{PASSWORD},
+			#{NAME},
+			#{RIGHTS},
+			#{ROLE_ID},
+			#{LAST_LOGIN},
+			#{IP},
+			'0',<!--默认0表示启用-->
+			#{BZ},
+			#{SKIN},
+			#{EMAIL},
+			#{NUMBER},
+			#{PHONE}, 
+			#{DEPT_ID}, 
+			#{BANKCARD}, 
+			#{BANKNAME}, 
+			#{BIRTHDAY},
+			(select DEPT_LAYERORDER from sys_dept where DEPT_ID = #{DEPT_ID}), 
+			#{POSITION}
+		)
+	</insert>
+	
+	
+	<!-- 删除用户 -->
+	<delete id="delSysUser" parameterType="pd" flushCache="false">
+		delete from SYS_USER
+		where 
+			USER_ID = #{USER_ID}
+	</delete>
+	
+	<!-- 更新用户账号状态 -->
+	<update id="editStatus" parameterType="pd" flushCache="false">
+		update SYS_USER set 
+		STATUS = #{STATUS} 
+		where USER_ID = #{USER_ID}
+	</update>
+	
+	<!-- 获取指定部门下的所有员工数据（并且有效） -->
+	<select id="getDeptAllUserLst" parameterType="pd" resultType="pd" useCache="false">
+		select
+		u.USER_ID value,
+		u.NAME label
+		from
+		SYS_USER u
+		where dept_id = #{DEPT_ID}
+		and  STATUS = '0' <!-- 状态必须有效，禁用的不显示出来 -->
+	</select>
+	<!-- 获取指定部门下的所有员工数据（并且有效）（坐席状态统计） -->
+	<select id="getSeatUserLst" parameterType="pd" resultType="pd" useCache="false">
+		select
+		u.NAME AS NAME,
+		u.number AS NUMBER
+		from
+		SYS_USER u
+		where dept_id = #{DEPT_ID}
+		and  STATUS = '0' <!-- 状态必须有效，禁用的不显示出来 -->
+	</select>
+
+	<!-- 获取指定部门下的所有员工数据（所有列表数据） -->
+	<select id="getPageUserForDeptIDLst" parameterType="page" resultType="pd" useCache="false">
+		select
+		*,
+		(select role_name from sys_role where role_id = u.role_id) ROLE_NAME, <!-- 角色名字-->
+		(select dept_name from sys_dept where dept_id = u.dept_id ) DEPT_NAME, <!-- 部门名字-->
+		case  u.POSITION when '1' then '主管' else '员工' end as POSITION_NAME,<!-- 是否主管-->
+		case  u.STATUS when '1' then '禁用' else '已启用' end as STATUS_NAME<!-- 禁用状态名字-->
+		from
+		SYS_USER u
+		where 1=1
+		<if test="pd.DEPT_ID != null and pd.DEPT_ID !=''">
+			and dept_id = #{pd.DEPT_ID}
+		</if>
+		<if test="pd.USERNAME != null and pd.USERNAME !=''">
+			and  USERNAME like concat(#{pd.USERNAME},'%')
+		</if>
+		<if test="pd.NAME != null and pd.NAME !=''">
+			and  NAME like concat(#{pd.NAME},'%')
+		</if>
+
+		order by u.POSITION<!-- 按照用户禁用顺序显示 -->
+	</select>
+	<!-- 获取指定部门下的所有部门数据 -->
+	<select id="getDeptAllDeptLst" parameterType="pd" resultType="pd" useCache="false">
+		select
+			*
+		from SYS_DEPT d
+		where 1 = 1
+		<if test="DEPT_LAYERORDER != null and DEPT_LAYERORDER !=''">
+			and  DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER},'%')
+		</if>
+
+	</select>
+	<!-- 获取所有坐席组部门数据(坐席统计包含当前部门) -->
+	<select id="getSeatDeptLst" parameterType="pd" resultType="pd" useCache="false">
+		select
+		*
+		from SYS_DEPT d
+		where 1 = 1
+		and  DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER},'%')
+		and  DEPT_LAYERORDER like concat('1-199fd6aec841421aaff996d8654c95fd','%')<!-- 只返回营销中心数据-->
+	</select>
+	<!-- 获取当前用户的部门信息 -->
+	<select id="getDeptForUserInfo" parameterType="pd" resultType="pd" useCache="false">
+		select
+		*
+		from
+		SYS_DEPT d
+		where DEPT_ID = #{DEPT_ID}
+	</select>
+	<!-- 修改 -->
+	<update id="updateSysUserPsw" parameterType="pd" flushCache="false">
+		update  SYS_USER
+		set
+			PASSWORD= #{PASSWORD}
+		where
+		USER_ID = #{USER_ID}
+	</update>
+
+	<!-- 获取后台部门数据(首页后台部门) -->
+	<select id="getBackDeptLst" parameterType="pd" resultType="pd" useCache="false">
+		select
+		*
+		from SYS_DEPT d
+		where 1 = 1
+		and  DEPT_LAYERORDER like concat('1-54b3d0134929480eaa148933cf2fc0d7','%')<!-- 只返回运营中心数据-->
+	</select>
+	<!-- 获取后台单个部门人员当前正在做单的数据汇总(首页后台人员) -->
+	<select id="getBackDeptUserLst" parameterType="pd" resultType="pd" useCache="false">
+		select u.name NAME,count(m.YBCMA001) COTNUM from (SELECT USER_ID,name FROM sys_user where STATUS='0' and
+		DEPT_LAYERORDER  like  concat(#{DEPT_LAYERORDER},'%')) u
+		LEFT JOIN ybc_match m on u.USER_ID=m.USER_ID
+		and m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER},'%')
+		and( m.YBCMA005_TP != '10' <!--已放贷 -->
+		or m.YBCMA005_TP != '12'<!--退单数据都不计算在内 -->
+		)
+		group BY u.USER_ID
+		order BY count(m.YBCMA001) desc
+	</select>
+
+
+</mapper>

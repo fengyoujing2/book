@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.NoticeMapper">
+	<!--通知信息 -->
+	<insert id="addNotice" parameterType="pd">
+		insert into YBC_NOTICE (
+		YBC_NOT002_TP,
+		YBC_NOT003,
+		YBC_NOT004,
+		YBC_NOT005_TP,
+		YBC_NOT006_TP,
+		YBC_NOT007_TM,
+		YBC_NOT008_TM,
+		YBC_NOT009,
+		YBC_NOT010,
+		DEPT_LAYERORDER,
+		POSITION
+		) values (
+			#{YBC_NOT002_TP},
+			#{YBC_NOT003},
+			#{YBC_NOT004},
+			#{YBC_NOT005_TP},
+			#{YBC_NOT006_TP},
+			#{YBC_NOT007_TM},
+			#{YBC_NOT008_TM},
+			#{YBC_NOT009},
+			#{YBC_NOT010},
+			#{DEPT_LAYERORDER},
+			#{POSITION}
+		)
+	</insert>
+	
+	<update id="updateNotice" parameterType="pd">
+
+	</update>
+	<select id="getNoticeLst" parameterType="pd" resultType="pd">
+		select  *
+		from YBC_NEED
+		where 1=1
+		and YBC_NEE008=#{USER_ID}
+		and YBC_NEE006_TP = #{YBC_NEE006_TP} <!-- （2处理1未处理）默认未处理-->
+
+	</select>
+	<!--待办信息 -->
+	<insert id="addNeed" parameterType="pd">
+		insert into YBC_NEED (
+		YBC_NEE002_TP,
+		YBC_NEE003,
+		YBC_NEE004_TM,
+		YBC_NEE005_TP,
+		YBC_NEE006_TP,
+		YBC_NEE007_TM,
+		YBC_NEE008,
+		YBC_NEE009,
+		YBC_NEE010_TP,
+		YBC_NEE011_TM,
+		DEPT_LAYERORDER,
+		POSITION
+		) values (
+		#{YBC_NEE002_TP},
+		#{YBC_NEE003},
+		NOW(),
+		#{YBC_NEE005_TP},
+		#{YBC_NEE006_TP},
+		NOW(),
+		#{YBC_NEE008},
+		#{YBC_NEE009},
+		#{YBC_NEE010_TP},
+		#{YBC_NEE011_TM},
+		#{DEPT_LAYERORDER},
+		#{POSITION}
+		)
+	</insert>
+
+	<update id="updateNeed" parameterType="pd">
+		update YBC_NEED set
+		YBC_NEE006_TP =#{YBC_NEE006_TP},
+		YBC_NEE007_TM  = now() ,
+		YBC_NEE011_TM =#{YBC_NEE011_TM}
+		where
+		YBC_NEE001=#{YBC_NEE001}
+	</update>
+	<!-- 获取某个用户的待办数据-->
+	<select id="getNeedById" parameterType="pd" resultType="pd">
+		select *
+		from YBC_NEED
+		where YBC_NEE001=#{YBC_NEE001}
+	</select>
+	<delete id="delNeedForOne" parameterType="pd">
+		delete from YBC_NEED
+		where
+		YBC_NEE001=#{YBC_NEE001}
+	</delete>
+
+	<!-- 获取某个符合推送时间段的所有待办数据-->
+	<select id="getNeedByTime" parameterType="pd" resultType="pd">
+		select *
+		from YBC_NEED
+		where YBC_NEE010_TP = 1<!--必须是提醒的数据才会提醒,读取所有类型的提醒数据-->
+		and YBC_NEE006_TP=1<!--是否处理(2处理/1未处理)读取未处理的数据-->
+		and
+		<![CDATA[ TIMESTAMPDIFF(MINUTE,now(),YBC_NEE011_TM) < 10  ]]>
+	</select>
+</mapper>

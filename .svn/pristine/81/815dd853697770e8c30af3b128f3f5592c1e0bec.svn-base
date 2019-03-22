@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.background.BacAllotMapper">
+<!-- 待做单分配 -->
+
+<!-- 部长分配	start -->
+
+	<!-- 待做单分配列表 修改时间2018-11-14 增加条件 YBCS014_TP =1  -->
+	<select id="getPageWtAllotForMinisterLst" parameterType="page" resultType="pd" useCache="false">
+		select 
+			s.*, 
+			IF(s.YBCS052_TM is null,0,1) as isAlt, <!-- 是否分配 -->
+			c.YBC002,
+			c.YBC003, 
+			(select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName<!-- 产品类型名称 -->
+		from ybc_sign s, ybc c  
+		where s.ybc001 = c.ybc001
+		and s.YBCS014_TP = 1
+		and s.YBCS020_TM is not null <!-- 财务已编号 --> 
+		and s.YBCS052_TM is null <!-- 部长分配后消失 -->
+	<!-- 权限 start -->
+		and s.YBCS012 = #{pd.USER_ID} <!-- 产品负责人 --> 	
+	<!-- 权限 end-->
+	<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+
+			and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+		</if>
+		<if test="pd.YBC003 != null and pd.YBC003 != ''">
+			and c.YBC003 like concat_ws(#{pd.YBC003}, "%", "%")
+		</if>
+		<if test="pd.YBCS017 != null and pd.YBCS017 != ''"><!-- 合同编号 -->
+			and s.YBCS017 like concat_ws(#{pd.YBCS017}, "%", "%")
+		</if>
+		<if test="pd.YBCS038 != null and pd.YBCS038 != ''"><!-- 签单客户经理 -->
+			and s.YBCS038 like concat_ws(#{pd.YBCS038}, "%", "%")
+		</if>
+		<if test="pd.signTmStart != null and pd.signTmStart != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[>=]]> #{pd.signTmStart} 
+		</if>
+		<if test="pd.signTmEnd != null and pd.signTmEnd != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[<=]]> #{pd.signTmEnd} 
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and s.USER_ID = #{pd.USER_ID_Sea} 
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+		</if>
+		<!-- 2018-07-06增加按照贷款类型选择 -->
+		<if test="pd.YBCS009_TP != null and pd.YBCS009_TP != ''"><!-- 按贷款类型搜索 -->
+			and s.YBCS009_TP = #{pd.YBCS009_TP}
+		</if>
+	<!-- 搜索 end -->
+		order by s.YBCS020_TM desc <!-- 以财务编号时间排序 -->
+	</select>
+	
+	<!-- 部长分配 -->
+	<update id="updateAltForMinister" parameterType="pd" flushCache="false">
+		update 
+			ybc_sign 
+				<set>
+					YBCS037			= #{YBCS037} <!-- 做单人组长ID -->
+					,YBCS040		= (select name from sys_user where user_id = #{YBCS037})  <!-- 做单人组长姓名 -->
+					,YBCS052_TM		= now()<!-- 更新部长分配时间 -->
+					<if test="USER_ID != null and USER_ID != ''"><!-- 分配到做单员的时间 -->
+					,YBCS054_TM		= now()
+					</if>
+				</set> 
+			where
+					ybcs001			= #{YBCS001}
+	</update>
+	 
+	<insert id="addAlt" parameterType="pd" flushCache="false">
+		insert 
+			into 
+				ybc_branch2
+					(
+						YBCBR001, 
+						YBC001,
+						YBCBR002, 
+						USER_ID, 
+						YBCBR003_TM, 
+						YBCBR004, 
+						YBCBR005, 
+						DEPT_LAYERORDER, 
+						POSITION, 
+						YBCBR007, 
+						YBCBR008, 
+						YBCS001
+						<if test="USER_ID != null and USER_ID !=''"><!-- 被分配人不为空，修改要注意  -->
+							, YBCBR009_TM
+						</if>
+					)
+				values
+					(
+						#{YBCBR001}, 
+						#{YBC001},
+						(select YBC002 from ybc where ybc001 = #{YBC001}), <!-- 客户名称 -->
+						#{USER_ID}, <!-- 被分配人员ID，注意是从页面传来的，有就写入，没有写空就是了 -->
+						now(), 
+						#{YBCBR004}, <!-- 备注 -->
+						#{YBCBR005}, <!-- 分配人 -->
+						(select DEPT_LAYERORDER from sys_user where user_id = #{USER_ID}), <!-- 做单员的部门信息 -->
+						1, 
+						(select name from sys_user where user_id = #{USER_ID}), <!-- 被分配人姓名 -->
+						(select name from sys_user where user_id = #{YBCBR005}), <!-- 分配人姓名 -->
+						#{YBCS001} 
+						<if test="USER_ID != null and USER_ID !=''"><!-- 被分配人不为空，修改要注意 -->
+							,now()
+						</if>
+					)
+	</insert>
+	
+	<select id="getAltByCusId" parameterType="pd" resultType="pd" useCache="false">
+		select 
+			b.*
+		from ybc_branch2 b 
+		where b.ybc001 = #{YBC001}
+	</select>
+
+<!-- 部长分配	end -->
+
+<!-- 组长分配	start -->
+
+	<select id="getPageWtAltForHeadmanLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			s.*, <!-- 不要写b.* -->
+			if(b.YBCBR009_TM is null, 0, 1) as isAlt, 
+			b.YBCBR001, 
+			c.YBC002, 
+			c.YBC003, 
+			(select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName<!-- 产品类型名称 -->
+			
+		from ybc_sign s, ybc_branch2 b, ybc c 
+		where s.ybcs001 = b.ybcs001 <!-- 通过签单ID把签单表与分配表连接 -->
+		and s.ybc001 = c.ybc001 
+		and b.YBCBR005 = #{pd.USER_ID} <!-- 部长已经分配到部门 -->
+		and b.YBCBR009_TM is null <!-- 组长还未分配到员工 -->
+	<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+			and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+		</if>
+		<if test="pd.YBC003 != null and pd.YBC003 != ''">
+			and c.YBC003 like concat_ws(#{pd.YBC003}, "%", "%")
+		</if>
+		<if test="pd.YBCS017 != null and pd.YBCS017 != ''"><!-- 合同编号 -->
+			and s.YBCS017 like concat_ws(#{pd.YBCS017}, "%", "%")
+		</if>
+		<if test="pd.YBCS038 != null and pd.YBCS038 != ''"><!-- 签单客户经理 -->
+			and s.YBCS038 like concat_ws(#{pd.YBCS038}, "%", "%")
+		</if>
+		<if test="pd.signTmStart != null and pd.signTmStart != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[>=]]> #{pd.signTmStart} 
+		</if>
+		<if test="pd.signTmEnd != null and pd.signTmEnd != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[<=]]> #{pd.signTmEnd} 
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and s.USER_ID = #{pd.USER_ID_Sea} 
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+		</if>
+	<!-- 搜索 end -->
+		order by b.YBCBR003_TM desc <!-- 分配记录生成时间 -->
+	</select>
+	
+	<!-- 分配 -->
+	<update id="updateAltForHeadman" parameterType="pd" flushCache="false">
+		update 
+			ybc_sign 
+				<set>
+					YBCS053_TM		= now()
+					,YBCS054_TM		= now()<!-- 分配到做单员的时间-->
+				</set> 
+			where
+					YBCS001			= #{YBCS001}
+	</update>
+	
+	<update id="updateAltUSERID" parameterType="pd" flushCache="false">
+		update 
+			ybc_branch2 
+				<set>
+					USER_ID			= #{USER_ID}, <!-- 从页面选择的用户，不是当前登录用户 -->
+					YBCBR007		= (select name from sys_user where user_id = #{USER_ID}), 
+					YBCBR009_TM		= now(), <!-- 分配时间 -->
+					DEPT_LAYERORDER = (select DEPT_LAYERORDER from sys_user where user_id = #{USER_ID}), <!-- 做单员的部门信息，跟随USER_ID动态修改 -->
+					<if test="YBCBR004 != null and YBCBR004 != ''">
+						YBCBR004		= #{YBCBR004}
+					</if>
+				</set> 
+			where
+					YBCBR001		= #{YBCBR001}
+	</update>
+
+<!-- 组长分配	end -->
+	
+</mapper>

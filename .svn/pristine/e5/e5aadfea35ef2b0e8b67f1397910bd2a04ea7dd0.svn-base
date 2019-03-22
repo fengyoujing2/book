@@ -1,0 +1,25 @@
+package com.dbsun.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.YwDataBindMapper;
+
+@Service
+public class YwDataBindService {
+
+	@Autowired
+	private YwDataBindMapper ywDataBindMapper;
+
+	/**添加用户*/
+	public int addYwDataBind(PageData pd) {
+		return ywDataBindMapper.addYwDataBind(pd);
+	}
+	
+	/**获取*/
+	public PageData getYwDataBindByYwData001(PageData pd){
+		return ywDataBindMapper.getYwDataBindByYwData001(pd);
+	}
+
+}

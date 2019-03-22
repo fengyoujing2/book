@@ -1,0 +1,293 @@
+package com.dbsun.controller.statistics;
+
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.BaseService;
+import com.dbsun.service.statistics.StatisticsService;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
+
+@Controller
+@Component 
+@RequestMapping("/charts")
+public class StatisticsController extends BaseController{
+    @Autowired
+    private StatisticsService statisticsService;
+    //***********后台统计开始************
+    /**
+     * 后台签单统计
+     * */
+    @RequestMapping(value = "/chartSign",method=RequestMethod.GET)
+    public String chartSign(ModelMap model){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        JSONObject jsonInfo = new JSONObject();
+        List<PageData> pdtaLst = statisticsService.getChartSignLst(page);
+        PageData infoData = statisticsService.getChartSignMonthCont(pd);
+        jsonInfo.put("sumAllNum",page.getTotalResult());//签单总计
+        jsonInfo.put("sumMonthNum",infoData.get("sumMonthNum"));//签单当月汇总
+        model.addAttribute("page",page);//初始列表数据
+        model.addAttribute("dataLst",pdtaLst);//初始列表数据
+        model.addAttribute("infoMsg",jsonInfo);//总数量=分页的总数量
+        return "html/system/statistics/chartSignIndex";
+    }
+    /**
+     * 后台签单统计(分页)
+     * */
+    @RequestMapping(value = "/chartSignPage",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject chartSignPage(){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        List<PageData> pdtaLst = statisticsService.getChartSignLst(page);
+        return viewReturnPageData(page,pdtaLst);
+    }
+
+    /**
+     * 后台退单统计
+     * */
+    @RequestMapping(value = "/chartBackSign",method=RequestMethod.GET)
+    public String chartBackSign(ModelMap model){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        JSONObject jsonInfo = new JSONObject();
+        List<PageData> pdtaLst = statisticsService.getChartBackSignLst(page);
+        PageData infoData = statisticsService.getChartBackSignMonthCont(pd);
+        jsonInfo.put("sumAllNum",page.getTotalResult());//签单总计
+        jsonInfo.put("sumMonthNum",infoData.get("sumMonthNum"));//签单当月汇总
+        model.addAttribute("page",page);//分页数据
+        model.addAttribute("dataLst",pdtaLst);//初始列表数据
+        model.addAttribute("infoMsg",jsonInfo);//总数量=分页的总数量
+        return "html/system/statistics/chartBackSignIndex";
+    }
+    /**
+     * 后台退单统计(分页)
+     * */
+    @RequestMapping(value = "/chartBackSignPage",method=RequestMethod.GET)
+    @ResponseBody
+
+    public JSONObject chartBackSignPage(){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        List<PageData> pdtaLst = statisticsService.getChartBackSignLst(page);
+        return viewReturnPageData(page,pdtaLst);
+    }
+    /**
+     * 后台过件统计
+     * 过滤条件:过件金额、过件状态（通过、门拒、客户不要）
+     * */
+    @RequestMapping(value = "/chartPiece",method=RequestMethod.GET)
+    public String chartPiece(ModelMap model){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        JSONObject jsonInfo = new JSONObject();
+        List<PageData> pdtaLst = statisticsService.getChartPieceLst(page);
+        PageData infoData = statisticsService.getChartPieceAllCont(pd);
+        jsonInfo.put("sumAllNum",page.getTotalResult());//过件总计
+        jsonInfo.put("sumMonthNum",infoData.get("sumMonthNum"));//过件当月汇总
+        jsonInfo.put("sumMonthPiece",infoData.get("sumMonthPiece"));//过件金额当月汇总
+        jsonInfo.put("sumLendMonth",infoData.get("sumLendMonth"));//过件放贷金额当月汇总
+        jsonInfo.put("sumAllPiece",infoData.get("sumAllPiece"));//过件金额汇总
+        jsonInfo.put("sumAllLend",infoData.get("sumAllLend"));//过件放贷汇总
+        model.addAttribute("page",page);//分页数据
+        model.addAttribute("dataLst",pdtaLst);//初始列表数据
+        model.addAttribute("infoMsg",jsonInfo);//总数量=分页的总数量
+        return "html/system/statistics/chartPieceIndex";
+    }
+    /**
+     * 后台过件统计(分页)
+     * 过滤条件:过件金额、过件状态（通过、门拒、客户不要）
+     * */
+    @RequestMapping(value = "/chartPiecePage",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject chartPiecePage(){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        List<PageData> pdtaLst = statisticsService.getChartPieceLst(page);
+        return viewReturnPageData(page,pdtaLst);
+    }
+    /**
+     * 后台放贷统计
+     * 过滤条件:放贷金额、放贷时间
+     * */
+    @RequestMapping(value = "/chartLending",method=RequestMethod.GET)
+    public String chartLending(ModelMap model){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        JSONObject jsonInfo = new JSONObject();
+        List<PageData> pdtaLst = statisticsService.getChartLendLst(page);
+        PageData infoData = statisticsService.getChartLendAllCont(pd);
+        jsonInfo.put("sumAllNum",page.getTotalResult());//放贷总计
+        jsonInfo.put("sumMonthNum",infoData.get("sumMonthNum"));//放贷当月汇总
+        jsonInfo.put("sumLendMonth",infoData.get("sumLendMonth"));//放贷金额当月汇总
+        jsonInfo.put("sumAllLend",infoData.get("sumAllLend"));//放贷金额汇总
+        model.addAttribute("page",page);//分页数据
+        model.addAttribute("dataLst",pdtaLst);//初始列表数据
+        model.addAttribute("infoMsg",jsonInfo);//总数量=分页的总数量
+        return "html/system/statistics/chartLendingIndex";
+    }
+    /**
+     * 后台放贷统计(分页)
+     * 过滤条件:放贷金额、放贷时间
+     * */
+    @RequestMapping(value = "/chartLendingPage",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject chartLendingPage(){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        List<PageData> pdtaLst = statisticsService.getChartLendLst(page);
+        return viewReturnPageData(page,pdtaLst);
+    }
+    //***********后台统计结束************
+    //***********财务统计开始************
+    /**
+     * 财务收款明细统计
+     * 过滤条件:
+     * */
+    @RequestMapping(value = "/chartReceivables",method=RequestMethod.GET)
+    public String chartReceivables(ModelMap model){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        List<PageData> pdtaLst = statisticsService.getChartReceivablesLst(page);
+        model.addAttribute("page",page);//分页数据
+        model.addAttribute("dataLst",pdtaLst);//初始列表数据
+        return "html/system/statistics/chartReceivablesIndex";
+    }
+    /**
+     * 财务收款明细统计(分页)
+     * 过滤条件:
+     * */
+    @RequestMapping(value = "/chartReceivablesPage",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject chartReceivablesPage(){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        List<PageData> pdtaLst = statisticsService.getChartReceivablesLst(page);
+        return viewReturnPageData(page,pdtaLst);
+    }
+    /**
+     * 财务网贷收款明细统计
+     * 过滤条件:
+     * */
+    @RequestMapping(value = "/chartNetReceivables",method=RequestMethod.GET)
+    public String chartNetReceivables(ModelMap model){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        List<PageData> pdtaLst = statisticsService.getNetChartReceivablesLst(page);
+        model.addAttribute("page",page);//分页数据
+        model.addAttribute("dataLst",pdtaLst);//初始列表数据
+        return "html/system/statistics/chartNetReceivablesIndex";
+    }
+    /**
+     * 财务网贷收款明细统计(分页)
+     * 过滤条件:
+     * */
+    @RequestMapping(value = "/chartNetReceivablesPage",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject chartNetReceivablesPage(){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        List<PageData> pdtaLst = statisticsService.getNetChartReceivablesLst(page);
+        return viewReturnPageData(page,pdtaLst);
+    }
+    /**
+     * 财务渠道收款明细统计
+     * 过滤条件:
+     * */
+    @RequestMapping(value = "/chartChannelReceivables",method=RequestMethod.GET)
+    public String chartChannelReceivables(ModelMap model){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        List<PageData> pdtaLst = statisticsService.getChartChannelReceivablesLst(page);
+        model.addAttribute("page",page);//分页数据
+        model.addAttribute("dataLst",pdtaLst);//初始列表数据
+        return "html/system/statistics/chartChannelReceivablesIndex";
+    }
+    /**
+     * 财务渠道收款明细统计(分页)
+     * 过滤条件:
+     * */
+    @RequestMapping(value = "/chartChannelReceivablesPage",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject chartChannelReceivablesPage(){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        List<PageData> pdtaLst = statisticsService.getChartChannelReceivablesLst(page);
+        return viewReturnPageData(page,pdtaLst);
+    }
+    /**
+     * 财务已结账统计
+     * 过滤条件:
+     * */
+    @RequestMapping(value = "/chartCheckoutReceivables",method=RequestMethod.GET)
+    public String chartCheckoutReceivables(ModelMap model){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        List<PageData> pdtaLst = statisticsService.getChartCheckoutReceivablesLst(page);
+        model.addAttribute("page",page);//分页数据
+        model.addAttribute("dataLst",pdtaLst);//初始列表数据
+        return "html/system/statistics/chartCheckoutReceivablesIndex";
+    }
+    /**
+     * 财务已结账统计
+     * 过滤条件:
+     * */
+    @RequestMapping(value = "/chartCheckoutReceivablesPage",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject chartCheckoutReceivablesPage(){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        Page page = getPage();
+        page.setPd(pd);
+        List<PageData> pdtaLst = statisticsService.getChartCheckoutReceivablesLst(page);
+        return viewReturnPageData(page,pdtaLst);
+    }
+    //***********财务统计结束************
+    //***********前台统计开始************
+
+
+
+    //***********前台统计结束************
+}

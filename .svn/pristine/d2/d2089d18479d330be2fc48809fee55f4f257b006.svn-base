@@ -1,0 +1,94 @@
+package com.dbsun.controller.notice;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.NoticeService;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
+
+/**
+ * 客户管理
+ * @author DongZai
+ *
+ */
+@Controller
+@RequestMapping("/notice_")
+public class NoticeController extends BaseController {
+	
+	@Autowired
+	private NoticeService noticeService;
+
+	/**
+	 * 客户添加待办事项提醒
+	 *  传入参数,待办内容，是否提醒，提醒时间
+	 * */
+	@RequestMapping("/addNeedForone")
+	@ResponseBody
+	public JSONObject addNeedForone() {
+		PageData pd = getPageData();
+		pd.putAll(getUserPd());
+		noticeService.addNeed(pd,10);//表示是客户自己的待办提醒
+		return getSucJson();
+	}
+	/**
+	 * 客户待办事项处理操作关闭提醒不在提醒
+	 *  传入参数：待办ID
+	 * */
+	@RequestMapping("/updateNeedForone")
+	@ResponseBody
+	public JSONObject updateNeedForone() {
+		PageData pd = getPageData();
+		int num = noticeService.updateNeedForOne(pd);
+		return getAddOrUpdJson(num);
+	}
+
+	/**
+	 * 删除待办事项单个
+	 *  传入参数：待办ID
+	 * */
+	@RequestMapping("/delNeedForone")
+	@ResponseBody
+	public JSONObject delNeedForone() {
+		PageData pd = getPageData();
+		int num = noticeService.updateNeeddelForOne(pd);
+		return getAddOrUpdJson(num);
+	}
+
+	/**
+	 * 读取待办列表(未处理)
+	 *  传入参数：待办ID
+	 * */
+	@RequestMapping("/getNoticeLst")
+	@ResponseBody
+	public JSONObject getNoticeLst() {
+		PageData pd = getPageData();
+		pd.putAll(getUserPd());
+		//（2处理1未处理）默认未处理
+		pd.put("YBC_NEE006_TP","1");
+		List<PageData> lspd = noticeService.getNoticeLst(pd);
+		return getSucJson(lspd);
+	}
+	/**
+	 * 读取待办列表(已处理)
+	 *  传入参数：待办ID
+	 * */
+	@RequestMapping("/getNoticeHandleLst")
+	@ResponseBody
+	public JSONObject getNoticeHandleLst() {
+		PageData pd = getPageData();
+		pd.putAll(getUserPd());
+		//（2处理1未处理）默认未处理
+		pd.put("YBC_NEE006_TP","2");
+		List<PageData> lspd = noticeService.getNoticeLst(pd);
+		return getSucJson(lspd);
+	}
+	
+}

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.YwBindMapper">
+	<!-- 账号绑定历史 -->
+
+	<!-- 通过YWU001获取账号绑定历史 -->
+	<select id="getYwBindByYwu001" parameterType="pd" resultType="pd"
+		useCache="false">
+		select
+		yb.*
+		from ywbind yb
+		where yb.YWU001 = #{YWU001}
+	</select>
+
+	<!-- 新增账号绑定历史 -->
+	<insert id="addYwBind" parameterType="pd" flushCache="false">
+		insert into
+		ywbind (
+			YWU001, 
+			YWBIND002, 
+			YWBIND003_TM, 
+			YWU010
+		) values (
+			#{YWU001}, 
+			#{YWBIND002}, 
+			#{YWBIND003_TM}, 
+			#{YWU010}
+		)
+	</insert>
+
+
+</mapper>

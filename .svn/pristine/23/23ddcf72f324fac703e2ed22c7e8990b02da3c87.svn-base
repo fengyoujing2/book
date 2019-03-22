@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.customer.CusSpacePhoMapper">
+	<!-- 空号池 -->
+
+	<select id="getPageSpacePhoPolLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			c.*, 
+			(
+				case c.YBC018_TP 
+					when 1 then 'A'
+					when 2 then 'B'
+					when 3 then 'C'
+					when 4 then 'D'
+				end 
+			) as level, 
+			(
+				case c.YBC008_TP 
+					when 0 then '临时（大类）' 
+					when 10 then '临时（小类）' 
+					when 1 then '意向'
+					when 2 then '上门'
+					when 3 then '签单'
+					when 4 then '回收'
+					when 5 then '再签单'
+				end
+			) as state
+		from ybc c 
+		where 1 = 1 
+		and c.YBC033_TP = 1 <!-- 空号 -->
+		<!-- 权限 -->
+		and
+			(
+				c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+				and 
+				c.POSITION = #{pd.POSITION}
+			) <!-- 空号池只能主管拥有权限 -->
+			
+	<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+			and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+		</if>
+		<if test="pd.YBC003 != null and pd.YBC003 != ''">
+			and c.YBC003 like concat_ws(#{pd.YBC003}, "%", "%")
+		</if>
+		<if test="pd.YBC008_TP != null and pd.YBC008_TP != ''">
+			and c.YBC008_TP = #{pd.YBC008_TP}
+		</if>
+		<if test="pd.introName != null and pd.introName != ''"><!-- 介绍人 -->
+			and (select c2.YBC002 from ybc c2 where c2.ybc001 = c.PYBC001 limit 0, 1) like concat_ws(#{pd.introName}, "%", "%")
+		</if>
+		<if test="pd.contanName != null and pd.contanName != ''"><!-- 联系人 -->
+			and (select YBCCO002 from YBC_CONTACTS where ybc001 = c.ybc001 limit 0, 1) like concat_ws(#{pd.contanName}, "%", "%")
+		</if>
+		<if test="pd.YBC015_TMStart != null and pd.YBC015_TMStart != ''"><!-- 最后更新时间 -->
+			and c.YBC015_TM <![CDATA[>=]]> #{pd.YBC015_TMStart}
+		</if>
+		<if test="pd.YBC015_TMEnd != null and pd.YBC015_TMEnd != ''"><!-- 最后更新时间 -->
+			and c.YBC015_TM <![CDATA[<=]]> #{pd.YBC015_TMEnd}
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and c.USER_ID = #{pd.USER_ID_Sea} 
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+		</if>
+	<!-- 搜索 end -->
+			
+		order by c.YBC015_TM desc
+	</select>
+	
+	<update id="updateSpacePhoToEffect" parameterType="pd" flushCache="false">
+		update
+			ybc
+				<set>
+					YBC033_TP		= 0 <!-- 更新为非空号 -->
+					,YBC003			= #{YBC003} 
+					,YBC015_TM		= now() <!-- 更新时间 -->
+				</set>
+			where
+					YBC001			= #{YBC001}
+	</update>
+	
+</mapper>

@@ -1,0 +1,26 @@
+package com.dbsun.mapper.background;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface BacAllotMapper {
+	
+//部长分配	start
+
+	public int addAlt(PageData pd);
+	public List<PageData> getPageWtAllotForMinisterLst(Page page);
+	public int updateAltForMinister(PageData pd);
+	public PageData getAltByCusId(PageData pd);
+
+//部长分配	end
+	
+	
+//组长分配	start
+	public List<PageData> getPageWtAltForHeadmanLst(Page page);
+	public int updateAltForHeadman(PageData pd);
+	public int updateAltUSERID(PageData pd);
+	
+//组长分配	end
+}

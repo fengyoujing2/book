@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+
+    <title>客户管理</title>
+
+    <link rel="shortcut icon" href="favicon.ico"> 
+    <link href="../../../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../../../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../../../static/css/animate.css" rel="stylesheet">
+    <link href="../../../static/css/style.css?v=4.1.0" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../../static/element-ui/lib/theme-chalk/index.css">
+    
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0]; 
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+    
+    <script src="../../../static/js/echarts.js"></script>
+    <script src="../../../static/js/vue.js"></script>
+    <script src="../../../static/element-ui/lib/index.js"></script>
+        
+    <style>
+        
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:0;">
+    <div id="cus_manaApp">
+
+    </div>
+</body>
+<script>
+    
+    new Vue({
+        el:"#cus_manaApp",
+        data(){
+            return {
+                
+            }
+        },
+//        DOM渲染前执行
+        mounted(){
+            
+        },
+        methods:{
+            
+        }
+    })
+    
+</script>
+</html>

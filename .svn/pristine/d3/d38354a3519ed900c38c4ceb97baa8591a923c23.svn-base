@@ -1,0 +1,215 @@
+package com.dbsun.controller.customer;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.customer.CusService;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
+/**
+ * 客户管理
+ * @author DongZai
+ *
+ */
+@Controller
+@RequestMapping("/cus_")
+@SuppressWarnings("unused")
+public class CusController extends BaseController {
+	
+	@Autowired
+	private CusService cusService;
+	
+	/**
+	 * 跳转到客户管理界面
+	 * @return
+	 */
+	@RequestMapping("/goCusPage")
+	public String goCusIndex(ModelMap model){
+		//构建初始数据
+		Page page = this.getPage();
+		PageData pd = this.getPageData();
+		page.setPd(pd);
+		List<PageData> cusLst = null;
+		try {
+			cusLst = cusService.getPageCusLst(this.putUserIdAdDeLAdPosPd(page, pd));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		model.addAttribute("cusTableLst",cusLst);
+		model.addAttribute("page",page);
+		return "html/system/customer/cusIndex";
+	}
+	
+	/**
+	 * 客户列表数据
+	 * @param
+	 * @return
+	 */
+	@RequestMapping("/getPageCusLst")
+	@ResponseBody
+	public JSONObject getPageCusLst(){
+		PageData pd = this.getPageData();
+		Page page = this.getPage();
+		page.setPd(pd);
+		List<PageData> cusLst = null;
+		try {
+			cusLst = cusService.getPageCusLst(this.putUserIdAdDeLAdPosPd(page, pd));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return viewReturnPageData(page, cusLst);
+	}
+	
+	/**
+	 * 添加客户
+	 * @return
+	 * 		返回新添加客户的YBC001
+	 */
+	@RequestMapping("/addCus")
+	@ResponseBody
+	public JSONObject addCus(){
+		PageData pd = this.getPageData();
+		String uuid = this.get32UUID();
+		return cusService.addCus(this.putUserPd(pd), this.getUserPd());
+	}
+	
+	/**
+	 * 去详情页
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping("/goUpdateCusBasicPage")
+	public String goUpdateCusBasicData(Model model){
+		JSONObject json = this.getFalJson();
+		PageData pd = this.getPageData();
+		model.addAttribute("json", this.getSucJson(cusService.getCusById(pd)));
+		return "html/system/customer/cus_details";
+	}
+	
+	/**
+	 * 去客户详情页
+	 * @return
+	 */
+	@RequestMapping("/getCusDetail")
+	@ResponseBody
+	public JSONObject getCusDetail(){
+		PageData pd = this.getPageData();
+		return this.getSucJson(cusService.getCusById(pd));
+	}
+	
+	/**
+	 * 更新客户资料（添加介绍人、客户身份变更）
+	 * @return
+	 */
+	@RequestMapping("/updateCusBasicData")
+	@ResponseBody
+	public JSONObject updateCusBasicData(){
+		PageData pd = this.getPageData();
+		return this.getAddOrUpdJson(cusService.updateCusBasicDataPlu(pd, this.getUserPd()));
+	}
+	
+	/**
+	 * 更新客户标签
+	 * @return
+	 */
+	@RequestMapping("/updateCusForLabel")
+	@ResponseBody
+	public JSONObject updateCusForLabel(){
+		PageData pd = this.getPageData();
+		return this.getAddOrUpdJson(cusService.updateCusForLabel(pd, this.getUserPd()));
+	}
+	
+	/**
+	 * 更新客户为回收客户
+	 * @return
+	 */
+	/*@RequestMapping("/updateCusToRecovery")
+	@ResponseBody
+	public JSONObject updateCusToRecovery(){
+		PageData pd = this.getPageData();
+		return this.getAddOrUpdJson(cusService.updateCusToRecoveryPlu(pd, this.getUserPd()));
+	}*/
+	
+	/**
+	 * 更新客户为签单客户
+	 * @return
+	 */
+	@RequestMapping("/updateCusToSign")
+	@ResponseBody
+	public JSONObject updateCusToSign(){
+		PageData pd = this.getPageData();
+		return this.getAddOrUpdJson(cusService.updateCusToSignPlu(pd, this.getUserPd()));
+	}
+	
+	/**
+	 * 更新客户为临时客户
+	 * @return
+	 */
+	@RequestMapping("/updateCusToTemp")
+	@ResponseBody
+	public JSONObject updateCusToTemp(){
+		PageData pd = this.getPageData();
+		return this.getAddOrUpdJson(cusService.updateCusToTempOrThinkPlu(pd, 0, this.getUserPd()));
+	}
+	/**
+	 * 更新客户为意向客户
+	 * @return
+	 */
+	@RequestMapping("/updateCusToThink")
+	@ResponseBody
+	public JSONObject updateCusToThink(){
+		PageData pd = this.getPageData();
+		return this.getAddOrUpdJson(cusService.updateCusToTempOrThinkPlu(pd, 1, this.getUserPd()));
+	}
+	/**
+	 * 更新客户为上门客户
+	 * @return
+	 */
+	@RequestMapping("/updateCusToDoor")
+	@ResponseBody
+	public JSONObject updateCusToDoor(){
+		PageData pd = this.getPageData();
+		return this.getAddOrUpdJson(cusService.updateCusToDoorPlu(pd, this.getUserPd()));
+	}
+	
+	/**
+	 * 废弃客户
+	 * @return
+	 */
+	@RequestMapping("/updateCusToScrap")
+	@ResponseBody
+	public JSONObject updateCusToScrap(){
+		PageData pd = this.getPageData();
+		return this.getAddOrUpdJson(cusService.updateCusToScrapPlu(pd, this.getUserPd()));
+	}
+
+	/**
+	 * 查询客户的介绍人信息
+	 * @return
+	 */
+	@RequestMapping("/getIntroducerByCusId")
+	@ResponseBody
+	public JSONObject getIntroducerByCusId(){
+		PageData pd = this.getPageData();
+		return this.getSucJson(cusService.getIntroducerByCusId(pd));
+	}
+	
+	/**
+	 * 获取客户的信息
+	 * @return
+	 */
+	@RequestMapping("/getCusById")
+	@ResponseBody
+	public JSONObject getCusById(){
+		PageData pd = this.getPageData();
+		return this.getSucJson(cusService.getCusById(pd));
+	}
+	
+}

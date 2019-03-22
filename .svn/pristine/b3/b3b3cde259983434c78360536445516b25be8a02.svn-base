@@ -1,0 +1,13 @@
+package com.dbsun.mapper.background;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface BacCostMapper {
+	
+	public List<PageData> getPageWtEtrCostLst(Page page);
+	public int updateForAdCost(PageData pd);
+	public PageData getCostBySingleId(PageData pd);
+}

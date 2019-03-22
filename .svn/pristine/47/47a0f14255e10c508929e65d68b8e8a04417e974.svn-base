@@ -1,0 +1,75 @@
+package com.dbsun.mapper.statistics;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+import java.util.List;
+
+/**
+ * 统计主入口
+ */
+public interface StatisticsMapper {
+	
+	
+	/**
+	 * 后台签单明细列表
+	 * */
+	public List<PageData> getPageChartSign(Page pd);
+	/**
+	 * 后台签单当月总数
+	 * */
+	public PageData getChartSignMonthSum(PageData pd);
+
+	/**
+	 * 后台退单列表
+	 * */
+	public List<PageData> getPageChartBackSign(Page pd);
+	/**
+	 * 后台退单总数
+	 * */
+	public PageData getChartBackSignMonthSum(PageData pd);
+
+	/**
+	 * 后台过件列表
+	 * */
+	public List<PageData> getPageChartPiece(Page pd);
+
+	/**
+	 * 后台过件所有汇总信息
+	 * */
+	public PageData getChartPieceAllSum(PageData pd);
+	/**
+	 * 后台过件当月汇总信息
+	 * */
+	public PageData getChartPieceMonthSum(PageData pd);
+	/**
+	 * 后台放贷列表
+	 * */
+	public List<PageData> getPageChartLending(Page pd);
+	/**
+	 * 后台放贷所有汇总信息
+	 * */
+	public PageData getChartLendAllSum(PageData pd);
+	/**
+	 * 后台放贷当月汇总信息
+	 * */
+	public PageData getChartLendMonthSum(PageData pd);
+
+	/**
+	 * 财务收款明细列表
+	 * */
+	public List<PageData> getPageChartReceivables(Page pd);
+	/**
+	 * 财务网贷收款明细列表
+	 * */
+	public List<PageData> getPageChartNetReceivables(Page pd);
+	/**
+	 * 财务渠道收款明细列表
+	 * */
+	public List<PageData> getPageChartChannelReceivables(Page pd);
+	/**
+	 * 财务已结账明细列表
+	 * */
+	public List<PageData> getPageChartCheckoutReceivables(Page pd);
+
+}

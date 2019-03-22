@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>关于我们</title>
+    <style>
+        a:hover{
+            text-decoration: none;
+        }
+
+        a:visited{
+            text-decoration: none;
+        }
+
+        a:active{
+            text-decoration: none;
+        }
+
+        #tanchuang{
+            display: none;
+        }
+
+    </style>
+
+
+</head>
+<body style="background:#ffffff;">
+
+<div class="container-fluid jianju"  id="contain" >
+    <div class="page-body">
+
+
+        <div class="row" style="background: white">
+            <div class="col-xs-12  text-left" style="padding: 15px;">
+                <span style="color: #FC8B4D">成都瑞信厚德非融资性担保有限公司</span>创建于2015年, 是成都市一家专业贷款代理服务机构，主要从事车贷、房贷、信贷等方面的服务。公司位于成都市锦江区东大街芷泉段，地理位置优越，交通方便。公司总面积1683平方米，设有营销部、运营部、综合部及总经办，拥有员工多达200人以上！经过两年的努力，瑞信厚德在风雨中不断发展壮大，形成以信贷、房贷为主的不同项目的系列产品。
+            </div>
+        </div>
+
+        <div class="row" style="background: white">
+            <div class="col-xs-12  text-left" style="padding: 15px;color: #999999;padding-top: 0">
+                <img src="../static/img/yifenzhongxin_03.jpg" style="width: 100%">
+            </div>
+        </div>
+
+        <div class="row" style="background: white">
+            <div class="col-xs-12  text-left" style="padding: 15px;color: #999999;padding-bottom: 0;">
+                <button type="button" class="btn btn-primary btn-lg btn-block"
+                        style="border-radius: 10px;background:#FC8B4D;;border: 1px solid transparent;outline: none;width: 140px;margin: auto" >企业历程</button>
+            </div>
+        </div>
+
+        <div class="row" style="background: white">
+            <div class="col-xs-12  text-left" style="padding: 15px;padding-bottom: 0">
+                瑞信厚德与成都各大银行、金融机构建立了长期战略合作伙伴关系，为广大中小企业主、个体工商户、市民提供优质便捷的非融资性贷款服务！基于销售理念不断创新，待客服务不断完善，通过整合优化软硬件设施，瑞信厚德一步步走向同行业优秀公司的身边，公司将会在2018年实现成为本土金融服务行业十强品牌，并且公司承诺让客户获得最好的金融服务，让员工快乐而有目标的工作!
+                瑞信人充满朝气、自信并努力拼搏为公司打造一个美好的未来!
+
+            </div>
+        </div>
+
+        <div class="row" style="background: white">
+            <div class="col-xs-12  text-left" style="padding: 15px;color: #999999">
+                <img src="../static/img/yifenzhongxin_06.jpg" style="width: 100%">
+            </div>
+        </div>
+
+        <div class="row" style="background: white">
+            <div class="col-xs-12  text-left" style="padding: 15px;color: #999999;padding-bottom: 0">
+                <button type="button" class="btn btn-primary btn-lg btn-block"
+                        style="border-radius: 10px;background:#FC8B4D;;border: 1px solid transparent;outline: none;width: 140px;margin: auto" >优势&愿景</button>
+            </div>
+        </div>
+
+        <div class="row" style="background: white">
+            <div class="col-xs-12  text-left" style="padding: 15px;">
+                更专业的技能、更优质的服务、量身定制化的方案。打造全国金融服务平台领军品牌！
+            </div>
+        </div>
+
+        <div class="row" style="background: white">
+            <div class="col-xs-12  text-left" style="padding: 15px;color: #999999;padding-bottom: 0">
+                <button type="button" class="btn btn-primary btn-lg btn-block"
+                        style="border-radius: 10px;background:#FC8B4D;;border: 1px solid transparent;outline: none;width: 280px;margin: auto" >专业&nbsp;&nbsp;诚信&nbsp;&nbsp;服务&nbsp;&nbsp;争优</button>
+            </div>
+        </div>
+
+        <div class="row" style="background: white">
+            <div class="col-xs-12  text-left" style="padding: 15px;color: #999999">
+                <img src="../static/img/erfenzhongxin_03.jpg" style="width: 100%">
+            </div>
+        </div>
+
+        <div class="row" style="background: white">
+            <div class="col-xs-12  text-left" style="padding: 15px;color:#FC8B4D;font-size: 17px;font-family: simhei;padding-bottom: 0">
+               瑞信梦想金服，助理梦想，开启非凡人生！
+            </div>
+        </div>
+
+        <div class="row" style="background: white">
+            <div class="col-xs-12  text-left" style="padding: 15px;color: #999999;padding-bottom: 0;padding-top: 5px">
+                咨询热线：<a href="tel:028-66002200" style="text-decoration:none;color:#417FFD ">028-66002200</a>
+            </div>
+        </div>
+
+        <div class="row" style="background: white">
+            <div class="col-xs-12  text-left" style="padding: 15px;color: #999999;padding-top: 5px">
+                地址：成都市锦江区东大街芷泉段68号时代8号22层
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+
+
+<div style="width: 100%; height: 100%; color: rgb(0, 0, 0); position: fixed; top: 0px; left: 0px; z-index: 60000; background: url('../static/img/back2.png');" id="tanchuang">
+    <div style="opacity: 1">
+        <div style="position: absolute;width: 300px;height:420px;top: 50%;left: 50%;margin: -210px 0 0 -150px;border: 1px solid transparent;color: #ffffff;border-radius: 10px;background: #ffffff;color: #000000;text-align: center">
+            <div style="width: 100%;height: 0%;font-size: 18px;font-weight: bold;line-height: 60px;border-top-right-radius: 10px;border-top-left-radius: 10px;position: relative">
+                <div style="width: 25px;height: 25px;position: absolute;right:6px;top: 0" id="tanchuangnei">
+                    <span class="glyphicon glyphicon-remove" style="top: -14px;color: #A5A5A5"></span>
+                </div>
+            </div>
+            <div style="width: 100%;height: 70%;text-align: left;padding: 10px;font-size: 15px">
+                <div style="margin-top: 30px;text-align: center;padding-left: 40px;padding-right: 40px">
+                    <img src="../static/img/bangdingshouji_03.jpg" style="width: 100%">
+                </div>
+                <div style="margin-top: 10px;text-align: center;font-size: 19px;color: #FC8B4D">恭喜！您已成功绑定手机</div>
+                <div style="margin-top: 10px;text-align: center" id="bindTel"><span>绑定手机号：</span><span th:text="${pd == null ? '' : pd.get('YWU008')}"></span></div>
+                <div style="margin-top: 50px;text-align: center;padding-left: 50px;padding-right: 50px">
+                    <button type="button" class="btn btn-block btn-outline btn-primary" style="background: #FC8B4D;color: #FC8B4D;border-color: #FC8B4D;color: white" id="fanhuishouye">返回首页</button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div th:include="html/page/contentpublic :: html"></div>
+<script>
+    $(document).ready(function(){
+		var basePath = "/"+getContextPath();
+
+        $("#tanchuangnei").click(function(){
+           $("#tanchuang").hide();
+        });
+
+        $("#xiayibu").click(function(){
+            $("#tanchuang").show();
+        });
+
+        $("#fanhuishouye").click(function(){
+            window.location.href=basePath+"/index";
+   		});
+
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+package com.dbsun.mapper.stm;
+
+import com.dbsun.entity.system.PageData;
+
+public interface SysDeptMapper {
+	
+	/**
+	 * 查询该部门组长ID
+	 * @param pd
+	 * @return
+	 * 			USER_ID
+	 */
+	public PageData getUserIdByDLR(PageData pd);
+	
+	/**
+	 * 查询leader
+	 * @param pd
+	 * 			DEPT_ID
+	 * @return
+	 * 			*
+	 */
+	public PageData getLeaderByDeptId(PageData pd);
+	
+	
+}

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.WechatMenuMapper">
+		<!-- 获取所有菜单数据 需要分页 -->
+	<select id="getPageWechatMenuByAll" parameterType="page"  resultType="pd">
+		select  ID,
+			 ACCOUNT_ID,
+			 PARENT_ID,
+			 NAME,
+			 TYPE,
+			 WX_KEY,
+			 SORT,
+			 URL
+		 from WECHAT_MENU m
+		 where 1=1
+	</select>
+	
+	<!-- 获取所有菜单数据 无分页 -->
+	<select id="getByWechatMenuAllnoPage"  resultType="pd">
+		select  ID,
+			 ACCOUNT_ID,
+			 PARENT_ID,
+			 NAME,
+			 TYPE,
+			 WX_KEY,
+			 SORT,
+			 URL
+		 from WECHAT_MENU m
+		 where 1=1
+	</select>
+	
+	<insert id="addWechatMenu" parameterType="pd">
+		insert into WECHAT_MENU (
+			ACCOUNT_ID,
+			 PARENT_ID,
+			 NAME,
+			 TYPE,
+			 WX_KEY,
+			 SORT,
+			 URL
+		) values (
+			#{ACCOUNT_ID},
+			#{PARENT_ID},
+			#{NAME},
+			#{TYPE},
+			#{WX_KEY},
+			#{SORT},
+			#{URL}
+		)
+	</insert>
+	
+	<update id="updateWechatMenu" parameterType="pd">
+		update WECHAT_MENU set 
+			NAME =#{NAME},
+			URL  =#{URL},
+			PARENT_ID =#{PARENT_ID},
+			WX_KEY =#{WX_KEY},
+			TYPE =#{TYPE}
+		where 
+			ID=#{ID}
+	</update>
+</mapper>

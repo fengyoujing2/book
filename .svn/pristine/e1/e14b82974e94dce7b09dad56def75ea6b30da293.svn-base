@@ -1,0 +1,128 @@
+package com.dbsun.controller.system;
+
+import java.net.URLEncoder;
+
+import javax.servlet.http.HttpServletResponse;
+
+import com.dbsun.util.*;
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dbsun.controller.WeixinController;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.YwBindService;
+import com.dbsun.service.YwuService;
+
+/**
+ * 用户账号
+ * 
+ * @author DongZai
+ * 
+ */
+@Controller
+@RequestMapping("/wx_index")
+public class IndexController extends WeixinController {
+
+	@Autowired
+	private YwuService ywuService;
+	@Autowired
+	private YwBindService ywBindService;
+
+	/**去首页面*/
+	@RequestMapping("/goIndex")
+	public String goIndex(Model model) {
+		return wxReturnvalidataPage("/html/wechat/index/index");
+	}
+	/**去测试页*/
+	@RequestMapping("/goTest")
+	public String goTest(Model model) {
+		
+		return "/html/wechat/ywu/test";
+	}
+	
+/**js异步请求判定当前是否授权登录过*/
+	@RequestMapping("/checkLogin")
+	@ResponseBody
+	public String checkLogin(Model model) {
+		System.out.println("in...............checkLogin");
+		PageData sessionpd = getWxSession();
+		JSONObject json = new JSONObject();
+		PageData pd = getPageData();//捕获当前的请求地址，并存储用于授权后的再次进入
+		String redUrl = null;
+		redUrl = pd.get("currentUrl").toString();//当前发生请求的路径
+		if(Tools.isObjEmpty(sessionpd)){//为空返回标记
+			String uri = URLEncoder.encode("http://wx.resunruixin.com/dbSun/wx_index/getWxIndexCode?currentUrl="+redUrl);
+			String requestUrl = RedisUtil.GETWXUSERMSGURL
+					.replace("APPID", RedisUtil.weixin_appid)
+					.replace("REDIRECT_URI", uri)//处理后的重定向地址，可用https
+					.replace("SCOPE", "snsapi_userinfo")//snsapi_base（不弹出授权页面，直接跳转，只能获取用户openid）
+					.replace("STATE", redUrl);//state:参数
+			
+			json.put("msg","201");
+			JSONObject jsonResult = new JSONObject();
+			jsonResult.put("authUrl",requestUrl);//授权请求地址
+			jsonResult.put("uri","");//重定向URL
+			json.put("result",jsonResult);
+			return json.toString();//需要授权登录
+		}else{
+			json.put("msg","200");
+			json.put("result",null);
+			return json.toString();//不需要授权登录
+		}
+	}
+	/**
+	 * 统一的获取code入口
+	 * 如果有页面需要授权登录，那么需要给出此方法作为入口用来获取code，通过获取的code来做
+	 * */
+	@RequestMapping("/getWxIndexCode")  
+	public String getWxIndexCode(HttpServletResponse rep) {  
+		System.out.println("in...............getWxIndexCode");
+		PageData pd = getPageData();
+		String code = pd.getString("code");//我们要的code  
+		//写入session 把用户的信息写入session如果这个用户在数据库中不存在则新插入一条数据
+    		//先从缓存去取，如果取不到则表明用户未注册登录过，需要写入数据库
+    		String url = RedisUtil.GETPAGEAKURL.replace("APPID", RedisUtil.weixin_appid).replace("SECRET", RedisUtil.weixin_secret).replace("CODE",code);
+	        JSONObject jsonObject = httpRequst(url, "POST",null);
+    		//PageData redisInfoData = redisutil.readWxOpenIdAndInfo(jsonObject.getString("openid"));缓存不可用
+
+	        pd.put("YWU010",jsonObject.getString("openid"));
+	        PageData redisInfoData = ywuService.getYwuByYwu010(pd);
+    		if(redisInfoData == null){
+    			//获取的code用来获取
+    			System.out.println("进入获取用户信息方法");
+    	        if (null != jsonObject) {  
+    			//获取微信的用户基本信息
+    			JSONObject userInfojson = null;
+				String requestUrl = RedisUtil.GETUSERINFOURL.replace("ACCESS_TOKEN", jsonObject.getString("access_token")).replace("OPENID", jsonObject.getString("openid"));//网页授权接口调用凭证,注意：此access_token与基础支持的access_token不同
+				userInfojson = httpRequst(requestUrl, "GET", null);
+    			//写入数据库
+    			pd.put("YWU007_TP",2);//是否绑定1绑定2未绑定3已解绑
+    			pd.put("YWU010",jsonObject.getString("openid"));
+    			pd.put("YWU006_TM",DateUtil.get1000ParsedDate());
+    			pd.put("YWU011",userInfojson.getString("headimgurl"));//头像
+    			pd.put("YWU004",Util.filterEmoji(userInfojson.getString("nickname").replaceAll("[\\ud800\\udc00-\\udbff\\udfff\\ud800-\\udfff]", "*")));//昵称
+    			pd.put("YWU005_TP",userInfojson.getString("sex"));//性别
+    			ywuService.addYwu(pd);
+    			//写入缓存
+    			//redisutil.writeWxOpenIdAndInfo(pd);
+    			//写入session用户基础信息
+        		session.setAttribute(SessionUtil.SESSION_OPENID,pd);
+    	        }
+    		}else{//session为空但是缓存为空，只需要对session重新set一次
+    			session.setAttribute(SessionUtil.SESSION_OPENID,redisInfoData);
+    		}
+    		
+				System.out.println("before.......");
+				//重定向到当前来的地址上
+	    		String redirecturl = pd.getString("currentUrl").split("dbSun")[1];
+	    		System.out.println(redirecturl);
+	    		return "redirect:"+redirecturl;
+    	
+	 } 
+
+}

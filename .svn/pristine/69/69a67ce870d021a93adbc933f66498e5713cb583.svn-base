@@ -1,0 +1,80 @@
+package com.dbsun.service;
+
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.YwRewardMapper;
+import com.dbsun.util.Util;
+
+/**
+ * 个人福利(积分等)
+ * 
+ * @author DongZai
+ * 
+ */
+@Service
+public class YwRewardService {
+
+	@Autowired
+	private YwRewardMapper ywRewardMapper;
+
+	public int addYwReward(PageData pd) {
+		return ywRewardMapper.addYwReward(pd);
+	}
+
+	// 通过YWU001或者YWU010获取个人福利
+	public List<PageData> getYwRewardByYwu001OrOpenId(PageData pd) {
+		return ywRewardMapper.getYwRewardByYwu001OrOpenId(pd);
+	}
+
+	// 我的邀请
+	public JSONObject getMyYQ(PageData pd) {
+		JSONObject json = new JSONObject();
+		// 累计积分奖励
+		json.put("jf", ywRewardMapper.getSumJF(pd).get("sum"));
+		// 累计还款金奖励
+		json.put("hkj", ywRewardMapper.getSumHKJ(pd).get("sum"));
+		List<PageData> recList = this.getYwRewardByYwu001OrOpenId(pd);
+		
+		//构建奖励记录
+		//奖励记录
+		json.put("rec", Util.yqLstToLst(recList));
+		return json;
+	}
+	
+	// 邀请好友
+	public JSONObject getInvFri(PageData pd) {
+
+		JSONObject json = new JSONObject();
+
+		// 累计还款金奖励
+		json.put("hkjS", ywRewardMapper.getSumHKJ(pd).get("sum"));
+
+		// 累计积分记录数
+		json.put("jfC", ywRewardMapper.getSumJF(pd).get("count"));
+		// 累计还款金记录数
+		json.put("hkjC", ywRewardMapper.getSumHKJ(pd).get("count"));
+
+		return json;
+
+	}
+
+	// 获取个人所得积分
+	public String getJF(PageData pd) {
+		return String.valueOf(ywRewardMapper.getSumJF(pd).get("sum"));
+	}
+	
+	public static void main(String[] args) {
+		YwRewardService ys = new YwRewardService();
+		PageData pd = new PageData();
+		pd.put("ywu010", "111");
+		ys.getMyYQ(pd);
+	}
+	
+
+}

@@ -1,0 +1,140 @@
+package com.dbsun.service;
+
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.YwApplyMapper;
+import com.dbsun.util.Tools;
+
+/**
+ * 业务申请
+ * 
+ * @author DongZai
+ * 
+ */
+@Service
+public class YwApplyService {
+
+	@Autowired
+	private YwApplyMapper ywApplyMapper;
+	@Autowired
+	private YwuService ywuService;
+	@Autowired
+	private YwApplyService ywApplyService;
+	@Autowired
+	private YwDataService ywDataService;
+
+	/** 获取所有用户数据 */
+	public List<PageData> getPageYwApplyLst(Page page) {
+		return ywApplyMapper.getPageYwApplyLst(page);
+	}
+
+	/** 添加用户 */
+	public int addYwApply(PageData pd) {
+		ywApplyMapper.addWbYbc(pd);
+		ywApplyMapper.addYwApply(pd);
+		return 1;
+	}
+
+	/** 修改用户信息 */
+	public int updateYwApply(PageData pd) {
+		return ywApplyMapper.updateYwApply(pd);
+	}
+
+	/** 从以往的申请记录中导入姓名和号码 */
+	public PageData getYwuByYwu010(PageData pd) {
+		return ywApplyMapper.getYwuByYwu010(pd);
+	}
+
+	/** 贷款进度 */
+	public JSONObject getDKJD(PageData pd) {
+		JSONObject json = new JSONObject();
+
+		PageData ywuPD = ywuService.getYwuByYwu010(pd);
+
+		int goBind = 0, goApply = 0;
+
+		// 手机号已经绑定
+		if (ywuPD != null && !Tools.isObjEmpty(ywuPD.get("YWU008"))) {
+			// 允许查看数据
+			// 获取
+			List<PageData> pdlst = ywuService.getCrmData(pd);
+			json.put("pdlst", pdlst);
+			if (pdlst.size() == 0/* 数据为空 */) {
+				// 提示客户申请贷款
+				goApply = 1;
+			}
+
+		} else {
+			goBind = 1;
+		}
+
+		pd.put("goBind", goBind);
+		pd.put("goApply", goApply);
+		json.put("pd", pd);
+
+		return json;
+	}
+
+	/**
+	 * 贷款进度
+	 * 
+	 * @param pd
+	 * @return
+	 */
+	public PageData getDKJDPd(PageData pd) {
+		PageData ywuPD = ywuService.getYwuByYwu010(pd);
+
+		int goBind = 0, goApply = 0;
+
+		// 手机号已经绑定
+		if (ywuPD != null && !Tools.isObjEmpty(ywuPD.get("YWU008"))) {
+			// 允许查看数据
+			// 获取
+			List<PageData> pdlst = ywuService.getCrmData(pd);
+			if (pdlst.size() == 0/* 数据为空 */) {
+				// 提示客户申请贷款
+				goApply = 1;
+			}
+
+		} else {
+			goBind = 1;
+		}
+
+		pd.put("goBind", goBind);
+		pd.put("goApply", goApply);
+
+		return pd;
+	}
+
+	/**
+	 * 去抵押贷
+	 * 
+	 * @param pd
+	 * @return
+	 */
+	public PageData getDYD(PageData pd) {
+		PageData apyPd = ywApplyService.getYwuByYwu010(pd);
+		if (apyPd != null) {
+			pd.put("YWAPPLY002", apyPd.getString("YWAPPLY002"));
+			pd.put("YWAPPLY003", apyPd.getString("YWAPPLY003"));
+			pd.put("YWAPPLY004", apyPd.get("YWAPPLY004"));
+			pd.put("YWAPPLY005", apyPd.get("YWAPPLY005"));
+			if (ywDataService.getYwDataByYwu010(pd) == null) {
+				pd.put("isData", 0);
+			} else {
+				pd.put("isData", 1);
+			}
+
+		}
+
+		return pd;
+	}
+
+}

@@ -1,0 +1,149 @@
+package com.dbsun.service.fluxswitch;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.background.BacConfMapper;
+import com.dbsun.mapper.customer.CusSignMapper;
+import com.dbsun.mapper.finance.FinSignMapper;
+import com.dbsun.mapper.fluxswitch.FSMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.service.finance.FinNumService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class FSService extends BaseService {
+
+	@Autowired
+	private FSMapper fsMapper;
+	@Autowired
+	private CusSignMapper cusSignMapper;
+	@Autowired
+	private FinSignMapper finSignMapper;
+	@Autowired
+	private BacConfMapper bacConfMapper;
+	@Autowired
+	private FinNumService finNumService;
+
+	/**
+	 * 客户经理添加后、财务手动确认签单后、后台手动确认做单后调用此方法
+	 * @param pd
+	 * 			YBCS001、USER_ID
+	 * @return
+	 */
+	public boolean fluxSwitch(PageData pd){
+
+		boolean isYbcfs001 = true;
+		boolean isYbcfs002 = true;
+		boolean isYbcfs003 = true;
+
+		// 查询签单
+		PageData signPd = cusSignMapper.getSignByYBCS001(pd);
+
+		// todo
+		int YBCS021_TP = (int)signPd.get("YBCS021_TP");
+
+		// 查库：where 公司贷款类型
+		pd.put("YBCT001", signPd.getString("YBCS009_TP"));
+		PageData fluxPd = this.getFluexByType(pd);
+
+		// 自动执行
+		if(fluxPd.get("YBCFS001_TP") == 0 && YBCS021_TP == 1){
+
+			// pd需要包含USER_ID
+			// 确认签单和修改签单最终状态都成功
+			if(finSignMapper.updateConfSign(pd) == 1
+					&& updateSignFinalState(pd, 2)){
+				YBCS021_TP = 2;
+			}else{
+				isYbcfs001 = !isYbcfs001;
+			}
+
+		}
+
+		if(fluxPd.get("YBCFS002_TP") == 0 && YBCS021_TP == 2){
+
+			// pd需要包含USER_ID 默认可以做单 确认签单和修改签单最终状态都成功
+			pd.put("YBCS014_TP", 1);
+			if(bacConfMapper.updateForConfSingle(pd) == 1
+					&& updateSignFinalState(pd, 3)){
+				YBCS021_TP = 3;
+			}else{
+				isYbcfs002 = !isYbcfs002;
+			}
+
+		}
+
+		if(fluxPd.get("YBCFS003_TP") == 0 && YBCS021_TP == 3){
+
+			int ret = 1;
+
+			// 1.获得 编号前缀规则
+			PageData pdPrefix = finNumService.getGeneratedFinNum(signPd);
+			// 编号前缀规则不为空
+			if (pdPrefix != null
+					&& pdPrefix.get("YBCT008") != null ) {
+				// 1.获得财务编号 编号规则
+				final String num = finNumService.getFinancialNumber(pd); // todo
+				pd.put("YBCS007", num);
+				// 2.添加 签单编号
+				ret = finNumService.updateFinNum(pd);
+			}
+
+			if(ret == 1 && updateSignFinalState(pd, 4)){
+				YBCS021_TP = 4;
+			}else{
+				isYbcfs003 = !isYbcfs003;
+			}
+
+		}
+
+		// 任意一个流程出错，结果都为false，可能一次调用执行了多个if
+		if(isYbcfs001 && isYbcfs002 && isYbcfs001)return true;
+		else return false;
+	}
+
+	/**
+	 * 修改YBCS021_TP状态
+	 * @param pd
+	 * @param state
+	 * @return
+	 */
+	public boolean updateSignFinalState(PageData pd, int state){
+		pd.put("YBCS021_TP", state);
+		// 执行更新成功，
+		if(fsMapper.updateSignFinStatus(pd) > 0)return true;
+		else return false;
+	}
+
+	/**
+	 * 调用流程控制器
+	 * @param pd
+	 * @param userPd
+	 * @return
+	 */
+	public boolean invokeSwitch(PageData pd, PageData userPd) {
+		PageData switchPd = new PageData();
+		switchPd.put("YBCS001", pd.get("YBCS001"));
+		switchPd.put("USER_ID", userPd.get("USER_ID"));
+		return this.fluxSwitch(switchPd);
+	}
+
+	/**
+	 * 根据贷款类型查询流程切换记录
+	 * @param pd
+	 * @return
+	 */
+	public PageData getFluexByType(PageData pd){
+		return fsMapper.getFluexByType(pd);
+	}
+
+	/**
+	 * 添加流程配置
+	 * @param pd
+	 * @return
+	 */
+	public int addFluxSwitch(PageData pd){
+		return fsMapper.addFluxSwitch(pd);
+	}
+
+}

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.YwApplyMapper">
+	<!-- 业务申请表 -->
+
+	<select id="getPageYwApplyLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			ya.*, 
+			(SELECT FROM_UNIXTIME(ya.YWAPPLY006_TM, '%Y-%m-%d')) as date, 
+			(SELECT FROM_UNIXTIME(ya.YWAPPLY006_TM, '%H:%i:%S')) as time, 
+			<!--  -->
+			(
+				select 
+					case ya.YWPRODUCT001 
+						WHEN 1 THEN '抵押贷'
+						WHEN 2 THEN '信用贷'
+					end
+			) as produceName
+		from ywapply ya 
+		where 1 = 1 
+		<!-- 根据微信openId查询出该客户的申请记录 -->
+		<if test="pd.YWU010 != null and pd.YWU010 != ''">
+			and ya.YWU010					= #{pd.YWU010}
+		</if>
+		order by ya.YWAPPLY006_TM desc
+	</select>
+
+	<!-- 新增业务申请 -->
+	<insert id="addYwApply" parameterType="pd" flushCache="false">
+		insert into
+		ywapply (
+			YWPRODUCT001, 
+			YWU001, 
+			YWAPPLY002, 
+			YWAPPLY003, 
+			YWAPPLY004, 
+			YWAPPLY005, 
+			YWAPPLY006_TM, 
+			YWAPPLY007_TM, 
+			YWU010
+		) values (
+			#{YWPRODUCT001}, 
+			#{YWU001}, 
+			#{YWAPPLY002}, 
+			#{YWAPPLY003}, 
+			#{YWAPPLY004}, 
+			#{YWAPPLY005}, 
+			#{YWAPPLY006_TM}, 
+			#{YWAPPLY007_TM}, 
+			#{YWU010}
+		)
+	</insert>
+	
+	<!-- 新增业务申请 -->
+	<insert id="addWbYbc" parameterType="pd" flushCache="false">
+		insert into
+			wb_ybc 
+				(
+					YBWY0002, 
+					YBWY0003, 
+					YBWY0004, 
+					YBWY0005, 
+					YBWY0006_TM, 
+					YBWY0007_TP, 
+					YBWY0008_TP, 
+					YBWY0009, 
+					YBWY0010
+				) values (
+					#{YWAPPLY002}, 
+					#{YWAPPLY003}, 
+					#{YWPRODUCT001},<!-- 贷款意向，产品ID --> 
+					#{YWAPPLY005},<!-- 意向贷款金额 -->
+					#{YWAPPLY006_TM}, 
+					1, <!-- 客户来源，微信 -->
+					#{YWAPPLY004}, <!-- 申请人员性别 -->
+					0,<!-- 客户年龄 --> 
+					#{YWU010}<!-- 微信openId -->
+				)
+	</insert>
+	
+	<update id="updateYwApply" parameterType="pd" flushCache="false">
+		update ywapply
+		<set>
+			<if test="YWPRODUCT001 != null and YWPRODUCT001 !=''">
+				YWPRODUCT001		= #{YWPRODUCT001},
+			</if>
+			<if test="YWAPPLY002 != null and YWAPPLY002 !=''">
+				YWAPPLY002			= #{YWAPPLY002},
+			</if>
+			<if test="YWAPPLY003 != null and YWAPPLY003 != ''">
+				YWAPPLY003			= #{YWAPPLY003},
+			</if>
+			<if test="YWAPPLY004 != null and YWAPPLY004 != ''">
+				YWAPPLY004			= #{YWAPPLY004},
+			</if>
+			<if test="YWAPPLY005 != null and YWAPPLY005 != ''">
+				YWAPPLY005			= #{YWAPPLY005}
+			</if>
+		</set>
+		where YWAPPLY001 = #{YWAPPLY001}
+	</update>
+	
+	<!-- 从以往的申请记录中导入姓名和号码 -->
+	<select id="getYwuByYwu010" parameterType="pd" resultType="pd" useCache="false">
+		select
+		ya.*
+		from ywapply ya 
+		where 1 = 1 
+		and ya.YWU010 = #{YWU010} 
+		order by YWAPPLY006_TM desc 
+		limit 0, 1
+	</select>
+
+</mapper>

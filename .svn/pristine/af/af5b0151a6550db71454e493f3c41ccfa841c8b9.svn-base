@@ -1,0 +1,18 @@
+package com.dbsun.mapper;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+/**
+ * 
+ *
+ */
+public interface YbcDoAllotMapper {
+	
+	/**做单分配数据*/
+	public List<PageData> getPageYbcDoAllotLst(Page page);
+	
+	
+}

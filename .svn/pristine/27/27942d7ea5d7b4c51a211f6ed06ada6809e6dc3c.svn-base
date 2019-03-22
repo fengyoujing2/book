@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+    <title>产品管理</title>
+
+    <link rel="shortcut icon" href="favicon.ico"> 
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+    
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0]; 
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+    
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+    
+    <style>
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        .tips{
+            display: inline-block;
+            padding: .5rem 2rem .5rem 1rem;
+            background-color: #53DD9D;
+            color: #fff;
+            font-size: 16px;
+            border-bottom-right-radius: 2rem;
+            border-top-right-radius: 2rem;
+        }
+        .cusMTable{
+            width: 75%;
+        }
+        .cusMTable .el-table tr{
+            background-color: #4aa5fb;
+            color:#fff;
+        }
+        .el-table .odd-row {
+            background: #f1f7fe !important;
+            color:#878787 !important;
+        }
+        .el-table .even-row {
+            background: #ffffff !important;
+            color:#878787 !important;
+        }
+        .el-input-group__append{
+            color: #4aa5fb !important;
+        }
+        .top_divR{
+            margin-right: 20px;
+        }
+        .testDiv{
+            min-height: 600px;
+            background-color: #fff;
+        }
+        .elBtn{
+            border-radius: 30px !important;
+            padding: 6px 20px !important;
+        }
+/*        // 去掉input[type=number]默认的加减号*/
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .el-table td{
+            padding: 4px 0 !important;
+        }
+        .el-message-box {
+            margin-top: -300px;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:10px;">
+    <div id="productApp" v-cloak>
+        <div style="display:flex;">
+            <div style="width:25%;background-color:#fff;">
+                <div style="width:100%;">
+                    产品类型
+                </div>
+                <div style="width:100%;">（请点击产品名称进行选择,且只能单选）</div>
+                <el-tree
+                    :data="pageInit"
+                    :props="defaultProps"
+                    ref="tree"
+                    highlight-current
+                    show-checkbox
+                    node-key="id"
+                    default-expand-all
+                    :expand-on-click-node="false"
+                    @node-click="clikNode">
+                </el-tree>
+                <div style="width:100%;margin:10px 0;">你点击选中的是:<span style="color:red;">{{selNode.label}}</span></div>
+                <div style="width:100%;">
+                    <el-button type="primary" icon="el-icon-plus" size="mini" @click="addNewProTs">新增同级类型</el-button>
+                    <el-button type="primary" icon="el-icon-plus" size="mini" @click="addNewProTb">新增下级类型</el-button>
+                </div>
+                <div style="width:100%;" style="margin:10px 0;">
+                    <el-button type="primary" icon="el-icon-edit" size="mini" @click="editProT">编辑产品类型</el-button>
+                    <el-button type="primary" icon="el-icon-delete" size="mini" @click="delProT">删除产品类型</el-button>
+                </div>
+            </div>
+            <div class="cusMTable"
+            v-loading="loading">
+                    <el-table
+                            ref="multipleTable"
+                            :data="tabledata"
+                            :row-class-name="tableRowClassName"
+                            tooltip-effect="dark"
+                            style="width: 100%">
+                        <el-table-column
+                                type="selection"
+                                width="55">
+                        </el-table-column>
+                        <el-table-column
+                                prop="YBTL002"
+                                label="产品名称" min-width="200">
+                        </el-table-column>
+                        <el-table-column
+                                prop="YBTL004"
+                                label="贷款额度" min-width="100">
+                        </el-table-column>
+                        <el-table-column
+                                prop="YBTL005"
+                                label="贷款期限" min-width="100">
+                        </el-table-column>
+                        <el-table-column
+                                prop="YBTL006"
+                                label="最低利息" min-width="100">
+                        </el-table-column>
+                        <el-table-column
+                                prop="YBTL007"
+                                label="还款方式" min-width="100">
+                        </el-table-column>
+                        <el-table-column
+                                prop="YBTL009"
+                                label="客服经理" min-width="100">
+                        </el-table-column>
+                        <el-table-column
+                                prop="YBTL010"
+                                label="客服经理电话" min-width="120">
+                        </el-table-column>
+                        <el-table-column
+                                prop="YBTL011"
+                                label="支行名称" min-width="100">
+                        </el-table-column>
+                        <el-table-column
+                                prop="YBTL012"
+                                label="返点率" min-width="80">
+                        </el-table-column>
+                        <el-table-column label="操作" fixed="right"  width="180px">
+                            <template slot-scope="scope">
+                                <el-button
+                                    size="mini"
+                                    @click="handleEdit(scope.$index, scope.row)" >编辑</el-button>
+                                <el-button
+                                    size="mini"
+                                    type="danger"
+                                    @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                <div>
+                    <div style="float:left">
+                        <el-button type="primary" size="mini" @click="addNewProduct">新增产品</el-button>
+                    </div>
+                    <div style="float:right">
+                        <el-pagination
+                            @current-change="handleCurrentChange"
+                            :current-page="page.currentPage"
+                            :page-size="10"
+                            layout="total, prev, pager, next, jumper"
+                            :total="page.total">
+                        </el-pagination>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <el-dialog :title="addNewProName" :visible.sync="editProduct" width="50%" top="5vh">
+            <el-form :model="ruleForm" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+                <div style="display:flex;">
+                    <el-form-item label="产品名称" style="width:50%;">
+                        <el-input v-model="ruleForm.YBTL002"  style="width:80%;"></el-input>
+                    </el-form-item>
+                    <el-form-item label="贷款额度" style="width:50%;">
+                      <el-input type="number" v-model="ruleForm.YBTL004"  style="width:80%;"></el-input>
+                    </el-form-item>
+                </div>
+                <div style="display:flex;">
+                    <el-form-item label="贷款期限" style="width:50%;">
+                        <el-input type="number" v-model="ruleForm.YBTL005"  style="width:80%;"></el-input>
+                    </el-form-item>
+                    <el-form-item label="最低利息" style="width:50%;">
+                      <el-input v-model="ruleForm.YBTL006"  style="width:80%;"></el-input>
+                    </el-form-item>
+                </div>
+                <div style="display:flex;">
+                    <el-form-item label="还款方式" style="width:50%;">
+                        <el-input v-model="ruleForm.YBTL007"  style="width:80%;"></el-input>
+                    </el-form-item>
+                    <el-form-item label="客服经理" style="width:50%;">
+                      <el-input v-model="ruleForm.YBTL009"  style="width:80%;"></el-input>
+                    </el-form-item>
+                </div>
+                <div style="display:flex;">
+                    <el-form-item label="客服经理电话" style="width:50%;">
+                        <el-input type="number" v-model="ruleForm.YBTL010"  style="width:80%;"></el-input>
+                    </el-form-item>
+                    <el-form-item label="支行名称" style="width:50%;">
+                      <el-input v-model="ruleForm.YBTL011"  style="width:80%;"></el-input>
+                    </el-form-item>
+                </div>
+                <div style="display:flex;">
+                    <el-form-item label="返点率" style="width:50%;">
+                        <el-input v-model="ruleForm.YBTL012" style="width:80%;"></el-input>
+                    </el-form-item>
+                </div>
+                <el-form-item>
+                    <el-button type="primary" style="margin-left:35%" @click="submitForm">立即保存</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+        <el-dialog :title="addTName" :visible.sync="addproT" width="30%" top="5vh">
+            <el-form :model="newSproTForm" ref="newSproTForm" label-width="150px" class="demo-ruleForm">
+                <el-form-item label="当前选中产品类型：">
+                    <span>{{selName}}</span>
+                </el-form-item>
+                <el-form-item label="新增产品类型名称：">
+                  <el-input v-model="newSproTForm.YBCT002" style="width:80%"></el-input>
+                </el-form-item>
+                <el-form-item v-if="newSproTForm.YBCT007=='0'" label="新产品类型负责人：">
+                    <div>
+                        <div>
+                            <el-cascader
+                                change-on-select
+                                :options="moreAlloatArr1"
+                                @change="handleChangeMore"
+                                style="width:80%">
+                            </el-cascader>
+                        </div>
+                        <div style="margin-top:10px;">
+                            <el-cascader
+                                change-on-select
+                                :options="moreAlloatArr2"
+                                v-model="YBCT004_ID"
+                                style="width:80%">
+                            </el-cascader>
+                        </div>
+                    </div>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="adNewProTform">立即保存</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+        <el-dialog title="编辑产品类型" :visible.sync="editproTFg" width="30%" top="5vh">
+            <el-form :model="editSproTForm" label-width="150px" class="demo-ruleForm">
+                <el-form-item label="当前选中产品类型：">
+                    <el-input v-model="editSproTForm.YBCT002"></el-input>
+                </el-form-item>
+                <el-form-item v-if="editSproTForm.YBCT007=='0'" label="产品类型负责人：">
+                    <div>{{editSproTForm.YBCT004_NAME=="empty" ? "暂无" : editSproTForm.YBCT004_NAME}}</div>
+                    <div>如需更改负责人，请选择</div>
+                    <div>
+                        <div>
+                            <el-cascader
+                                change-on-select
+                                :options="moreAlloatArr1"
+                                @change="handleChangeMore"
+                                style="width:80%">
+                            </el-cascader>
+                        </div>
+                        <div style="margin-top:10px;">
+                            <el-cascader
+                                change-on-select
+                                :options="moreAlloatArr2"
+                                v-model="editSproTForm.YBCT004_ID"
+                                style="width:80%">
+                            </el-cascader>
+                        </div>
+                    </div>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="editProTform">立即保存</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+    </div>
+</body>
+<script th:inline="javascript">
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+    
+    new Vue({
+        el:"#productApp",
+        data(){
+            return {
+//                从后台模板里面获取
+                pageInit:[],//树形产品类型数据
+                defaultProps: {
+                  children: 'children',
+                  label: 'label'
+                },
+                tabledata:null,//产品列表数据
+                //全局的类型
+                YBCT001:null,
+                page:{currentPage:1,total:1},
+                addNewProName:"修改产品信息",
+//                新增产品或修改产品判断     false默认为修改产品，true为新增
+                newEdietFlag:false,
+//                新增产品-修改产品修改产品表单
+                editProduct:false,
+//                新增产品-修改产品信息表单
+                ruleForm:{},
+//                当前选中的产品类型node
+                selNode:{},
+//                选中的产品类型名称
+                selName:"",
+//                新增产品类型
+                addproT:false,
+//                判断新增同级还是下级--默认添加同级
+                addProTSBFlag:true,
+//                新增产品表单
+                newSproTForm:{YBTL002:"",YBCT007:""},
+                addTName:"新增同级产品类型",
+//                编辑产品类型
+                editproTFg:false,
+                editSproTForm:{YBCT002:"",YBCT001:"",YBCT007:"",YBCT004_ID:""},
+//                当新增顶级产品类型时，需要选择负责人
+                moreAlloatArr1:[],
+                moreAlloatArr2:[],
+                YBCT004_ID:'',
+                loading:false
+            }
+        },
+//        DOM渲染前执行
+        mounted(){
+            this.getDepartment();
+//            console.log([[${page}]])
+            this.getProductTs();
+        },
+        methods:{
+            getProductTs(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/product/getProTypeLst`,
+                    data:"",
+                    success:function(data){
+                        if(data.msg="200"){
+                            that.pageInit=data.result;
+                        }
+                    }
+                })
+            },
+//            获取产品列表
+            getDepartment(){
+//                DEPT_ID   获取产品
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/deptAllLst`,
+                    data:"",
+                    success:function(data){
+                        that.moreAlloatArr1=data.result;
+                    }
+                })
+            },
+//            当多分配时改变产品选择
+            handleChangeMore(value){
+                let DEPT_ID=value[value.length-1];
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/deptAndUserLst`,
+                    data:{DEPT_ID:DEPT_ID},
+                    success:function(data){
+                        that.moreAlloatArr2=data.result;
+                    }
+                })
+            },
+            //编辑产品信息
+            handleEdit(index, row) {
+                console.log(index, row);
+                this.addNewProName="修改产品信息"
+                this.newEdietFlag=false;
+                this.ruleForm=row;
+                this.editProduct=true;
+            },
+//            新增产品类型-同级
+            addNewProTs(){
+                this.addProTSBFlag=true;
+                this.addTName="新增同级产品类型";
+                
+                if(this.selNode.id){
+                    this.selName=this.selNode.label;
+                    if(this.selNode.id=="0"){
+                        this.newSproTForm.YBCT004_ID=this.YBCT004_ID;
+                    }else{
+                        delete this.newSproTForm.YBCT004_ID;
+                    }
+                    this.newSproTForm.YBCT007=this.selNode.pid;
+                    this.addproT=true;
+                }else{
+                    this.$message.error('请点击选中产品类型！');
+                }
+                
+            },
+//            新增产品类型-下级
+            addNewProTb(){
+                this.addProTSBFlag=false;
+                this.addTName="新增下级产品类型";
+                
+                if(this.selNode.id){
+                    this.selName=this.selNode.label;
+                    this.newSproTForm.YBCT007=this.selNode.id;
+                    this.addproT=true;
+                }else{
+                    this.$message.error('请点击选中产品类型！');
+                }
+                
+            },
+//            新增产品类型提交
+            adNewProTform(){
+                let that=this;
+                if(this.addProTSBFlag){
+                    this.newSproTForm.YBCT004_ID=this.YBCT004_ID[0];
+//                    新增同级产品类型
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/product/addProType`,
+                        data:that.newSproTForm,
+                        success:function(data){
+                            if(data.msg="200"){
+                                that.$message({
+                                    message: '恭喜你，新增产品类型成功',
+                                    type: 'success'
+                                });
+                                that.addproT=false;
+                                that.selNode={};
+                                that.getProductTs();
+                                that.YBCT004_ID="";
+                            }else{
+                                that.$message.error('新增产品类型失败，请重新新增');
+                            }
+                        }
+                    })
+                }else{
+//                    新增下级产品类型
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/product/addProType`,
+                        data:that.newSproTForm,
+                        success:function(data){
+                            if(data.msg="200"){
+                                that.$message({
+                                    message: '恭喜你，新增产品类型成功',
+                                    type: 'success'
+                                });
+                                that.addproT=false;
+                                that.selNode={};
+                                that.getProductTs();
+                            }else{
+                                that.$message.error('新增产品类型失败，请重新新增');
+                            }
+                        }
+                    })
+                }
+            },
+//            编辑产品类型
+            editProT(){
+                
+                if(this.selNode.id){
+                    this.editSproTForm.YBCT002=this.selNode.label;
+                    this.editSproTForm.YBCT001=this.selNode.id;
+                    this.editSproTForm.YBCT007=this.selNode.pid;
+                    this.editSproTForm.YBCT004_NAME=this.selNode.YBCT004_NAME;
+                    this.editproTFg=true;
+                }else{
+                    this.$message.error('请点击选中产品类型！');
+                }
+            },
+//            编辑产品类型保存
+            editProTform(){
+                let that=this;
+                if(this.editSproTForm.YBCT004_ID==""){
+                    this.editSproTForm.YBCT004_ID=this.selNode.YBCT004_ID;
+                }else{
+                    this.editSproTForm.YBCT004_ID=this.editSproTForm.YBCT004_ID[0];
+                }
+                console.log(this.editSproTForm.YBCT004_ID)
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/product/updateProType`,
+                    data:that.editSproTForm,
+                    success:function(data){
+                        if(data.msg="200"){
+                            that.$message({
+                                message: '恭喜你，编辑产品类型成功',
+                                type: 'success'
+                            });
+                            that.editproTFg=false;
+                            that.selNode={};
+                            that.getProductTs();
+                        }else{
+                            that.$message.error('编辑产品类型失败，请重新编辑');
+                        }
+                    }
+                })
+            },
+//            删除产品类型
+            delProT(){
+                let that=this;
+                
+                if(this.selNode.id){
+                    
+                    this.$confirm('此操作将永久删除该产品类型, 是否继续?', '提示', {
+                      confirmButtonText: '确定',
+                      cancelButtonText: '取消',
+                      type: 'warning'
+                    }).then(() => {
+                        $.ajax({
+                        type:"GET",
+                            url:`${basePath}/product/delProType`,
+                            data:{YBCT001:that.selNode.id},
+                            success:function(data){
+                                if(data.msg="200"){
+                                    that.$message({
+                                        message: '恭喜你，删除产品类型成功',
+                                        type: 'success'
+                                    });
+                                    that.editproTFg=false;
+                                    that.selNode={};
+                                    that.getProductTs();
+                                }else{
+                                    that.$message.error('删除产品类型失败，请重新删除');
+                                }
+                            }
+                        })
+                    }).catch(() => {
+                      this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                      });          
+                    });
+                }else{
+                    this.$message.error('请点击选中产品类型！');
+                }
+            },
+//            新增产品
+            addNewProduct(){
+                if(this.selNode.id){
+                    this.ruleForm={};
+                    this.ruleForm.YBCT001=this.selNode.id;
+                    this.addNewProName="新增产品信息"
+                    this.newEdietFlag=true;
+                    this.editProduct=true;
+                }else{
+                    this.$message.error('请点击选中产品类型！');
+                }
+            },
+//            表单编辑后提交
+            submitForm(){
+                let that=this;
+                console.log(this.ruleForm);
+                if(this.newEdietFlag){
+//                    为新增产品
+                    console.log("增加新产品");
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/product/addPro`,
+                        data:that.ruleForm,
+                        success:function(data){
+                            if(data.msg=="200"){
+                                that.$message({
+                                    message: '恭喜你，新增产品成功',
+                                    type: 'success'
+                                });
+                                that.handleCurrentChange(1);
+                                that.editProduct=false;
+                                that.selNode={};
+                            }else{
+                                that.$message.error('新增产品失败，请重新新增');
+                            }
+                        }
+                    })
+                }else{
+//                    为修改产品
+                    console.log("修改产品");
+                    delete this.ruleForm.YBTL008_TM;
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/product/updatePro`,
+                        data:that.ruleForm,
+                        success:function(data){
+                            if(data.msg=="200"){
+                                that.$message({
+                                    message: '恭喜你，修改成功',
+                                    type: 'success'
+                                });
+                                that.handleCurrentChange(1);
+                                that.editProduct=false;
+                                that.selNode={};
+                            }else{
+                                that.$message.error('产品修改失败，请重新修改');
+                            }
+                        }
+                    })
+                }
+                
+            },
+//            删除产品
+            handleDelete(index, row) {
+                console.log(index, row);
+                let that=this;
+                
+                this.$confirm('此操作将永久删除该产品, 是否继续?', '提示', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                }).then(() => {
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/product/delPro`,
+                        data:{YBTL001:row.YBTL001},
+                        success:function(data){
+                            if(data.msg=="200"){
+                                that.$message({
+                                    message: '恭喜你，删除成功',
+                                    type: 'success'
+                                });
+                                that.selNode={};
+                                that.handleCurrentChange(1);
+                            }else if(data.msg=="500"){
+                                that.$message.error("当前产品已有关联数据无法删除!");
+                            }
+                        }
+                    })
+                }).catch(() => {
+                  this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                  });          
+                });
+            },
+//            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                if(rowIndex==1){
+                    
+                }else if (rowIndex%2 == 0) {
+                    return 'odd-row';
+                }
+                return 'even-row';
+            },
+            //左侧树操作节点方法
+//            renderContent(h, { node, data, store }) {
+//                return ("11");
+//              },
+//            当前页翻页
+            handleCurrentChange(val){
+                this.loading=true;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/product/getProLst`,
+                    data:{currentPage:val,YBCT001:that.YBCT001},
+                    success:function(data){
+                        if(data.msg="200"){
+                            that.tabledata=data.rows;
+                            that.page.total = data.total;
+                            that.page.currentPage=val;
+                            that.loading=false;
+                        }
+                    }
+                })
+            },
+            //选中事件
+             clikNode(node, data) {
+                 this.selNode=node;
+                 console.log(this.selNode);
+                 this.$refs.tree.setCheckedNodes([node])
+                 let that = this;
+                //获取选中数据
+                    this.YBCT001 = data.key;//选中的IDkey
+                    $.ajax({
+                    type:"GET",
+                    url:`${basePath}/product/getProLst`,
+                    data:{YBCT001:that.YBCT001},
+                    success:function(data){
+                       //异步请求并刷新右侧列表数据
+                        that.tabledata = data.rows;
+                        that.page.total = data.total;
+                    }
+                })
+            }
+        }
+    })
+    
+</script>
+</html>

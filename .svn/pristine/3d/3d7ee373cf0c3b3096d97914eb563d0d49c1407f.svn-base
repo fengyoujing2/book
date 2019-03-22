@@ -1,0 +1,218 @@
+package com.dbsun.service.vip;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.vip.CusVipMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.DateUtil;
+import com.dbsun.util.FollowUtil;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+/**
+ * @author DongZai
+ * @create 2018-04-08 下午 1:25
+ * @desc
+ **/
+@Service
+public class CusVipService extends BaseService {
+
+    @Autowired
+    private CusVipMapper cusVipMapper;
+
+    private final static int RESULT_ERROR = 0;
+
+    /**
+     * 查询可加入会员人员列表
+     *
+     * @method:getPageInVipList
+     * @param:[pageData]
+     * @return:java.util.List<com.dbsun.entity.system.PageData>
+     */
+    public List<PageData> getPageInVipList(Page page) {
+        return this.cusVipMapper.getPageInVipList(page);
+    }
+
+    /**
+     * 获取所有VIP等级
+     * @method:getPageDateInVip
+     * @param:[]
+     * @return:java.util.List<com.dbsun.entity.system.PageData>
+     */
+    public List<PageData> getPageDateInVip(){
+        return this.cusVipMapper.getListByVipLevel();
+    }
+
+    /**
+     * 查询所有会员
+     *
+     * @method:getPageVipList
+     * @param:[pageData]
+     * @return:java.util.List<com.dbsun.entity.system.PageData>
+     */
+    public List<PageData> getPageVipList(Page page) {
+        return this.cusVipMapper.getPageVipList(page);
+    }
+
+    /**
+     * 修改会员页面数据
+     *
+     * @method:updateVipByPageDate
+     * @param:[pageData]
+     * @return:int
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
+    public int updateVip(PageData pageData, PageData userPd) {
+        int temp = updateCusToVip(pageData, userPd);
+        if (temp == 1) {
+            if (pageData.containsKey("YBC036_TP") && StringUtils.isNotBlank(pageData.getString("YBC036_TP"))) {
+                if ("1".equals(pageData.getString("YBC036_TP"))) {
+                    //准会员
+                    pageData.put("YBC037_TM", DateUtil.getTime());
+                } else if ("2".equals(pageData.getString("YBC036_TP"))) {
+                    //正式会员
+                    pageData.put("YBC038_TM", DateUtil.getTime());
+                } else if("3".equals(pageData.getString("YBC036_TP"))){
+                    //如果状态为3,代表退出会员,会员相关信息初始化
+                    return this.cusVipMapper.updateVipExit(pageData);
+                }
+            }
+            //这里处理准会员和正式会员的变更,涉及时间的更改
+            return this.cusVipMapper.updateVipByPageDate(pageData);
+        } else if ( temp == 2) {
+            //处理会员等级的变更,不涉及时间的更改
+            return this.cusVipMapper.updateVipLevel(pageData);
+        } else {
+            return 0;
+        }
+    }
+
+
+    /***
+     * 查询客户可-送礼会员 按送礼时间排序
+     * @param page
+     * @return
+     */
+    public List<PageData> getPageVipGiftList(Page page) {
+        List<PageData> pd = cusVipMapper.getPageVipGiftList(page);
+        return pd;
+    }
+
+
+    /**
+     * 添加联系方式
+     *
+     * @method:addContact
+     * @param:[pd]
+     * @return:int
+     */
+    public int addContact(PageData pd) {
+        String contactId = get32UUID();
+        pd.put("VIPI001", contactId);
+        return this.cusVipMapper.addContact(pd);
+    }
+
+    /**
+     * 查询该客户的所有联系方式
+     *
+     * @method:getAllContactByCus
+     * @param:[pageData]
+     * @return:java.util.List<com.dbsun.entity.system.PageData>
+     */
+    public List<PageData> getAllContactByCus(PageData pageData) {
+        return this.cusVipMapper.getAllContactByCus(pageData);
+    }
+
+    /**
+     * 添加跟进日志
+     *
+     * @param pd
+     * @param userPd
+     * @return
+     */
+    public int updateCusToVip(PageData pd, PageData userPd) {
+        try {
+            if (pd.containsKey("YBC036_TP") && StringUtils.isNotBlank(pd.getString("YBC036_TP"))) {
+                String cusAttr = pd.getString("YBC036_TP");
+                String flwCont = "";
+                int flwType = 0;
+                if ("1".equals(cusAttr)) {
+                    //准会员
+                    flwType = FollowUtil.CUS_ADD_BASE_VIP_CODE;
+                    flwCont = FollowUtil.CUS_ADD_BASE_VIP_STR;
+                } else if ("2".equals(cusAttr)) {
+                    //正式会员
+                    flwType = FollowUtil.CUS_ADD_PRO_VIP_CODE;
+                    flwCont = FollowUtil.CUS_ADD_PRO_VIP_STR;
+                } else if ("3".equals(cusAttr)) {
+                    //退出会员
+                    flwType = FollowUtil.CUS_EXIT_VIP_CODE;
+                    flwCont = FollowUtil.CUS_EXIT_VIP_STR;
+                }
+
+                PageData temp = this.cusVipMapper.getVipInfo(pd);
+                if(null!=temp&&null!=temp.get("VIPT001")&&!"3".equals(cusAttr)&&null!=temp.get("VIPT002")){
+                    String vipt001 = temp.get("VIPT001").toString();
+                    String vipt002 = temp.get("VIPT002").toString();
+                    String vips001 = temp.get("YBC036_TP").toString();
+                    //条件1 会员状态相同情况 为会员维护 条件2 会员级别相等情况不做变化 条件三 未加入会员者不参与
+                    if (pd.get("YBC036_TP").equals(vips001)&&pd.containsKey("VIPT001") && StringUtils.isNotBlank(pd.getString("VIPT001")) &&!"0".equals(temp.get("VIPT001"))) {
+                        if(pd.getString("VIPT001").equals(vipt001)){
+                            //直接返回 不加入跟进记录
+                            return 2;
+                        }
+                        //会员维护
+                        flwType = FollowUtil.CUS_MAINTAIN_VIP_CODE;
+                        flwCont = FollowUtil.CUS_MAINTAIN_VIP_STR+",原"+vipt002+"会员变更为"+pd.getString("VIPT002")+"会员";
+                        this.addCusFlw(userPd, flwCont, flwType, pd.getString("YBC001"));
+                        return 2;
+                    }
+                }
+                //会员状态变更
+                this.addCusFlw(userPd, flwCont, flwType, pd.getString("YBC001"));
+                return 1;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * 修改联系方式
+     *
+     * @method:updateContact
+     * @param:[pd]
+     * @return:int
+     */
+    public int updateContact(PageData pd) {
+        if(!pd.containsKey("VIPI001")||null==pd.get("VIPI001")){
+            return RESULT_ERROR;
+        }
+        if(!pd.containsKey("VIPI002")||null==pd.get("VIPI002")){
+            return RESULT_ERROR;
+        }
+        if(!pd.containsKey("VIPI003")||null==pd.get("VIPI003")){
+            return RESULT_ERROR;
+        }
+        return this.cusVipMapper.updateContact(pd);
+    }
+
+    /**
+     * 删除该联系方式
+     *
+     * @method:deleteContact
+     * @param:[pd]
+     * @return:int
+     */
+    public int deleteContact(PageData pd) {
+        return this.cusVipMapper.deleteContact(pd);
+    }
+
+}

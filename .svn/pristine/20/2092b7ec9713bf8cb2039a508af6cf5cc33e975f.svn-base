@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>公司现场抽奖</title>
+<style type="text/css">
+
+</style>
+    
+<link href="../static/reward/css/index_style.css" rel="stylesheet" type="text/css">
+        
+<!-- 引入样式 -->
+<link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+ 
+</head>
+<body>
+<div id="app">
+    
+    <div style="padding-left:50px;">
+        <img src="../static/reward/images/logo.png" width="100px;" @click="updateForPrizeInit">
+    </div>
+    <div class="center">
+        <div v-if="zpFlag" class="zpNanme">
+            <img src="../static/reward/images/zhuanpan.png" :style="zhuanpanAnima"/>
+            <div class="zpname2">
+                <p :class="startName">{{name}}</p>
+            </div>
+        </div>
+        <div v-else style="margin-top:-50px;">
+            <div class="rewardNameL"><span>{{rewardName}}</span>获奖名单</div>
+            <div class="rewardList">
+                <div v-for="(item,index) in rewardList" class="down_s0" onclick="getList(this)">
+                    <div class="down_s1" style="margin-top:10px;font-size:20px;">{{item.EMP_LD004}}</div>
+                    <div class="down_s1" style="margin-top:-40px;">{{item.EMP_LD002}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="down">
+        <div class="starDiv">
+            <div v-if="startFlag">
+                <div class="star" @click="start">
+                    开始
+                </div>
+                <div style="text-align:center;">
+                    <el-select v-model="value" placeholder="请选择奖项" @change="changeV" style="width: 120px;margin-top: 15px;">
+                        <el-option
+                          v-for="item in options"
+                          :key="item.value"
+                          :label="item.label"
+                          :value="item.value">
+                        </el-option>
+                    </el-select>
+                </div>
+            </div>
+            <div v-if="endFlag" class="star" @click="stop">
+                停止
+            </div>
+        </div>
+        <div class="downs">
+            <img src="../static/reward/images/down2.png" class="down_imgl"/>
+            <img src="../static/reward/images/down2.png" class="down_imgr"/>
+            <img src="../static/reward/images/down1.png" class="down_imgc"/>
+            <img src="../static/reward/images/down3.png" class="down_imgl1"/>
+            <img src="../static/reward/images/down3.png" class="down_imgr1"/>
+            <img src="../static/reward/images/xy.png" class="down_imgxy1"/>
+            <img src="../static/reward/images/xy.png" class="down_imgxy2"/>
+            <img src="../static/reward/images/xy.png" class="down_imgxy3" @click="back"/>
+        </div>
+    </div>
+    
+        
+</div>
+<script src="../static/js/vue.js"></script>
+<script src="../static/element-ui/lib/index.js"></script>
+<script src="../static/js/jquery.min.js"></script>
+<script src="../static/reward/js/snowfall.jquery.js"></script>  
+    
+<script>
+    
+    var basePath="/"+window.location.pathname.split("/")[1];
+    
+    $(document).snowfall('clear');
+    $(document).snowfall({
+        image: "../static/reward/images/huaban.png",
+        flakeCount:100,
+        minSize: 5,
+        maxSize: 22
+    });
+    
+    function getList(node){
+        node.style='animation: rotate_s0 2s ease-in-out 0s 1 alternate forwards;';
+        setTimeout(function(){
+            node.style.backgroundImage='url("../static/reward/images/sjy.png")';
+            node.style.color="gold";
+        },1000);
+    }
+    
+    new Vue({
+      el: '#app',
+      data: function() {
+        return {
+            name:"等待抽奖",
+            arr:[],
+            startFlag:true,
+            endFlag:false,
+            zpFlag:true,
+            timeFlag:false,
+            reward:"",
+            rewardName:"",
+            Winners:[],
+            startName:'',
+            winerFlag:false,
+            getReward:'',
+            getrewardName:"",
+            trans:"",
+            rewardList:[],
+            ajaxList:[],
+            anim_s0:'',
+            fontColor:"color:transparent",
+            zhuanpanAnima:'',
+            value:"",
+            options:[{value:1,label:"特等奖"},{value:2,label:"一等奖"},{value:3,label:"二等奖"},{value:4,label:"三等奖"},{value:5,label:"幸运奖"}]
+        }
+      },
+        mounted(){
+            this.getWtLucUsers();
+        },
+        methods:{
+            getWtLucUsers(){
+                let that=this;
+                $.ajax({
+                    type:"POST",
+                    url:`${basePath}/luc_/getWtLucUsers`,
+                    data:'',
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.arr=data.result;
+                        }
+                    }
+                }) 
+            },
+            start(){
+                if(this.value>0){
+                    this.startFlag=false;
+                    this.zpFlag=true;
+                    this.zhuanpanAnima="animation: rotate .5s infinite linear;"
+                    this.startName='p_name';
+                    this.timeFlag=false;
+                    this.time();
+                    let empNum=0;
+                    let ldLevel=0;
+                    if(this.value==1){
+                        this.rewardName="特等奖";
+                        ldLevel=1;
+                        empNum=1;
+                    }else if(this.value==2){
+                        this.rewardName="一等奖";
+                        ldLevel=2;
+                        empNum=1;
+                    }else if(this.value==3){
+                        this.rewardName="二等奖";
+                        ldLevel=3;
+                        empNum=5;
+                    }else if(this.value==4){
+                        this.rewardName="三等奖";
+                        ldLevel=4;
+                        empNum=10;
+                    }else if(this.value==5){
+                        this.rewardName="幸运奖";
+                        ldLevel=5;
+                        empNum=10;
+                    }
+
+                    let that=this;
+                    $.ajax({
+                        type:"POST",
+                        url:`${basePath}/luc_/luckDraw`,
+                        data:{ldLevel:ldLevel,empNum:empNum},
+                        success:function(data){
+                            if(data.msg=="200"){
+                                console.log("————————中奖名单———————")
+                                console.log(data);
+                                that.ajaxList=data.result;
+                                that.endFlag=true;
+                            }
+                        }
+                    }) 
+                }else{
+                    this.$message({
+                      message: '请先选择奖项',
+                      type: 'warning'
+                    });
+                }
+            },
+            stop(){
+                this.zpFlag=false;
+                this.endFlag=false;
+                this.zhuanpanAnima="";
+                this.startName='';
+                this.timeFlag=true;
+                let arrs=this.ajaxList;
+                this.rewardList=[];
+                let iNum=-1;
+                let that=this;
+                let addArr=setInterval(function(){
+                    iNum++;
+                    if(iNum<arrs.length){
+                        let obj=arrs[iNum];
+                        that.rewardList.push(obj);
+                    }else{
+                        that.timeFlag=true;
+                        window.clearInterval(addArr);
+                    }
+                },1000);
+            },
+            time(){
+                let that=this;
+                let sj=setInterval(function(){
+                    if(that.timeFlag){
+                        window.clearInterval(sj);
+                    }else{
+                        let num
+                        num=parseInt(Math.random()*(that.arr.length));
+                        let m=(that.arr[num]).EMP_LD004;
+                        let n=(that.arr[num]).EMP_LD002;
+                        that.name=m+'-'+n;
+                    }
+                },300);
+            },
+            changeV(val){
+                if(val==1){
+                    this.name='特等奖1888'
+                }else if(val==2){
+                    this.name='一等奖1200'
+                }else if(val==3){
+                    this.name='二等奖888'
+                }else if(val==4){
+                    this.name='三等奖500'
+                }else if(val==5){
+                    this.name='幸运奖200'
+                }
+            },
+            back(){
+                if(!this.startFlag){
+                    this.name='等待抽奖';
+                    this.value="";
+                    this.zpFlag=true;
+                    this.startFlag=true;
+                }
+            },
+            updateForPrizeInit(){
+                function initList(val){
+                    $.ajax({
+                        type:"POST",
+                        url:`${basePath}/luc_/updateForPrizeInit`,
+                        data:{EMP_LD006_TP:val},
+                        success:function(data){
+                            if(data.msg=="200"){
+                            }
+                        }
+                    })
+                }
+                
+                this.$confirm('此操作将初始化抽奖数据, 是否继续?', '提示', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                }).then(() => {
+                    initList(1);
+                    initList(2);
+                    initList(3);
+                    initList(4);
+                    initList(5);
+                }).catch(() => {
+                    
+                });
+            }
+        }
+    })
+    
+</script>
+
+</body>
+</html>

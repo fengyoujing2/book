@@ -1,0 +1,183 @@
+package com.dbsun.service.phonesys;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.customer.CusFollowMapper;
+import com.dbsun.mapper.phonesys.PhoCaloutMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.DateUtil;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class PhoCaloutService extends BaseService {
+
+	@Autowired
+	private PhoCaloutMapper phoCaloutMapper;
+	@Autowired
+	private CusFollowMapper cusFollowMapper;
+	
+	/**
+	 * 待拨打列表，无分页，动态滚动
+	 * @param pd
+	 * @return
+	 */
+	public List<PageData> getPageWtCallLst(PageData pd){
+		List<PageData> wtCallLst =  phoCaloutMapper.getWtCallCuses(pd);
+		//处理客户标签
+		//wtCallLst = SqlStrChangToJsnUtil.strChangToJsn(wtCallLst);
+		return wtCallLst;
+	}
+	
+	public List<PageData> getPageRecFormFowLst(Page page){
+		return phoCaloutMapper.getPageRecFormFowLst(page);
+	}
+	
+	public int updatePhoScrapByCusID(PageData pd){
+		int ret = 0;
+		try {
+			ret = phoCaloutMapper.updatePhoScrapByCusID(pd);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	
+	/**
+	 * 获取客户池数量
+	 * @param pd
+	 * 			YBC008_TP,
+	 *  		USER_ID
+	 * @return
+	 */
+	public PageData getCountPollSiz(PageData pd){
+		return phoCaloutMapper.getCountPollSiz(pd);
+	}
+	
+	/**
+	 * 获取工作台统计数据 -- 需异步更新的内容（外呼个数、待跟进、累计通话）
+	 * @param pd
+	 * 			USER_ID -- 当前登录, 
+	 * 			countPoolSize
+	 * @return
+	 *		当天外呼数量
+	 * 		待跟进数量
+	 * 		当天通话时长
+	 */
+	public JSONObject getTolCallOtAdWtFwAdTmDb(PageData pd){
+		JSONObject retJsn = new JSONObject();
+
+		//当天拨打数量和当天通话时长返回的Pd
+		try {
+			PageData retPd = getCountOutNum(pd);
+
+			retJsn.put("callOtNum", retPd.get("callOtNum"));//当天拨打数量
+			retJsn.put("wtFwNum", this.getWtFlwNum(pd).get("wtFwNum"));//待跟进数量
+			retJsn.put("takTime", retPd.get("takTime"));//当天通话时长
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return retJsn;
+	}
+	
+	public PageData getWtFlwNum(PageData pd) throws Exception{
+		return phoCaloutMapper.getWtFlwNum(pd);
+	}
+	
+	/**
+	 * 当天外呼数量
+	 * @param pd
+	 * 			USER_ID
+	 * @return
+	 */
+	public PageData getCountOutNum(PageData pd) throws Exception{
+		return phoCaloutMapper.getCountOutNum(pd);
+	}
+	
+	/**
+	 * 当天的通话时长
+	 * @param pd
+	 * 			USER_ID
+	 * @return
+	 */
+	public PageData getTakTime(PageData pd){
+		return phoCaloutMapper.getTakTime(pd);
+	}
+	
+	/**
+	 * 空号
+	 * @param pd
+	 * @return
+	 */
+	public int updateToNullPhoByCusId(PageData pd){
+		return phoCaloutMapper.updateToNullPhoByCusId(pd);
+	}
+	
+	/**
+	 * 更新拨打电话时间
+	 * @param pd
+	 * 			YBC001
+	 * @return
+	 */ 
+	public int updateCallTmByCusId(PageData pd){
+		return phoCaloutMapper.updateCallTmByCusId(pd);
+	}
+	
+	/**
+	 * 回写跟进
+	 * @param pd
+	 * @return
+	 */
+	public int updateFwById(PageData pd){
+		return phoCaloutMapper.updateFwById(pd);
+	}
+	
+	/**
+	 * 重写添加跟进方法，返回UUID
+	 * @param pd
+	 * @return
+	 */
+	public JSONObject addFlowForCall(PageData pd){
+		//获取当前的用户信息
+		String uuid = this.get32UUID();
+		pd.put("YBCF001", uuid);
+		
+		//拼接外接ID，并且保存到数据库中
+		String defStr = pd.getString("YBC001") + DateUtil.get1000ParsedDate();
+		
+		int res = 0;
+		
+		try {
+			
+			pd.put("YBCF009", defStr);//外接ID
+			pd.put("YBCF006", "拨打电话");//跟进信息
+			res = cusFollowMapper.addFollow(pd);
+			
+			//跟进
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		JSONObject retJsn = new JSONObject();
+		//操作失败
+		if(res == 0){
+			return this.getFalJson();
+		}else{
+			
+			JSONObject retContJsn = new JSONObject();
+			//返回主键和外接ID
+			retContJsn.put("YBCF001", uuid);
+			retContJsn.put("YBCF009", defStr);//外接ID
+			
+			retJsn.put("msg", "200");
+			retJsn.put("result", retContJsn);
+		}
+		return retJsn;
+	}
+	
+}

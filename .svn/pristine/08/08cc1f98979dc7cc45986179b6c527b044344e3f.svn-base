@@ -1,0 +1,27 @@
+package com.dbsun.mapper.phonesys;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface PhoCaloutMapper {
+	
+	public int addCusFlw(PageData pd);
+	
+	/**
+	 * 外呼右侧待拨打列表 
+	 * @param pd
+	 * @return
+	 */
+	public List<PageData> getWtCallCuses(PageData pd);
+	public List<PageData> getPageRecFormFowLst(Page page);
+	public int updatePhoScrapByCusID(PageData pd);
+	public PageData getCountPollSiz(PageData pd);
+	public PageData getCountOutNum(PageData pd);
+	public PageData getTakTime(PageData pd);
+	public PageData getWtFlwNum(PageData pd);
+	public int updateToNullPhoByCusId(PageData pd);
+	public int updateCallTmByCusId(PageData pd);
+	public int updateFwById(PageData pd);
+}

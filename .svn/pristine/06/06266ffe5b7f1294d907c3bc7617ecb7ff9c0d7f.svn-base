@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.homepage.HmPBacRankingListMapper">
+	<!-- 首页数据之排行榜 -->
+	
+	<!-- 放贷量排行榜 -->
+	<select id="getRankForLendNum" parameterType="pd" resultType="pd" useCache="false">
+		select
+			m.YBCMA041, <!-- 做单员姓名 -->
+			count(if(m.YBCMA029_TM is not null, true, null)) as lendingNum <!-- 放贷数量(放贷时间不为空的做单记录) -->
+		from ybc_match m 
+		where 1 = 1 
+		<choose>
+			<when test="DEPT_LAYERORDER_Sea != null and DEPT_LAYERORDER_Sea != ''"><!-- 搜索 -->
+				and m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER_Sea}, "%")<!-- 搜索传入的组织机构 -->
+			</when>
+			<otherwise><!-- 默认本部门 -->
+				and m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")<!-- 当前登陆者的组织机构 -->
+			</otherwise>
+		</choose>
+		<!-- 放贷时间搜索 -->
+		<if test="startTm != null and startTm != ''">
+			and m.YBCMA029_TM <![CDATA[ >= ]]> #{startTm}
+		</if>
+		<if test="endTm != null and endTm != ''">
+			and m.YBCMA029_TM <![CDATA[ <= ]]> #{endTm}
+		</if>
+		<if test="(startTm == null or startTm == '') and (endTm == null or endTm == '')"><!-- 没有选择时间的情况下，默认选择当月 -->
+			and month(m.YBCMA029_TM) = month(now()) <!-- 默认这个月的数据 -->
+		</if>
+		group by m.user_id <!-- 以做单员比较 -->
+		order by lendingNum desc 
+		limit 0, 10
+	</select>
+	
+	<!-- 放贷额度排行 -->
+	<select id="getRankForLendLimit" parameterType="pd" resultType="pd" useCache="false">
+		select
+			m.YBCMA041, <!-- 做单员姓名 -->
+			sum(m.YBCMA030) as lendingTotal <!-- 放贷额度 -->
+		from ybc_match m 
+		where 1 = 1 
+		<choose>
+			<when test="DEPT_LAYERORDER_Sea != null and DEPT_LAYERORDER_Sea != ''"><!-- 搜索 -->
+				and m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER_Sea}, "%")<!-- 搜索传入的组织机构 -->
+			</when>
+			<otherwise><!-- 默认本部门 -->
+				and m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")<!-- 当前登陆者的组织机构 -->
+			</otherwise>
+		</choose>
+		<!-- 结账时间搜索 -->
+		<if test="startTm != null and startTm != ''">
+			and m.YBCMA029_TM <![CDATA[ >= ]]> #{startTm}
+		</if>
+		<if test="endTm != null and endTm != ''">
+			and m.YBCMA029_TM <![CDATA[ <= ]]> #{endTm}
+		</if>
+		<if test="(startTm == null or startTm == '') and (endTm == null or endTm == '')"><!-- 没有选择时间的情况下，默认选择当月 -->
+			and month(m.YBCMA029_TM) = month(now()) <!-- 默认这个月的数据 -->
+		</if>
+		group by m.user_id <!-- 以做单员比较 -->
+		order by lendingTotal desc 
+		limit 0, 10
+	</select>
+	
+	
+</mapper>

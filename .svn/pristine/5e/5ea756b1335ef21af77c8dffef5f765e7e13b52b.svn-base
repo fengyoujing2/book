@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.customer.CusFollowMapper">
+	<!-- 跟进 -->
+
+	<!-- 添加客户 -->
+	<insert id="addFollow" parameterType="pd" flushCache="false">
+		insert 
+			into 
+				ybc_follow 
+				(
+					YBCF001, 
+					YBC001, 
+					USER_ID, 
+					DEPT_LAYERORDER,
+					POSITION,
+					YBCF002_TM, 
+					YBCF004_TP,
+					YBCF005,
+					YBCF006,
+					YBCF007_TP,
+					YBCF008,
+					YBCF009, 
+					YBCF0010_TP, 
+					YBCF0011_TP, 
+					YBCF0012, 
+					YBCF0013
+				)
+				values
+				(
+					#{YBCF001}, 
+					#{YBC001}, 
+					#{USER_ID}, 
+					#{DEPT_LAYERORDER},
+					1,
+					now(), 
+					#{YBCF004_TP},
+					#{YBCF005},
+					#{YBCF006},
+					#{YBCF007_TP},
+					(select name from sys_user where user_id = #{USER_ID}),
+					#{YBCF009}, 
+					#{YBCF0010_TP}, 
+					#{YBCF0011_TP}, 
+					#{YBCF0012}, 
+					#{YBCF0013}<!-- 通话录音地址 -->
+				)
+	</insert>
+	
+	<select id="getFollowsByYbc001" parameterType="pd" resultType="pd" useCache="false">
+		select
+			f.*
+		from ybc_follow f 
+		where f.ybc001 = #{YBC001} 
+		order by f.YBCF002_TM desc
+	</select>
+	
+	
+</mapper>

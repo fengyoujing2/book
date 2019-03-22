@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.importallot.ImpAllotFirstMapper">
+	<!-- 第一次分配 -->
+	
+	<!-- 读取可以进行第一次分配的数据 -->
+	<select id="getPageCanFirstAltLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			i.* 
+		from IMPTABLE i 
+		where 1 = 1 
+		and i.YBC016_TP <![CDATA[ <> ]]> 1 <!-- 未分配 -->
+		<if test="pd.YBC008_TP != null and pd.YBC008_TP != ''">
+		and i.YBC008_TP = #{pd.YBC008_TP} <!-- 类型 0；10-->
+		</if>
+		<!--and i.USER_ID = #{pd.USER_ID} &lt;!&ndash; 导入初始数据需要数据操作独立化，谁导入谁才有权限操作导入的数据 &ndash;&gt;-->
+		order by i.YBC019_TM <!-- 已分配的数据排到后面 -->
+	</select>
+	<!--2018-05-11新增需求 读取可以进行第一次分配的数据(推广专用) -->
+	<select id="getPageCanFirstAltLst2" parameterType="page" resultType="pd" useCache="false">
+		select
+		i.*
+		from IMPTABLE i
+		where 1 = 1
+		and i.YBC016_TP <![CDATA[ <> ]]> 1 <!-- 未分配 -->
+		<if test="pd.YBC008_TP != null and pd.YBC008_TP != ''">
+		and i.YBC008_TP = #{pd.YBC008_TP} <!-- 类型 0；10-->
+	</if>
+		and i.USER_ID = #{pd.USER_ID}   <!--导入初始数据需要数据操作独立化，谁导入谁才有权限操作导入的数据  -->
+		order by i.YBC019_TM <!-- 已分配的数据排到后面 -->
+	</select>
+	
+	<!-- 第一次可分配数量 -->
+	<select id="getCountOfCanFirstAlt" parameterType="pd" resultType="pd" useCache="false">
+		select
+			count(i.YBC001) as canAltSize
+		from IMPTABLE i 
+		where 1 = 1 
+		and i.YBC016_TP <![CDATA[ <> ]]> 1 <!-- 未分配 -->
+		and i.YBC008_TP = #{YBC008_TP} <!-- 类型 0；10-->
+		<!--and i.USER_ID = #{USER_ID} &lt;!&ndash; 导入初始数据需要数据操作独立化，谁导入谁才有权限操作导入的数据 &ndash;&gt;-->
+		order by i.YBC019_TM <!-- 已分配的数据排到后面 -->
+	</select>
+	
+	<!-- 批量更新分配人员 -->
+	<update id="updateImpToAltEd" parameterType="pd" flushCache="false">
+		UPDATE 
+			IMPTABLE 
+				SET 
+					YBC016_TP = 1 
+			WHERE 
+				YBC001 
+					IN 
+						(
+							select 
+								ybcLimit.YBC001 
+							FROM 
+								(
+									select i.YBC001 from IMPTABLE i 
+									where i.YBC016_TP=0 
+									and i.YBC008_TP = #{YBC008_TP} <!-- 类型 0；10-->
+									<!--and i.USER_ID = #{USER_ID} &lt;!&ndash; 导入初始数据需要数据操作独立化，谁导入谁才有权限操作导入的数据 &ndash;&gt;-->
+									order by i.ybc001 limit 0,#{branchNum}
+								) as ybcLimit
+						)
+	</update>
+	
+	<insert id="addIMP2" parameterType="pd" flushCache="false">
+		INSERT 
+			INTO 
+				IMPTABLE2 
+					(
+						YBC001, 
+						IMP002_TM, 
+						DEPT_ID, 
+						DEPT_LAYERORDER, 
+						USER_ID, 
+						DEPT_LAYERORDER2, 
+						DEPT_ID2,
+						USER_ID2,
+						IMP003_TP,
+						POSITION, 
+						YBC008_TP <!-- 类型 0；10-->
+					) 
+		SELECT	
+			 			YBC001, 
+			 			now(), 
+			 			(select dept_id from sys_user where user_id = #{USER_ID}), 
+			 			#{DEPT_LAYERORDER}, 
+			 			#{USER_ID}, <!-- 分配人 -->
+			 			(select DEPT_LAYERORDER from sys_dept where dept_id = #{DEPT_ID2}), 
+			 			#{DEPT_ID2}, <!-- 被分配部门，USER_ID2可能为空但DEPT_ID2不能为空 -->
+			 			#{USER_ID2}, <!-- 被分配人员 -->
+			 			<choose>
+			                <when test="USER_ID2 != null and USER_ID2 !=''">
+			                    1, 
+			                </when>
+			                <otherwise>
+			                    0, 
+			                </otherwise>
+		            	</choose>
+			 			1, 
+			 			#{YBC008_TP}
+		FROM  IMPTABLE 
+		WHERE ybc016_tp='0' 
+		and YBC008_TP = #{YBC008_TP}
+		and USER_ID = #{USER_ID} <!-- 导入初始数据需要数据操作独立化，谁导入谁才有权限操作导入的数据 -->
+		ORDER by ybc001 
+		LIMIT 0,#{branchNum}
+	</insert>
+	
+	<insert id="addCus" parameterType="pd" flushCache="false">
+		insert into YBC (
+			YBC001, 
+			YBC002, 
+			YBC003, 
+			YBC004_TP, 
+			YBC005, 
+			YBC006, 
+			YBC007_TP, 
+			YBC008_TP, 
+			YBC009_TP, 
+			YBC010, 
+			YBC011, 
+			YBC012, 
+			YBC013, 
+			YBC014_TM, 
+			YBC015_TM, 
+			USER_ID, 
+			YBC016_TP, 
+			YBC017_TP, 
+			PYBC001, 
+			YBC018_TP, 
+			DEPT_LAYERORDER,
+			POSITION, 
+			YBC029, 
+			YBC024, 
+			YBC026_TP, 
+			YBC031_TP, 
+			YBC033_TP,
+			YBC042_TP<!--2018-05-11 新增需求：增加数据来源永久记录 -->
+		)
+		SELECT 	
+			 YBC001, 
+			 YBC002, 
+			 YBC003, 
+			 YBC004_TP, 
+			 YBC005, 
+			 YBC006, 
+			 YBC007_TP, 
+			 <!-- 选择大类，小类（10） -->
+			 YBC008_TP, 
+			 YBC009_TP, 
+			 YBC010, 
+			 YBC011, 
+			 YBC012, 
+			 "", 
+			 now(), 
+			 now(), 
+			 #{USER_ID2}, 
+			 1, 
+			 0, 
+			 "", 
+			 YBC018_TP, 
+			 #{DEPT_LAYERORDER},  
+			 1, 
+			 #{NAME},<!-- 当前所有者姓名 -->
+			 0, 
+			 0, 
+			 0,
+			 0,
+			YBC008_TP<!--2018-05-11 新增需求：增加数据来源永久记录 -->
+			 
+		from  IMPTABLE 
+		WHERE ybc016_tp='0' 
+		and YBC008_TP = #{YBC008_TP}
+		<!--and USER_ID = #{USER_ID} &lt;!&ndash; 导入初始数据需要数据操作独立化，谁导入谁才有权限操作导入的数据 &ndash;&gt;-->
+		ORDER BY YBC001 
+		LIMIT 0,#{branchNum}
+	</insert>
+	
+	<!-- 将已分配到客户经理的数据从IMP表中删除 -->
+	<delete id="delAltEdDb" parameterType="pd" flushCache="false">
+		delete from IMPTABLE
+		WHERE 
+			YBC001
+				in
+					(
+						select 
+							ybcLimit.YBC001 
+						FROM 
+							(
+								select i.YBC001 from IMPTABLE i 
+								where i.YBC016_TP=0 
+								and i.YBC008_TP = #{YBC008_TP} <!-- 类型 0；10-->
+								<!--and i.USER_ID = #{USER_ID} &lt;!&ndash; 导入初始数据需要数据操作独立化，谁导入谁才有权限操作导入的数据 &ndash;&gt;-->
+								order by i.ybc001 limit 0,#{branchNum}
+							) as ybcLimit
+					)	
+	</delete>
+	
+</mapper>

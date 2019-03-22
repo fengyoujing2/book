@@ -1,0 +1,181 @@
+package com.dbsun.service.count;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.count.CntSignAndMebMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.UuidUtil;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+
+@Service
+public class CntSignAndMebService extends BaseService {
+
+    @Autowired
+    private CntSignAndMebMapper cntSignAndMebMapper;
+
+
+    public List<PageData> getPageMembershipList(Page page) {
+        return cntSignAndMebMapper.getPageMembershipList(page);
+    }
+
+
+    public List<PageData> getPageSignCntLst(Page page) {
+        return cntSignAndMebMapper.getPageSignCntLst(page);
+    }
+
+
+    public void createMembershipExcel(HttpServletResponse response, List<PageData> list) throws IOException {
+//sheet 最大行数
+        final int sheetRowMax = 50000;
+        //sheet 工作簿数量
+        int sheetNum = 0;
+        if (list != null) {
+            sheetNum = list.size() % sheetRowMax == 0 ? list.size() / sheetRowMax : list.size() / sheetRowMax + 1;
+        }
+        //起始值
+        int start = 0;
+        //最大偏移量 如果大于最大限定行数则为 50000否则取最大数量
+        int max = list.size() > sheetRowMax ? sheetRowMax : list.size();
+
+        //创建HSSFWorkbook对象(excel的文档对象)
+        HSSFWorkbook wb = new HSSFWorkbook();
+
+        for (int i = 0; i < sheetNum; i++) {
+            //更新起始值 和最大偏移量 如果 i = 2 , start = 50000 , max = i * 50000  +  start ....
+            if (i > 0 && max >= sheetRowMax) {
+                start = i * sheetRowMax;
+                max = max + sheetRowMax < list.size() ? max + sheetRowMax : list.size();
+            }
+
+            String sheetName = "会员统计-" + i;
+            String title = "会员统计";
+
+            //建立新的sheet对象（excel的表单）
+            HSSFSheet sheet = wb.createSheet(sheetName);
+            //在sheet里创建第一行，参数为行索引(excel的行)，可以是0～65535之间的任何一个
+            HSSFRow row1 = sheet.createRow(0);
+            //创建单元格（excel的单元格，参数为列索引，可以是0～255之间的任何一个
+            HSSFCell cell = row1.createCell(0);
+            //设置单元格内容
+            cell.setCellValue(title);
+            //合并单元格CellRangeAddress构造参数依次表示起始行，截至行，起始列， 截至列
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
+            //在sheet里创建第二行
+            HSSFRow row2 = sheet.createRow(1);
+            //创建单元格并设置单元格内容
+            row2.createCell(0).setCellValue("客户姓名");
+            row2.createCell(1).setCellValue("会员状态");
+            row2.createCell(2).setCellValue("会员级别");
+            row2.createCell(3).setCellValue("会员有效期");
+            row2.createCell(4).setCellValue("客户经理");
+            row2.createCell(5).setCellValue("所在部门");
+            row2.createCell(6).setCellValue("是否在职");
+
+            //行数
+            int rowNum = 2;
+            //在sheet里创建数据
+            for (int j = start; j < max; j++) {
+                PageData pageData = list.get(j);
+                HSSFRow row_x = sheet.createRow(rowNum);
+                row_x.createCell(0).setCellValue(pageData.getString("YBC002"));
+                row_x.createCell(1).setCellValue(pageData.getString("YBC036"));
+                row_x.createCell(2).setCellValue(pageData.getString("VIPGRADE"));
+                row_x.createCell(3).setCellValue(pageData.getString("YBC039_TM"));
+                row_x.createCell(4).setCellValue(pageData.getString("NAME"));
+                row_x.createCell(5).setCellValue(pageData.getString("DEPTNAME"));
+                row_x.createCell(6).setCellValue(pageData.getString("STATUS"));
+                rowNum++;
+            }
+        }
+        //输出Excel文件
+        OutputStream output = response.getOutputStream();
+        response.reset();
+        response.setHeader("Content-disposition", "attachment; filename=" + UuidUtil.get32UUID() + ".csv");
+        response.setContentType("application/msexcel");
+        wb.write(output);
+        output.close();
+    }
+
+    public void createSignCntExcel(HttpServletResponse response, List<PageData> list) throws IOException {
+//sheet 最大行数
+        final int sheetRowMax = 50000;
+        //sheet 工作簿数量
+        int sheetNum = 0;
+        if (list != null) {
+            sheetNum = list.size() % sheetRowMax == 0 ? list.size() / sheetRowMax : list.size() / sheetRowMax + 1;
+        }
+        //起始值
+        int start = 0;
+        //最大偏移量 如果大于最大限定行数则为 50000否则取最大数量
+        int max = list.size() > sheetRowMax ? sheetRowMax : list.size();
+
+        //创建HSSFWorkbook对象(excel的文档对象)
+        HSSFWorkbook wb = new HSSFWorkbook();
+
+        for (int i = 0; i < sheetNum; i++) {
+            //更新起始值 和最大偏移量 如果 i = 2 , start = 50000 , max = i * 50000  +  start ....
+            if (i > 0 && max >= sheetRowMax) {
+                start = i * sheetRowMax;
+                max = max + sheetRowMax < list.size() ? max + sheetRowMax : list.size();
+            }
+
+            String sheetName = "签单统计-" + i;
+            String title = "签单统计";
+
+            //建立新的sheet对象（excel的表单）
+            HSSFSheet sheet = wb.createSheet(sheetName);
+            //在sheet里创建第一行，参数为行索引(excel的行)，可以是0～65535之间的任何一个
+            HSSFRow row1 = sheet.createRow(0);
+            //创建单元格（excel的单元格，参数为列索引，可以是0～255之间的任何一个
+            HSSFCell cell = row1.createCell(0);
+            //设置单元格内容
+            cell.setCellValue(title);
+            //合并单元格CellRangeAddress构造参数依次表示起始行，截至行，起始列， 截至列
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
+            //在sheet里创建第二行
+            HSSFRow row2 = sheet.createRow(1);
+            //创建单元格并设置单元格内容
+            row2.createCell(0).setCellValue("客户姓名");
+            row2.createCell(1).setCellValue("贷款类型");
+            row2.createCell(2).setCellValue("签单时间");
+            row2.createCell(3).setCellValue("客户经理");
+            row2.createCell(4).setCellValue("所在部门");
+            row2.createCell(5).setCellValue("是否在职");
+            row2.createCell(6).setCellValue("确认签单时间");
+
+            //行数
+            int rowNum = 2;
+            //在sheet里创建数据
+            for (int j = start; j < max; j++) {
+                PageData pageData = list.get(j);
+                HSSFRow row_x = sheet.createRow(rowNum);
+                row_x.createCell(0).setCellValue(pageData.getString("cus_name"));
+                row_x.createCell(1).setCellValue(pageData.getString("loan_type"));
+                row_x.createCell(2).setCellValue(pageData.getString("sign_date"));
+                row_x.createCell(3).setCellValue(pageData.getString("cus_manager_name"));
+                row_x.createCell(4).setCellValue(pageData.getString("dept"));
+                row_x.createCell(5).setCellValue(pageData.getString("status"));
+                row_x.createCell(6).setCellValue(pageData.getString("fiance_confi_date"));
+                rowNum++;
+            }
+        }
+        //输出Excel文件
+        OutputStream output = response.getOutputStream();
+        response.reset();
+        response.setHeader("Content-disposition", "attachment; filename=" + UuidUtil.get32UUID() + ".csv");
+        response.setContentType("application/msexcel");
+        wb.write(output);
+        output.close();
+    }
+}

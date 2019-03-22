@@ -1,0 +1,49 @@
+package com.dbsun.controller.homepage;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.homepage.HmPBacRankingListService;
+/**
+ * 首页·后台统计
+ * @author DongZai
+ *
+ */
+@Controller
+@RequestMapping("/hmp_bacRank")
+public class HmPBacRankingListController extends BaseController {
+	
+	@Autowired
+	private HmPBacRankingListService hmPBacRankingListService;
+	
+	
+	/**
+	 * 放贷量排行
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping("/getRankForLendNum")
+	@ResponseBody
+	public JSONObject getRankForLendNum(){
+		PageData pd = this.getPageData();
+		return this.getSucJson(hmPBacRankingListService.getRankForLendNum(this.putUserPd(pd)));
+	}
+	
+	/**
+	 * 放贷额度排行
+	 * @return
+	 */
+	@RequestMapping("/getRankForLendLimit")
+	@ResponseBody
+	public JSONObject getRankForLendLimit(){
+		PageData pd = this.getPageData();
+		return this.getSucJson(hmPBacRankingListService.getRankForLendLimit(this.putUserPd(pd)));
+	}
+	
+}

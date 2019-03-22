@@ -1,0 +1,76 @@
+package com.dbsun.service.product;
+
+import java.util.List;
+
+import com.dbsun.service.BaseService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.product.ProdectMapper;
+
+@Service
+public class ProductService extends BaseService {
+
+	@Autowired
+	private ProdectMapper prodectMapper;
+	
+	public int addProductType(PageData pd) {
+		pd.put("YBCT001", getUUID());
+		return prodectMapper.addProductType(pd);
+	}
+	public List<PageData> getProductByLev(PageData pd, int level){
+		pd.put("proLevel", level);
+		return prodectMapper.getProductByLev(pd);
+	}
+	/**
+	 * 新增产品
+	 *
+	 * */
+	public int addProduct(PageData pd){
+		pd.put("YBTL001",getUUID());//主ID
+		return prodectMapper.addProduct(pd);
+	}
+	/**
+	 * 编辑产品
+	 *
+	 * */
+	public int updateProduct(PageData pd){
+		return prodectMapper.updateProduct(pd);
+	}
+	/**
+	 * 删除产品
+	 *
+	 * */
+	public int delProduct(PageData pd){
+		List<PageData> pdProlst = prodectMapper.getProductByYbtl001(pd);
+		if(pdProlst.size()>0){
+			return 0;//表示无法删除提示用户
+		}
+		return prodectMapper.delProduct(pd);
+	}
+	/**
+	 * 编辑产品类型
+	 *
+	 * */
+	public int updateProductType(PageData pd){
+		return prodectMapper.updateProductType(pd);
+	}
+	/**
+	 * 删除产品类型
+	 *
+	 * */
+	public int delProductType(PageData pd){
+		//获取当前产品类型有没有子类或者有没有产品数据
+		List<PageData> pdTypelst = prodectMapper.getProductTypeByYbct007(pd);
+		if(pdTypelst.size()>0){
+			return 0;//表示无法删除提示用户
+		}
+		List<PageData> pdProlst = prodectMapper.getProductByTypeForLst(pd);
+		if(pdProlst.size()>0){
+			return 0;//表示无法删除提示用户
+		}
+		return prodectMapper.delProductType(pd);
+	}
+
+}

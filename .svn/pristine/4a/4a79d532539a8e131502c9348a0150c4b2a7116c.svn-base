@@ -1,0 +1,117 @@
+package com.dbsun.controller.customer;
+
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.customer.CusReAllotService;
+/**
+ * 重分配
+ * @author DongZai
+ *
+ */
+@Controller
+@RequestMapping("/cus_reAllot")
+public class CusReAllotController extends BaseController {
+	
+	@Autowired
+	private CusReAllotService reAllotService;
+	
+	/**
+	 * 跳转到重分配界面
+	 * @return
+	 */
+	@RequestMapping("/goReAllotIndex")
+	public String goReAllotIndex(ModelMap model){
+		//构建初始数据
+		Page page = this.getPage();
+		PageData pd = this.getPageData();
+		page.setPd(pd);
+		List<PageData> reAlt = null;
+		try {
+			reAlt = reAllotService.getPageCanReAllotLst(this.putUserIdAdDeLAdPosPd(page, pd));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		model.addAttribute("reAltTableLst",reAlt);
+		model.addAttribute("page",page);
+		return "html/system/customer/cusReassign";
+	}
+	
+	/**
+	 * 重分配列表数据
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping("/getPageReAllotLst")
+	@ResponseBody
+	public JSONObject getPageReAllotLst(){
+		PageData pd = this.getPageData();
+		Page page = this.getPage();
+		page.setPd(pd);
+		List<PageData> reAlt = null;
+		try {
+			reAlt = reAllotService.getPageCanReAllotLst(this.putUserIdAdDeLAdPosPd(page, pd));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return viewReturnPageData(page, reAlt);
+	}
+	
+	/**
+	 * 客户重分配
+	 * @return
+	 */
+	@RequestMapping("/reAllot")
+	@ResponseBody
+	public JSONObject cusReAllot(){
+		PageData pd = this.getPageData();
+		return this.getAddOrUpdJson(reAllotService.updateCusToReAllotPlu(pd, this.getUserPd()));
+	}
+	
+	
+	//全分配 start
+	
+	/**
+	 * 原来的客户经理的所有客户
+	 * @return
+	 */
+	@RequestMapping("/getCusesByUserId")
+	@ResponseBody
+	public JSONObject getCusesByUserId(){
+		PageData pd = this.getPageData();
+		Page page = this.getPage();
+		page.setPd(pd);
+		List<PageData> cusLst = null;
+		try {
+			cusLst = reAllotService.getPageCusesByUserIdLst(page);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return viewReturnPageData(page, cusLst);
+	}
+	
+	/**
+	 * 全分配
+	 * @return
+	 */
+	@RequestMapping("/fullReAllot")
+	@ResponseBody
+	public JSONObject fullReAllot(){
+		PageData pd = this.getPageData();
+		return this.getAddOrUpdJson(reAllotService.updateCusToFullReAllotPlu(pd, this.getUserPd()));
+	}
+	
+	//全分配 end
+	
+}

@@ -1,0 +1,7 @@
+package com.dbsun.controller.stm;
+
+import com.dbsun.base.BaseController;
+
+public class SysDeptController extends BaseController {
+	
+}

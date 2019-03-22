@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+
+    <title>通话个人详情</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0];
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!--    <script src="../static/js/vue.js"></script>-->
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/xlsx.full.min.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+
+    <style>
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        a{
+            text-decoration: none;
+            color: #fff;
+        }
+        .cusMTable .el-table tr{
+            background-color: #54DE9E;
+            color:#fff;
+        }
+        .el-table .orow {
+            background: #fff !important;
+            color:#000 !important;
+        }
+        .el-dialog__header {
+            padding: 15px 0px 10px !important;
+        }
+        .el-dialog__title{
+            border-left: 4px solid #4BA5FD;
+            padding-left: 10px;
+        }
+        .topTitle{
+            text-align:center;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .topCon{
+            font-size:20px;
+        }
+        .topPadding{
+            padding:40px 0;
+        }
+        .top_divR{
+            margin-right: 6px;
+        }
+        .line{
+            display: inline-block;
+            margin: 0 !important;
+            width: 10px;
+            height: 10px;
+            border-radius: 10px;
+            background-color: #FC5C7E;
+        }
+        .free{
+            display: inline-block;
+            margin: 0 !important;
+            width: 10px;
+            height: 10px;
+            border-radius: 10px;
+            background-color: #54DE9E;
+        }
+        .el-table td{
+            padding: 4px 0 !important;
+        }
+
+/*        // 去掉input[type=number]默认的加减号*/
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .callDetails_top{
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .callDetails_top div{
+            width: 49%;
+            height: 60px;
+            line-height: 60px;
+            text-align: center;
+            background-color: #fff;
+            font-size: 20px;
+            color: #666;
+        }
+        .callDetails_top span{
+            color: #4BA5FD;
+            margin-left: 20px;
+        }
+        .pageDown{
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+
+<body style="background-color:#F1F7FE;margin:0;">
+    <div id="callDetailsApp">
+        <div class="callDetails_top">
+            <div>外呼次数:<span>{{callCount}}次</span></div>
+            <div>通话时长:<span>{{callTimeSum}}</span></div>
+        </div>
+        <div style="padding:20px;">
+            <el-input size="mini"  placeholder="客户姓名" v-model="soMoreUserIpt.YBC002" style="width:100px;"  class="top_divR"></el-input>
+            <el-input size="mini"  placeholder="客户电话" v-model="soMoreUserIpt.YBC003" style="width:100px;"  class="top_divR"></el-input>
+            <el-select size="mini"  v-model="soMoreUserIpt.YBC008_TP" placeholder="客户状态" style="width:100px;" class="top_divR">
+                <el-option label="临时(大类)" value="0"></el-option>
+                <el-option label="临时(小类)" value="10"></el-option>
+                <el-option label="意向" value="1"></el-option>
+                <el-option label="上门" value="2"></el-option>
+                <el-option label="签单" value="3"></el-option>
+            </el-select>
+            <el-date-picker
+              v-model="timeCall" size="mini"
+              type="daterange"
+                      value-format="yyyy-MM-dd"
+              range-separator="至"
+              start-placeholder="拨打开始时间"
+              end-placeholder="拨打结束时间">
+            </el-date-picker>
+            <el-select size="mini" v-model="soMoreUserIpt.time" placeholder="通话时长" style="width:100px;" class="top_divR">
+                <el-option label="30s内" value="1"></el-option>
+                <el-option label="1分钟内" value="2"></el-option>
+                <el-option label="3分钟内" value="3"></el-option>
+                <el-option label="5分钟内" value="4"></el-option>
+                <el-option label="其他" value="0"></el-option>
+            </el-select>
+            <span v-if="soMoreUserIpt.time == '0'">
+                <el-input size="mini" type="number" placeholder="开始秒数" v-model="soMoreUserIpt.timeStart" style="width:160px;">
+                    <template slot="append">s 至</template>
+                </el-input>
+                <el-input size="mini" type="number" placeholder="结束秒数"  v-model="soMoreUserIpt.timeEnd" style="width:140px;margin-left: -10px;"  class="top_divR">
+                    <template slot="append">s</template>
+                </el-input>
+            </span>
+            <span v-if="moreAlloatArr1.length>0">
+                <el-cascader size="mini" v-model="selParment"
+                    :options="moreAlloatArr1"
+                             placeholder="请选择部门"
+                        :show-all-levels="false"
+                    change-on-select
+                    @change="handleChangeMore" class="top_divR"  style="width:120px;">
+                </el-cascader>
+                <el-cascader
+                    :options="moreAlloatArr2" size="mini"
+                             placeholder="请选择人员"
+                    v-model="selMana"  class="top_divR" style="width:120px;">
+                </el-cascader>
+            </span>
+            <el-button size="mini"  type="primary" style="background-color:#fd8c12;border-color:#fd8c12;" class="top_divR" @click="checkUser">查询</el-button>
+            <el-button size="mini"  type="primary" class="top_divR" @click="clearCheck">清空</el-button>
+        </div>
+        <div class="cusMTable"
+            v-loading="loading">
+            <el-table
+            :data="cusTableLstInit"
+            style="width: 100%"
+            :row-class-name="tableRowClassName">
+                <el-table-column
+                  type="index"
+                  label="序号"
+                  width="50">
+                </el-table-column>
+                <el-table-column
+                  prop="YBC002"
+                  label="客户姓名" min-width="120">
+                </el-table-column>
+                <el-table-column
+                  prop="YBC003"
+                  label="联系电话" min-width="140">
+                </el-table-column>
+                <el-table-column
+                  prop="level"
+                  label="客户等级" min-width="80">
+                </el-table-column>
+                <el-table-column
+                  prop="state"
+                  label="客户状态" min-width="120">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCF008"
+                  label="最近跟进人" min-width="120">
+                </el-table-column>
+                <el-table-column
+                  prop="deptName"
+                  label="所在部门" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCF0012"
+                  label="通话时长(s)" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCF002_TM"
+                  label="拨打时间" min-width="160">
+                </el-table-column>
+                <el-table-column
+                  label="录音操作" width="100" fixed="right">
+                  <template slot-scope="scope">
+                    <el-button
+                      type="text"
+                      icon="fa fa-volume-up"
+                      @click="onListen(scope.$index, scope.row)"></el-button>
+                      <a :href="scope.row.YBCF0013"
+                      download
+                      class="fa fa-download"
+                      style="color:#76E4B1;margin-left:20px;"></a>
+                  </template>
+                </el-table-column>
+            </el-table>
+            <div class="pageDown">
+                <el-button type="primary" @click="exportTable()" size="mini" style="margin-left:20px;">数据导出</el-button>
+                <el-pagination
+                  @current-change="handleCurrentChange"
+                  :current-page="pageInit.currentPage"
+                  :page-size="10"
+                  layout="total, prev, pager, next, jumper"
+                  :total="pageInit.totalResult">
+                </el-pagination>
+            </div>
+            <el-dialog title="通话录音" :visible.sync="soundRecord" width="30%" :before-close="handleClose">
+                <div style="text-align:center;">
+                    <audio :src="soundSrc" controls="controls" style="width:90%;">
+                        <source :src="soundSrc">
+                    </audio>
+                </div>
+            </el-dialog>
+        </div>
+    </div>
+</body>
+<script  th:inline="javascript">
+
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+
+
+    const wopts = { bookType: 'xlsx', bookSST: false, type: 'binary' };//这里的数据是用来定义导出的格式类型
+    // const wopts = { bookType: 'csv', bookSST: false, type: 'binary' };//ods格式
+    // const wopts = { bookType: 'ods', bookSST: false, type: 'binary' };//ods格式
+    // const wopts = { bookType: 'xlsb', bookSST: false, type: 'binary' };//xlsb格式
+    // const wopts = { bookType: 'fods', bookSST: false, type: 'binary' };//fods格式
+    // const wopts = { bookType: 'biff2', bookSST: false, type: 'binary' };//xls格式
+
+    var callDetails=new Vue({
+        el:"#callDetailsApp",
+        data(){
+            return {
+                outboundNum:0,
+                talkTime:"00:00:00",
+//                筛选条件
+                soMoreUserIpt:{},
+//                列表data
+                cusTableLstInit:[],
+                pageInit:{},
+                soundRecord:false,
+                soundSrc:"",
+                loading:false,
+                moreAlloatArr1:[],
+                moreAlloatArr2:[],
+                selParment:[],
+                selMana:[],
+                timeCall:[],
+                callCount:0,
+                callTimeSum:'00时00分00秒'
+            }
+        },
+        mounted(){
+            this.getDepartment();
+            this.handleCurrentChange(1);
+
+        },
+        methods:{
+//            导出处理
+            exportTable() {
+                let saveAs=this.saveAs;
+                let s2ab=this.s2ab;
+                let data= this.cusTableLstInit;
+                const wb = { SheetNames: ['Sheet1'], Sheets: {}, Props: {} };
+                wb.Sheets['Sheet1'] = XLSX.utils.json_to_sheet(data);//通过json_to_sheet转成单页(Sheet)数据
+                saveAs(new Blob([s2ab(XLSX.write(wb, wopts))], { type: "application/octet-stream" }), "瑞信管理系统导出数据" + '.' + (wopts.bookType=="biff2"?"xls":wopts.bookType));
+            },
+            saveAs(obj, fileName) {//当然可以自定义简单的下载文件实现方式
+                var tmpa = document.createElement("a");
+                tmpa.download = fileName || "下载";
+                tmpa.href = URL.createObjectURL(obj); //绑定a标签
+                tmpa.click(); //模拟点击实现下载
+                setTimeout(function () { //延时释放
+                    URL.revokeObjectURL(obj); //用URL.revokeObjectURL()来释放这个object URL
+                }, 100);
+            },
+            s2ab(s) {
+                if (typeof ArrayBuffer !== 'undefined') {
+                    var buf = new ArrayBuffer(s.length);
+                    var view = new Uint8Array(buf);
+                    for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+                    return buf;
+                } else {
+                    var buf = new Array(s.length);
+                    for (var i = 0; i != s.length; ++i) buf[i] = s.charCodeAt(i) & 0xFF;
+                    return buf;
+                }
+            },
+
+
+            handleClose(done){
+                this.soundSrc="";
+                this.soundRecord=false;
+                done();
+            },
+            //            获取部门列表
+            getDepartment(){
+//                DEPT_ID   获取部门
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/searchDeptAndMeLst`,
+                    data:"",
+                    success:function(data){
+                        console.log(data);
+                        if(data.msg=="200"){
+                            that.moreAlloatArr1=data.result;
+                        }
+                    }
+                })
+            },
+//            改变部门选择人员
+            handleChangeMore(value){
+                this.soMoreUserIpt.DEPT_LAYERORDER_Sea=(value[value.length-1]).DEPT_LAYERORDER;
+                let DEPT_ID=(value[value.length-1]).DEPT_ID;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/deptAndUserLst`,
+                    data:{DEPT_ID:DEPT_ID},
+                    success:function(data){
+                        that.moreAlloatArr2=data.result;
+                    }
+                })
+            },
+//            查询搜索
+            checkUser(){
+
+                if(this.selMana !=""){
+                    this.soMoreUserIpt.USER_ID_Sea=this.selMana.toString();
+                }
+                if(this.soMoreUserIpt.time=='1'){
+                    this.soMoreUserIpt.timeStart=0;
+                    this.soMoreUserIpt.timeEnd=30;
+                }else if(this.soMoreUserIpt.time=='2'){
+                    this.soMoreUserIpt.timeStart=0;
+                    this.soMoreUserIpt.timeEnd=60;
+                }else if(this.soMoreUserIpt.time=='3'){
+                    this.soMoreUserIpt.timeStart=0;
+                    this.soMoreUserIpt.timeEnd=180;
+                }else if(this.soMoreUserIpt.time=='4'){
+                    this.soMoreUserIpt.timeStart=0;
+                    this.soMoreUserIpt.timeEnd=300;
+                }
+
+                if(this.timeCall){
+                    if(this.timeCall.length !=0){
+                        this.soMoreUserIpt.dateStart=this.timeCall[0]+' 00:00:00';
+                        this.soMoreUserIpt.dateEnd=this.timeCall[1]+' 23:59:59';
+                    }
+                }else{
+                    delete this.soMoreUserIpt.dateStart;
+                    delete this.soMoreUserIpt.dateEnd;
+                }
+                console.log("查询得到的object");
+                console.log(this.soMoreUserIpt);
+
+                this.handleCurrentChange(1);
+            },
+//            清空搜索条件，并回到初始状态
+            clearCheck(){
+                this.selParment=[];
+                this.selMana=[];
+                this.soMoreUserIpt={};
+                this.timeCall=[];
+                this.handleCurrentChange(1);
+            },
+//            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                return 'orow';
+            },
+//            当前页翻页
+            handleCurrentChange(val){
+                this.loading=true;
+                this.soMoreUserIpt.currentPage=val;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pho_calMsg/getPageCallMsgLst`,
+                    data:that.soMoreUserIpt,
+                    success:function(data){
+                        that.cusTableLstInit=data.rows;
+                        that.pageInit.totalResult=data.total;
+                        that.pageInit.currentPage=val;
+                            that.loading=false;
+                    }
+                })
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pho_calMsg/getCallMsgSum`,
+                    data:that.soMoreUserIpt,
+                    success:function(data){
+                        if(data.msg="200"){
+                            console.log(data);
+                            that.callCount=data.result.callCount;
+                            if(data.result.callTimeSum){
+                                that.callTimeSum=that.secondToDate(data.result.callTimeSum);
+                            }else{
+                                that.callTimeSum="00时00分00秒";
+                            }
+                        }
+                    }
+                })
+            },
+            onListen(index,row){
+                this.soundRecord=true;
+                this.soundSrc=row.YBCF0013;
+            },
+
+//            秒转换为时分秒//秒转化成 时分秒
+            secondToDate(value) {
+                var secondTime = parseInt(value);// 秒
+                var minuteTime = 0;// 分
+                var hourTime = 0;// 小时
+                if(secondTime >= 60) {//如果秒数大于60，将秒数转换成整数
+                    //获取分钟，除以60取整数，得到整数分钟
+                    minuteTime = parseInt(secondTime / 60);
+                    //获取秒数，秒数取佘，得到整数秒数
+                    secondTime = parseInt(secondTime % 60);
+                    //如果分钟大于60，将分钟转换成小时
+                    if(minuteTime >= 60) {
+                        //获取小时，获取分钟除以60，得到整数小时
+                        hourTime = parseInt(minuteTime / 60);
+                        //获取小时后取佘的分，获取分钟除以60取佘的分
+                        minuteTime = parseInt(minuteTime % 60);
+                    }
+                }
+                var result = "" + parseInt(secondTime)+"秒";
+                if(secondTime<10){
+                    result = '0' +parseInt(secondTime)+"秒";
+                }
+                if(minuteTime >= 0 && minuteTime<10) {
+                    result = "0" + parseInt(minuteTime) + "分" + result;
+                }else if(minuteTime >= 10){
+                    result = "" + parseInt(minuteTime) + "分" + result;
+                }
+                if(hourTime >= 0 && hourTime<10) {
+                    result = "0" + parseInt(hourTime) + "时" + result;
+                }else if(hourTime >= 10){
+                    result = "" + parseInt(hourTime) + "时" + result;
+                }
+                return result;
+            },
+        }
+    })
+
+</script>
+</html>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--命名空间完全限定名-->
+<mapper namespace="com.dbsun.mapper.vip.CutVisitExceptionMapper">
+    <!--查询客户的回访-异常记录-->
+    <select id="getPageYbcVisitExcLst" resultType="pd" parameterType="page" useCache="false">
+
+
+        SELECT
+        y.YBC001,<!--客户id-->
+        y.YBC002,<!--客户姓名-->
+        y.YBC003,<!--默认的客户联系电话-->
+
+        (SELECT VIPT002 FROM vip_type where VIPT001 = y.VIPT001) as VIPGRADE , <!--vip级别-->
+        v.VIPE001,<!--id-->
+        v.VIPE004_TM,<!--更进时间-->
+        v.VIPE002,<!--失败说明-->
+        v.VIPE003_IP,<!--异常类型 case ...-->
+        (SELECT NAME FROM sys_user WHERE USER_ID = y.USER_ID)AS NAME ,<!--客户经理-->
+        (SELECT DEPT_NAME FROM sys_dept WHERE DEPT_LAYERORDER = y.DEPT_LAYERORDER )as DEPT_NAME ,<!--部门机构代码-->
+        y.POSITION
+        FROM vip_visit_exception v ,ybc y
+        where v.YBC001 = y.YBC001
+        AND y.YBC036_TP != 0
+        AND y.YBC036_TP != 4
+        AND y.YBC036_TP IS NOT NULL <!-- 只能对准会员和真会员操作-->
+        <!--多条件查询 -->
+        <!--姓名/联系电话-->
+        <if test=" pd.YBC002 !=null and pd.YBC002 !=''">
+            and y.YBC002 LIKE concat('%',#{pd.YBC002},'%')
+        </if>
+        <if test=" pd.YBC003 !=null and pd.YBC003 !=''">
+            and y.YBC003 LIKE concat('%',#{pd.YBC003},'%')
+        </if>
+        <!--会员级别-->
+        <if test="pd.VIPT001 !=null and pd.VIPT001 !='' ">
+            and y.VIPT001 =#{pd.VIPT001}
+        </if>
+        <!-- 部门 权限 start -->
+        <if test="pd.DEPT_LAYERORDER_Sea !=null and pd.DEPT_LAYERORDER_Sea !='' ">
+            and y.DEPT_LAYERORDER like concat('%',#{pd.DEPT_LAYERORDER_Sea},'%')
+        </if>
+        <!-- 部门 客户经理 -->
+        <if test="pd.USER_ID_Sea !=null and pd.USER_ID_Sea !='' ">
+            and y.USER_ID=#{pd.USER_ID_Sea}
+        </if>
+        <!-- 1准会员/2真会员 -->
+        <if test="pd.YBC036_TP !=null and pd.YBC036_TP !='' ">
+            and y.YBC036_TP =#{pd.YBC036_TP}
+        </if>
+
+        <!-- 时间搜索 -->
+        <if test="pd.dateStart != null and pd.dateStart != ''"><!-- 签单时间 -->
+            and v.VIPE004_TM <![CDATA[ >= ]]> #{pd.dateStart}
+        </if>
+        <if test="pd.dateEnd != null and pd.dateEnd != ''">
+            and v.VIPE004_TM <![CDATA[ <= ]]> #{pd.dateEnd}
+        </if>
+        <!-- 部门用户-->
+        and OP_DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER},'%')
+
+        <!-- 搜索 End -->
+        order by v.VIPE004_TM desc
+
+
+
+    </select>
+    <!--新增回访-异常记录-->
+    <insert id="addYbcVisitExc" parameterType="pd">
+         INSERT INTO vip_visit_exception
+            (VIPE001,
+             YBC001,
+             VIPE002,
+             VIPE003_IP,
+             VIPE004_TM,
+              USER_ID,
+             OP_DEPT_LAYERORDER,
+             OP_POSITION)
+VALUES (#{VIPE001},
+        #{YBC001},
+        #{VIPE002},
+        #{VIPE003_IP},
+        now(),
+        #{USER_ID},
+        #{DEPT_LAYERORDER},<!--在线操作人-->
+        #{POSITION});
+    </insert>
+
+</mapper>

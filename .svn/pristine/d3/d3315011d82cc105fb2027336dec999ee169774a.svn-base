@@ -1,0 +1,67 @@
+package com.dbsun.mapper.vip;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+import java.util.List;
+
+/**
+
+ * @author DongZai
+
+ * @create 2018-04-08 下午 1:22
+
+ * @desc
+
+ **/
+public interface CusVipMapper {
+
+
+    List<PageData>  getListByVipLevel();
+
+    List<PageData> getPageInVipList(Page page);
+
+    List<PageData> getPageVipList(Page page);
+
+
+    /***
+     * 查询客户可-送礼会员 按送礼时间排序
+     * @param page
+     * @return
+     */
+    List<PageData> getPageVipGiftList(Page page);
+
+
+    /***
+     * 查询客户可-回访会员 增加回访表的 显示最新状态
+     * @return
+     */
+    List<PageData> getPageVipVisitList(Page page);
+
+
+
+    /***
+     * 查询客户的回访表 异常状态的 会员
+     * @return
+     */
+    public List<PageData> getPageYbcVisitExeStatusLst(Page page);
+
+
+
+
+    PageData getVipInfo(PageData pageData);
+
+    int updateVipByPageDate(PageData pageData);
+
+    int updateVipLevel(PageData pageData);
+
+    int updateVipExit(PageData pageData);
+
+    int addContact(PageData pageData);
+
+    int updateContact(PageData pageData);
+
+    int deleteContact(PageData pageData);
+
+    List<PageData> getAllContactByCus(PageData pageData);
+}

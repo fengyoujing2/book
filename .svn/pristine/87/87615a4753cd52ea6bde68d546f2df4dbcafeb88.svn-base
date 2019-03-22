@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>更多</title>
+    <link rel="stylesheet" href="css/swiper.min.css"/>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.css">
+    <script src="js/swiper.min.js"></script>
+    <style>
+        a:hover{
+            text-decoration: none;
+        }
+
+        a:visited{
+            text-decoration: none;
+        }
+
+        a:active{
+            text-decoration: none;
+        }
+
+    </style>
+
+
+</head>
+<body style="background:#ffffff;">
+<div th:include="html/page/contentpublic :: html"></div>
+
+<div class="container-fluid jianju"  id="contain" >
+    <div class="page-body">
+
+        <!-- <a th:href="@{/wx_msg/goMsgCenter}">
+            <div class="row" style="border-bottom: 1px solid rgb(245,245,245);background: white">
+                <div class="col-xs-6  text-left  " style="padding: 15px">
+                    <div style="display: inline-block;width: 20px;height: 20px;vertical-align: middle;background:url('../static/img/icon4_03.png');background-size: 100%"></div> <span style="color: #626161;vertical-align: middle">消息中心</span>
+                </div>
+                <div class="col-xs-6  text-right" style="padding: 15px">
+                    <i class="fa fa-circle" style="color:#FC8B4D;font-size: 11px"></i> <span class="glyphicon glyphicon-chevron-right" style="color: #C9C6C6;top:3px;"></span>
+                </div>
+            </div>
+        </a> -->
+
+         <a th:href="@{/wx_more/aboutWe}">
+            <div class="row" style="border-bottom: 1px solid rgb(245,245,245);background: white">
+                <div class="col-xs-10  text-left  " style="padding: 15px">
+                    <div style="display: inline-block;width: 20px;height: 20px;vertical-align: middle;background:url('../static/img/icon4_03.png');background-size: 100%;background-position-y: -38px;"></div> <span style="color: #626161;vertical-align: middle">关于我们</span>
+                </div>
+                <div class="col-xs-2  text-right" style="padding: 15px">
+                    <span> <span class="glyphicon glyphicon-chevron-right" style="color: #C9C6C6;top:3px;"></span></span>
+                </div>
+            </div>
+        </a>
+
+        <a th:href="@{/wx_more/commPro}">
+            <div class="row" style="border-bottom: 1px solid rgb(245,245,245);background: white">
+                <div class="col-xs-10  text-left  " style="padding: 15px">
+                    <div style="display: inline-block;width: 20px;height: 20px;vertical-align: middle;background:url('../static/img/icon4_03.png');background-size: 100%;background-position-y: -78px;"></div> <span style="color: #626161;vertical-align: middle">常见问题</span>
+                </div>
+                <div class="col-xs-2  text-right" style="padding: 15px">
+                    <span> <span class="glyphicon glyphicon-chevron-right" style="color: #C9C6C6;top:3px;"></span></span>
+                </div>
+            </div>
+        </a>
+
+
+        <a href="tel:02866002200">
+            <div class="row" style="border-bottom: 1px solid rgb(245,245,245);background: white">
+                <div class="col-xs-6  text-left  " style="padding: 15px">
+                    <div style="display: inline-block;width: 20px;height: 20px;vertical-align: middle;background:url('../static/img/icon4_03.png');background-size: 100%;background-position-y: -118px;"></div> <span style="color: #626161;vertical-align: middle">客服热线</span>
+                </div>
+                <div class="col-xs-6  text-right" style="padding: 15px">
+                    <span style="color: #FC8B4D">028-66002200</span> <span class="glyphicon glyphicon-chevron-right" style="color: #C9C6C6;top:1px;"></span>
+                </div>
+            </div>
+        </a>
+
+
+
+         <a th:href="@{/wx_set/goSet}">
+            <div class="row" style="border-bottom: 1px solid rgb(245,245,245);background: white">
+                <div class="col-xs-10  text-left  " style="padding: 15px">
+                    <div style="display: inline-block;width: 20px;height: 20px;vertical-align: middle;background:url('../static/img/icon4_03.png');background-size: 100%;background-position-y: -157px;"></div> <span style="color: #626161;vertical-align: middle">设置</span>
+                </div>
+                <div class="col-xs-2  text-right" style="padding: 15px">
+                    <span> <span class="glyphicon glyphicon-chevron-right" style="color: #C9C6C6;top:3px;"></span></span>
+                </div>
+            </div>
+        </a>
+
+
+        <div class="row" style="border-bottom: 1px solid transparent; background: transparent">
+            <div class="col-xs-12  text-left  " style="padding: 16px">
+                <a href="#" style="color: transparent">热门问题</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid" style="position: fixed;bottom: 0;right: 0;width: 100%;z-index: 20000;background:#ffffff;border-top: 1px solid rgb(245,245,245)">
+	    <div class="row" >
+	        <a th:href="@{/wx_index/goIndex}">
+	            <div class="text-center" style="padding: 5px;width: 33.3333%;float: left" id="shouye">
+	                <span class="glyphicon glyphicon-home sy" style="color:#C9C6C6;"></span>
+	                <br>
+	                <span style="vertical-align: middle;color:#C9C6C6" class="sy">首页</span>
+	            </div>
+	        </a>
+	
+	        <a th:href="@{/wx_mine/goMinePg}">
+	            <div class="  text-center  " style="padding: 5px;width: 33.3333%;float: left" id="wode">
+	                <span class="glyphicon glyphicon-user mi" style="color:#C9C6C6;"></span>
+	                <br>
+	                <span style="vertical-align: middle;color: #C9C6C6" class="mi">我的</span>
+	            </div>
+	        </a>
+	
+	        <a th:href="@{/wx_more/goMore}">
+	            <div class="text-center" style="padding: 5px;width: 33.3333%;float: left;" id="gengduo">
+	                <span class="glyphicon glyphicon-th-large mo" style="color: #FF884D;"></span>
+	                <br>
+	                <span style="vertical-align: middle;color:#FF884D" class="mo">更多</span>
+	            </div>
+	        </a>
+	        
+	    </div>
+	</div>
+<script>
+    $(document).ready(function(){
+        $("#back").click(function(){
+            window.history.back();
+        });
+    });
+</script>
+
+
+</body>
+</html>

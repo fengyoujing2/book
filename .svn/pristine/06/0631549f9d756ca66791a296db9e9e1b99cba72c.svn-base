@@ -1,0 +1,116 @@
+package com.dbsun.service.customer;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.dbsun.util.Tools;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.SysUserMapper;
+import com.dbsun.mapper.customer.CusRecoveryMapper;
+import com.dbsun.service.BaseService;
+
+@Service
+public class CusRecoveryService extends BaseService {
+
+	@Autowired
+	private CusRecoveryMapper recoveryMapper;
+	@Autowired
+	private SysUserMapper sysUserMapper; 
+	
+	public List<PageData> getPageRecoveryLst(Page page){
+		return recoveryMapper.getPageRecoveryLst(page);
+	}
+	
+	/**
+	 * 回收客户重分配 -- 选择条数分配
+	 * @return
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked"})
+	public int updateReAllotOfLimit(PageData pd){
+		int ret = 0;
+		try {
+			Map map = new HashMap();
+			
+			//把输入的条数转化为Integer，否则SQL报错
+			map.put("userNum", Integer.parseInt(pd.getString("limitNum")));
+			map.put("inUserid", pd.get("NewUSER_ID"));//选择的客户经理ID
+			map.put("userid", pd.get("USER_ID"));//当前登录用户ID
+			map.put("DEPT_LAYERORDER", pd.get("DEPT_LAYERORDER"));//当前登录用户ID
+			map.put("POSITION", pd.get("POSITION"));//当前登录用户ID
+			
+			//调用存储过程
+			recoveryMapper.backUser_branch(map);
+			
+			if(map.get("state").equals(0))ret = 1;//成功
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+	/**
+	 * 回收池的重分配（按条数）
+	 * @param pd
+	 * @return
+	 */
+	public List<PageData> getPreReAllotLst(PageData pd){
+		return recoveryMapper.getPreReAllotLst(pd);
+	}
+
+	/**
+	 * 2018-05-15新增需求
+	 * 回收客户重分配 -- 选择条数分配
+	 * OLD_DEPT_LAYERORDER--老部门
+	 * OLD_USER_ID--老员工
+	 * limitNum--分配数量
+	 * DEPT_LAYERORDER--新部门
+	 * USER_ID--新人员
+	 * @return
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked"})
+	public int updateReAllotOfLimitForUser(PageData pd){
+		int ret = 0;
+		try {
+			Map map = new HashMap();
+
+			//把输入的条数转化为Integer，否则SQL报错
+//			map.put("userNum", Integer.parseInt(pd.getString("limitNum")));
+//			map.put("inUserid", pd.get("NewUSER_ID"));//选择的客户经理ID
+//			map.put("userid", pd.get("USER_ID"));//当前登录用户ID
+//			map.put("DEPT_LAYERORDER", pd.get("DEPT_LAYERORDER"));//当前登录用户ID
+//			map.put("POSITION", pd.get("POSITION"));//当前登录用户ID
+
+			//再次判断需要调用哪个sql语句
+			//如果只选择了分配的部门没有选择人，只需要调用回收sql语句，数据还是在回收池里
+			//如果选了部门跟人则表明直接分配到具体某个人身上，直接恢复成有效客户数据，脱离回收池
+			pd.put("limitNum", Integer.parseInt(pd.getString("limitNum")));//需要转换一次
+			if(Tools.isObjEmpty(pd.get("USER_ID"))){
+				//为空调用
+				recoveryMapper.updatebackDept_branchForSql(pd);
+			}else{
+				//不为空调用直接从回收数据拿到正常有效数据
+				recoveryMapper.updatebackUser_branchForSql(pd);
+			}
+			ret = 1;//成功
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		}
+
+		return ret;
+	}
+	/**
+	 * 2018-05-15新增需求
+	 * 获取部门或个人可回收的总数据
+	 * @param pd
+	 * @return
+	 */
+	public  PageData  getDeptOrUserRecoverySum(PageData pd){
+		return recoveryMapper.getPreReAllotSumLst(pd);
+	}
+}

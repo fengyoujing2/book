@@ -1,0 +1,14 @@
+package com.dbsun.mapper.background;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface BacSituationMapper {
+	
+	public List<PageData> getPageBacSituationLst(Page page);
+	public PageData getBacSitDetaBySingID(PageData pd);
+	public List<PageData> getSinglesForCus(PageData pd);
+	
+}

@@ -1,0 +1,196 @@
+package com.dbsun.service.fluxswitch;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.background.BacConfMapper;
+import com.dbsun.mapper.customer.CusSignMapper;
+import com.dbsun.mapper.finance.FinSignMapper;
+import com.dbsun.mapper.fluxswitch.FSMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.service.finance.FinNumService;
+import com.dbsun.util.Const;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+public class FSService extends BaseService {
+
+	@Autowired
+	private FSMapper fsMapper;
+	@Autowired
+	private CusSignMapper cusSignMapper;
+	@Autowired
+	private FinSignMapper finSignMapper;
+	@Autowired
+	private BacConfMapper bacConfMapper;
+	@Autowired
+	private FinNumService finNumService;
+
+
+	public List<PageData> getFluxSwitchs(PageData pd){
+		return fsMapper.getFluxSwitchs(pd);
+	}
+
+
+	/**
+	 * 客户经理添加后、财务手动确认签单后、后台手动确认做单后调用此方法
+	 * 通过自定义注解加AOP会引发很多事物问题，抛弃
+	 * @param pd
+	 * 			YBCS001,USER_ID
+	 * @return
+	 */
+	@Transactional
+	public boolean fluxSwitch(PageData pd) throws Exception{
+
+		boolean flag = false;
+
+		try {
+			// 查询签单 参数：YBCS001
+			PageData signPd = cusSignMapper.getSignByYBCS001(pd);
+
+			// 签单最终流程状态
+			int YBCS021_TP = (int)signPd.get("YBCS021_TP");
+
+			pd.put("YBCT001", signPd.getString("YBCS009_TP"));
+			// 查库：where 公司贷款类型 参数：YBCT001
+			PageData fluxPd = this.getFluexByType(pd);
+
+			// 自动财务确认签单
+			if((int)fluxPd.get("YBCFS001_TP") == 0
+					&& YBCS021_TP == Const.FluxSwitchEnum.AUTOSIGN.getCode()){
+
+				// 确认签单和修改签单最终状态都成功 参数：USER_ID、YBCS001
+				if(finSignMapper.updateConfSign(pd) == 1
+						&& updateSignFinalState(pd, 2)){
+					YBCS021_TP = 2;
+				}
+
+			}
+
+			// 自动后台确认签单
+			if((int)fluxPd.get("YBCFS002_TP") == 0
+					&& YBCS021_TP == Const.FluxSwitchEnum.AUTODOSIGN.getCode()){
+
+				pd.put("YBCS014_TP", 1);
+				// 默认可以做单 确认签单和修改签单最终状态都成功 参数：USER_ID、YBCS014_TP、YBCS044--可不填
+				if(bacConfMapper.updateForConfSingle(pd) == 1
+						&& updateSignFinalState(pd, 3)){
+					YBCS021_TP = 3;
+				}
+
+			}
+
+			// 财务自动编号，必须可以做单YBCS014_TP == 1
+			// 应该重新查库，自动确认做单后YBCS014_TP才有值，否则会报空指针，必须从数据库取不能在方法内部赋值，因为手动和自动会有影响
+			signPd = cusSignMapper.getSignByYBCS001(pd);
+			if((int)fluxPd.get("YBCFS003_TP") == 0
+					&& YBCS021_TP == Const.FluxSwitchEnum.AUTONUM.getCode()
+					&& (int)signPd.get("YBCS014_TP") == 1){
+
+				// 获取编号前缀 参数：YBCS009_TP
+				PageData pdPrefix = finNumService.getGeneratedFinNum(signPd);
+				// 编号前缀规则不为空
+				if (pdPrefix != null
+						&& pdPrefix.get("YBCT008") != null ) {
+					signPd.putAll(pdPrefix);
+					// 获取编号规则 参数：YBCS009_TP、YBCT008
+					final String num = finNumService.getFinancialNumber(signPd);
+					pd.put("YBCS007", num);
+					// 编号 参数：YBCS007、USER_ID、YBCS001
+					if(finNumService.updateFinNum(pd) == 1
+							&& updateSignFinalState(pd, 4)){
+						YBCS021_TP = 4;
+					}
+
+				}
+
+			}
+
+			flag = !flag;
+		} catch (Exception e) {
+			// 事物必须抛出
+			throw new Exception(e);
+		}
+
+		return flag;
+	}
+
+	/**
+	 * 修改YBCS021_TP状态
+	 * @param pd
+	 * 			YBCS001
+	 * @param state
+	 * @return
+	 */
+	public boolean updateSignFinalState(PageData pd, int state){
+		pd.put("YBCS021_TP", state);
+		// 执行更新成功 参数：YBCS001、YBCS021_TP
+		if(fsMapper.updateSignFinStatus(pd) > 0)return true;
+		else return false;
+	}
+
+	/**
+	 * 调用流程控制器
+	 * @param pd
+	 * @param userPd
+	 * @return
+	 */
+	public boolean invokeSwitch(PageData pd, PageData userPd) throws Exception {
+		PageData switchPd = new PageData();
+		switchPd.put("YBCS001", pd.get("YBCS001"));
+		switchPd.put("USER_ID", userPd.get("USER_ID"));
+		return this.fluxSwitch(switchPd);
+	}
+
+	/**
+	 * 根据贷款类型查询流程切换记录
+	 * @param pd
+	 * @return
+	 */
+	public PageData getFluexByType(PageData pd){
+		return fsMapper.getFluexByType(pd);
+	}
+
+	/**
+	 * 添加流程配置
+	 * @param pd
+	 * @return
+	 */
+	public int addFluxSwitch(PageData pd){
+		return fsMapper.addFluxSwitch(pd);
+	}
+
+	public int test(PageData pd) {
+		PageData ret = getFluexByType(pd);
+		if((int)ret.get("YBCFS002_TP") == 0){
+			System.out.println("&&&&");
+		}
+
+		return 1;
+	}
+
+	/**
+	 * 更新流程设置
+	 * @param pd
+	 * @return
+	 */
+	public int updateFluxSwitchById(PageData pd){
+		return fsMapper.updateFluxSwitchById(pd);
+	}
+
+
+	public static void main(String[] args) {
+		try {
+			System.out.println("111");
+			int i = 1;
+			i = i/0;
+			System.out.println("222");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		System.out.println("333");
+	}
+}

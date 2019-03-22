@@ -1,0 +1,33 @@
+<!-- <footer th:fragment="copy"> 
+	<div class="container-fluid" style="position: fixed;bottom: 0;right: 0;width: 100%;z-index: 20000;background:#ffffff;border-top: 1px solid rgb(245,245,245)">
+	    <div class="row" >
+	        <a th:href="@{/wx_index/goIndex}">
+	            <div class="text-center" onclick="change(this);" style="padding: 5px;width: 33.3333%;float: left" id="shouye">
+	                <span class="glyphicon glyphicon-home sy" style="color:#FF884D;"></span>
+	                <br>
+	                <span style="vertical-align: middle;color:#FF884D" class="sy">首页</span>
+	            </div>
+	        </a>
+	
+	        <a th:href="@{/wx_mine/goMinePg}">
+	            <div class="  text-center  " onclick="change(this);" style="padding: 5px;width: 33.3333%;float: left" id="wode">
+	                <span class="glyphicon glyphicon-user mi" style="color:#C9C6C6;"></span>
+	                <br>
+	                <span style="vertical-align: middle;color: #C9C6C6" class="mi">我的</span>
+	            </div>
+	        </a>
+	
+	        <a th:href="@{/wx_more/goMore}">
+	            <div class="text-center" onclick="change(this);" style="padding: 5px;width: 33.3333%;float: left;" id="gengduo">
+	                <span class="glyphicon glyphicon-th-large mo" style="color: #C9C6C6;"></span>
+	                <br>
+	                <span style="vertical-align: middle;color:#C9C6C6" class="mo">更多</span>
+	            </div>
+	        </a>
+	        
+	    </div>
+	</div>
+</footer>
+
+
+ -->

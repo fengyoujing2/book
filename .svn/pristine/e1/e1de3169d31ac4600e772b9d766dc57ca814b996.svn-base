@@ -1,0 +1,36 @@
+package com.dbsun.controller.phonesys;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.service.customer.CusService;
+import com.dbsun.util.PhoneStUtil;
+/**
+ * 通话统计
+ * @author DongZai
+ *
+ */
+@Controller
+@RequestMapping("/pho_dtaCont")
+public class PhoDtaCountController extends BaseController {
+	
+	@Autowired
+	private CusService cusService;
+	
+	/**
+	 * 统计外呼（某段时间内的外呼量）
+	 * @return
+	 */
+	@RequestMapping("/getContDB")
+	@ResponseBody
+	public JSONObject getContCalOut(){
+		return this.getSucJson(PhoneStUtil.getContCalOut(this.getPageData(), this.getUserPd()));
+	}
+
+	
+}

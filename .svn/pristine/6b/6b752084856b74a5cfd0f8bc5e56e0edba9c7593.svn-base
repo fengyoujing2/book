@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.finance.FinGetMonyReqMapper">
+	<!-- 发起收款请求 -->
+
+	<select id="getPageWtGetMyReqLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			m.YBCMA001, 
+			s.*, 
+			c.YBC002, 
+			c.YBC003, 
+			(select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName, <!-- 产品类型名称 -->
+			(
+				case s.YBCS050_TP 
+					when 1 then '按比例付款'
+					when 2 then '包干制'
+				end
+			) as payment<!-- 付款方式 --> 
+			
+		from ybc_match m, ybc_sign s, ybc c 
+		where m.ybcs001 = s.ybcs001 
+		and s.ybc001 = c.ybc001
+		and m.YBCMA029_TM is not null <!-- 客户已放贷 -->
+		and m.YBCMA008_TM is null<!-- 财务还未发起收款 -->	
+	<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+			and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+		</if>
+		<if test="pd.YBC003 != null and pd.YBC003 != ''">
+			and c.YBC003 like concat_ws(#{pd.YBC003}, "%", "%")
+		</if>
+		<if test="pd.YBCS017 != null and pd.YBCS017 != ''"><!-- 合同编号 -->
+			and s.YBCS017 like concat_ws(#{pd.YBCS017}, "%", "%")
+		</if>
+		<if test="pd.YBCS038 != null and pd.YBCS038 != ''"><!-- 签单客户经理 -->
+			and s.YBCS038 like concat_ws(#{pd.YBCS038}, "%", "%")
+		</if>
+		<if test="pd.signTmStart != null and pd.signTmStart != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[>=]]> #{pd.signTmStart} 
+		</if>
+		<if test="pd.signTmEnd != null and pd.signTmEnd != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[<=]]> #{pd.signTmEnd} 
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and 
+				(
+					s.USER_ID = #{pd.USER_ID_Sea} 
+					or
+					m.USER_ID = #{pd.USER_ID_Sea} 
+			)
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and 
+				(
+					s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+					or
+					m.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+				)
+		</if>
+	<!-- 搜索 end -->
+		order by m.YBCMA029_TM desc	<!-- 放贷时间排序 -->
+	</select>
+	
+	<update id="updateForSendGetMyReq" parameterType="pd" flushCache="false">
+		update 
+			ybc_match 
+				<set>
+					YBCMA007			= #{USER_ID},<!-- 发起收款人ID -->
+					YBCMA036			= (select name from sys_user where user_id = #{USER_ID}), <!-- 发起人姓名 -->
+					YBCMA008_TM			= now()<!-- 发起收款 时间 -->
+				</set>
+			where	
+					YBCMA001			= #{YBCMA001}
+	</update>
+	
+</mapper>

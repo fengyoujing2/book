@@ -1,0 +1,14 @@
+package com.dbsun.mapper.spread;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface SprMapper {
+	
+	public List<PageData> getPageSprLst(Page page);
+	public int addCusFromSpr(PageData pd);
+	public int updateCusState(PageData pd);
+	
+}

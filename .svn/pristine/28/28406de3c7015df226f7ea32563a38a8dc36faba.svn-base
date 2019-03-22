@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+    <title>版本管理</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0];
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+
+    <style>
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        .cusMTable{
+            margin-top: 20px;
+        }
+        .cusMTable .el-table tr{
+            background-color: #4aa5fb;
+            color:#fff;
+        }
+        .el-table .odd-row {
+            background: #f1f7fe !important;
+            color:#878787 !important;
+        }
+        .el-table .even-row {
+            background: #ffffff !important;
+            color:#878787 !important;
+        }
+        .el-input-group__append{
+            color: #4aa5fb !important;
+        }
+        .top_divR{
+            margin-right: 6px;
+        }
+        .el-dialog__header {
+            padding: 15px 0px 10px !important;
+        }
+        .el-dialog__title{
+            border-left: 4px solid #4BA5FD;
+            padding-left: 10px;
+        }
+/*        // 去掉input[type=number]默认的加减号*/
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .el-table td{
+            padding: 4px 0 !important;
+        }
+        .el-message-box {
+            margin-top: -300px;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:10px;">
+    <div id="versionApp" v-cloak>
+        <div>
+            <el-button size="mini"  type="primary" @click="addVer">发布版本</el-button>
+        </div>
+        <div class="cusMTable"
+            v-loading="loading">
+            <el-table
+            :data="cusTableLstInit"
+            style="width: 100%"
+            :row-class-name="tableRowClassName">
+                <el-table-column type="expand">
+                  <template slot-scope="props">
+                    <el-form label-position="left" inline>
+                      <el-form-item label="版本描述">
+                        <div v-for="item in props.row.VERM002" style="color:#666;">{{item}}</div>
+                      </el-form-item>
+                    </el-form>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  prop="VERM004"
+                  label="版本号"  min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="VERM003_TM"
+                  label="创建时间"  min-width="160">
+                </el-table-column>
+                <el-table-column
+                  prop="VERM006_TM"
+                  label="发布时间"  min-width="160">
+                </el-table-column>
+                <el-table-column label="操作" fixed="right" width="160">
+                  <template slot-scope="scope">
+                    <el-button
+                      size="mini"
+                      type="primary"
+                      @click="editVer(scope.$index, scope.row)">编辑</el-button>
+                    <el-button
+                      size="mini"
+                      type="danger"
+                      @click="delVer(scope.$index, scope.row)">删除</el-button>
+                  </template>
+                </el-table-column>
+            </el-table>
+            <div style="text-align:right;">
+                <el-pagination
+                  @current-change="handleCurrentChange"
+                  :current-page="pageInit.currentPage"
+                  :page-size="10"
+                  layout="total, prev, pager, next, jumper"
+                  :total="pageInit.totalResult">
+                </el-pagination>
+            </div>
+        </div>
+
+        <el-dialog :title="formName" :visible.sync="dialogAddVer" width="40%">
+          <el-form :model="addVerform" class="demo-ruleForm">
+                <el-form-item label="版本号" :label-width="formLabelWidth" prop="VERM004"
+                    :rules="[
+                      { required: true, message: '编号不能为空'}
+                    ]">
+                    <el-input type="VERM004" v-model="addVerform.VERM004" placeholder="请输入版本号" style="width:250px;"></el-input>
+                </el-form-item>
+                <el-form-item label="发布时间" :label-width="formLabelWidth">
+                    <el-date-picker
+                      v-model="addVerform.VERM006_TM"
+                      type="date"
+                      value-format="yyyy-MM-dd"
+                      placeholder="选择日期"  style="width:250px;">
+                    </el-date-picker>
+                </el-form-item>
+                <el-form-item label="版本信息" :label-width="formLabelWidth">
+                    <div v-for="(item,index) in addVerform.VERM002">
+                        <el-input type="textarea" v-model="(addVerform.VERM002)[index]" :rows="1" placeholder="请输入信息" style="width:80%;"></el-input>
+                        <el-button icon="el-icon-delete" type="text" @click="delList(index)"></el-button>
+                    </div>
+                    <div style="text-align:center;">
+                        <el-button type="text" size="mini" @click="addDetailed" style="margin:auto;">新增</el-button>
+                    </div>
+                </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogAddVer = false">取 消</el-button>
+                <el-button type="primary" @click="sureAddVer">确 定</el-button>
+          </div>
+        </el-dialog>
+    </div>
+</body>
+<script th:inline="javascript">
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+
+    new Vue({
+        el:"#versionApp",
+        data(){
+            return {
+//                从后台模板里面获取
+                pageInit:{},
+                cusTableLstInit:[],
+                formName:'新增版本',
+                formLabelWidth:"100px",
+                dialogAddVer:false,
+                addVerform:{VERM002:[""]},
+                loading:false
+            }
+        },
+//        DOM渲染前执行
+        mounted(){
+            this.handleCurrentChange(1);
+        },
+        methods:{
+
+//            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                if(rowIndex==1){
+
+                }else if (rowIndex%2 == 0) {
+                    return 'odd-row';
+                }
+                return 'even-row';
+            },
+//            当前页翻页
+            handleCurrentChange(val){
+                this.loading=true;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/vers_msg/getPageVersionsMsgLst`,
+                    data:{currentPage:val},
+                    success:function(data){
+                        that.cusTableLstInit=data.rows;
+                        that.pageInit.totalResult=data.total;
+                        that.loading=false;
+                    }
+                })
+            },
+            // 新增版本
+            addVer(){
+                this.formName="新增版本";
+                this.addVerform={VERM002:[""]};
+                this.dialogAddVer=true;
+            },
+            // 编辑版本
+            editVer(index,row){
+                this.formName="编辑版本";
+                this.addVerform=row;
+                this.dialogAddVer=true;
+            },
+//            删除版本
+            delVer(index,row){
+                let that=this;
+
+                this.$confirm('此操作将删除该版本信息, 是否继续?', '提示', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                }).then(() => {
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/vers_msg/delVersionsMsg`,
+                        data:{VERM001:row.VERM001},
+                        success:function(data){
+                            if(data.msg=="200"){
+                                that.$message({
+                                    message: '成功删除该版本信息',
+                                    type: 'success'
+                                });
+                                that.handleCurrentChange();
+                            }
+                        }
+                    })
+                }).catch(() => {
+                  this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                  });
+                });
+            },
+            delList(index){
+                this.addVerform.VERM002.splice(index,1);
+            },
+//            新增信息
+            addDetailed(){
+                let arr=this.addVerform.VERM002;
+                let arrFlag=true;
+                if(arr.length>0){
+                    for(let item of arr){
+                      console.log(item);
+                        if(item == ""){
+                            arrFlag=false;
+                            break;
+                        }
+                    }
+                }
+                if(arrFlag){
+                    this.addVerform.VERM002.push("");
+                }else{
+                    this.$message.error('请将已新增的信息填写完整后，再新增信息');
+                }
+            },
+            sureAddVer(){
+                let that=this;
+                let arr=this.addVerform.VERM002;
+                let arrFlag=true;
+                var str='';
+                if(arr.length>0){
+                    for(let item of arr){
+                        if(item == ""){
+                            arrFlag=false;
+                            break;
+                        }else{
+                          str+=item+"#"
+                        }
+                    }
+                    if(arrFlag){
+                      console.log(str);
+                        this.addVerform.VERM002=str.substring(0,str.length-1);
+                        console.log(this.addVerform);
+                        if(this.formName=='新增版本'){
+                            console.log('新增版本');
+                            // add
+                            $.ajax({
+                                type:"GET",
+                                url:`${basePath}/vers_msg/addVersionsMsg`,
+                                data:that.addVerform,
+                                success:function(data){
+                                    if(data.msg=="200"){
+                                        that.$message({
+                                            message: '成功新增版本信息',
+                                            type: 'success'
+                                        });
+                                        that.handleCurrentChange();
+                                        that.dialogAddVer=false;
+                                    }else if(data.msg=="201"){
+                                        that.$message({
+                                            type: 'info',
+                                            message: '版本号冲突，请重新填写'
+                                        });
+                                        that.addVerform={VERM002:[""]};
+                                    }else{
+                                        that.$message.error('新增版本失败,请重新提交');
+                                    }
+                                }
+                            })
+                        }else{
+                            console.log('新增版本');
+                          // edit
+                          $.ajax({
+                              type:"GET",
+                              url:`${basePath}/vers_msg/updateVersionsMsg`,
+                              data:that.addVerform,
+                              success:function(data){
+                                  if(data.msg=="200"){
+                                      that.$message({
+                                          message: '版本信息编辑成功',
+                                          type: 'success'
+                                      });
+                                      that.handleCurrentChange();
+                                      that.dialogAddVer=false;
+                                  }else{
+                                      that.$message.error('版本信息编辑失败,请重新提交');
+                                  }
+                              }
+                          })
+                        }
+                    }else{
+                        this.$message.error('请将已新增的信息填写完整后，再进行确认');
+                    }
+                }else{
+                    this.$message.error('请填写版本信息，在进行发布');
+                }
+            }
+        }
+    })
+
+</script>
+</html>

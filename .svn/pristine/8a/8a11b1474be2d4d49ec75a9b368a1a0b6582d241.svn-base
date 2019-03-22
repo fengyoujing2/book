@@ -1,0 +1,23 @@
+package com.dbsun.mapper.customer;
+
+import java.util.List;
+import java.util.Map;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface CusRecoveryMapper {
+	
+	public List<PageData> getPageRecoveryLst(Page page);
+	/*public int updateReAllot(PageData pd);*/
+	public int updateReAllotOfLimit(PageData pd);
+	public List<PageData> getPreReAllotLst(PageData pd);
+	@SuppressWarnings("rawtypes")
+	public Object backUser_branch(Map map);
+	//2018-05-15新增需求：获取分配部门的数据总量大小
+	public PageData getPreReAllotSumLst(PageData pd);
+	@SuppressWarnings("rawtypes")
+	public int updatebackDept_branchForSql(PageData pd);//转移到部门回收池，不回归到有效客户池
+	@SuppressWarnings("rawtypes")
+	public int updatebackUser_branchForSql(PageData pd);//回归到有效客户池
+}

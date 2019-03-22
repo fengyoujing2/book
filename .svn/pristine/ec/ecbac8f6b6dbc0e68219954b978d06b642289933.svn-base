@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.customer.CusMapper">
+	<!-- 客户 -->
+
+	<!-- 添加客户 -->
+	<insert id="addCus" parameterType="pd" flushCache="false">
+		insert 
+			into 
+				ybc 
+					(
+						<!-- 請求添加字段 -->
+						YBC001, 
+						YBC002, 
+						YBC003, 
+						YBC004_TP,
+						YBC005,
+						YBC006, 
+						YBC009_TP,
+						YBC010,
+						YBC011,
+						YBC012,
+						YBC013,
+						YBC018_TP,
+						<!-- 系统字段 -->
+						YBC008_TP,
+						YBC014_TM, 
+						YBC015_TM, 
+						<!--       1）登录用户相关   start-->
+						USER_ID, 
+						DEPT_LAYERORDER, 
+						POSITION, 
+						YBC029, 
+						<!--       1）登录用户相关   end -->
+						YBC016_TP,
+						YBC017_TP, 
+						PYBC001, 
+						YBC023, 
+						YBC024, 
+						YBC026_TP, 
+						YBC031_TP, 
+						YBC033_TP,
+		YBC042_TP<!--2018-05-11 新增需求：增加数据来源永久记录 -->
+						<!-- 添加字段 -->
+					)
+				values(
+						<!-- 请求添加字段 -->
+						#{YBC001}, 
+						#{YBC002}, 
+						#{YBC003}, 
+						#{YBC004_TP},
+						#{YBC005},
+						#{YBC006},
+						#{YBC009_TP},
+						#{YBC010},
+						#{YBC011},
+						#{YBC012},
+						#{YBC013},
+						#{YBC018_TP},
+						<!-- 系统字段 -->
+						0,
+						now(),
+						now(), 
+						<!--       1）登录用户相关   start-->
+						#{USER_ID},
+						#{DEPT_LAYERORDER}, 
+						1,
+						(select name from sys_user where user_id = #{USER_ID}),  
+						<!--       1）登录用户相关   end-->
+						1,<!-- 是否已分配 -->
+						0,<!-- 当前流程 -->
+						#{PYBC001}, 
+						#{YBC023}, 
+						0, 
+						0, 
+						0,
+						0,
+						0<!--2018-05-11 新增需求：增加数据来源永久记录 -->
+						<!-- 添加字段 -->
+					)
+	</insert>
+	
+	<!-- 客户列表 -->
+	<select id="getPageCusLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			y.YBC001, 
+			y.YBC002, 
+			y.YBC003, 
+			y.YBC028, <!-- 最近跟进人姓名 -->
+			y.YBC022_TM, <!-- 最近跟进时间 -->
+			(
+				case y.YBC018_TP 
+					when 1 then 'A'
+					when 2 then 'B'
+					when 3 then 'C'
+					when 4 then 'D'
+				end 
+			) as level, 
+			(
+				case y.YBC008_TP 
+					when 0 then '临时（大类）' 
+					when 10 then '临时（小类）' 
+					when 1 then '意向'
+					when 2 then '上门'
+					when 3 then '签单'
+					when 4 then '回收'
+					when 5 then '再签单'
+				end
+			) as state, 
+			(
+				case y.YBC004_TP 
+					when 1 then '男'	
+					when 2 then '女'	
+				end
+			) as sex, 
+			(
+				case y.YBC009_TP 
+					when 1 then '未婚'
+					when 2 then '已婚' 
+				end
+			) as maritalStatus
+			
+			<!-- y.YBC029 as name --><!-- 客户归属 -->
+		from ybc y 
+		where 1 = 1 
+		and y.YBC026_TP != 1 
+		and y.YBC024 != 1
+		and y.YBC031_TP != 1 <!-- 电话废弃 --> 
+		and y.YBC033_TP != 1 <!-- 空号 -->
+	<!-- 权限 start -->
+		and (
+				(
+					y.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+					and 
+					y.POSITION	= #{pd.POSITION}
+				)<!-- 主管 -->
+				or
+				y.USER_ID = #{pd.USER_ID} <!-- 做单员 -->
+		)
+	<!-- 权限 end -->
+	<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+			and y.YBC002 like concat(#{pd.YBC002}, "%")
+		</if>
+		<if test="pd.YBC003 != null and pd.YBC003 != ''">
+			and y.YBC003 like concat(#{pd.YBC003}, "%")
+		</if>
+		<if test="pd.YBC008_TP != null and pd.YBC008_TP != ''">
+			and y.YBC008_TP = #{pd.YBC008_TP}
+		</if>
+		<if test="pd.introName != null and pd.introName != ''"><!-- 介绍人 -->
+			and (select c2.YBC002 from ybc c2 where c2.ybc001 = y.PYBC001 limit 0, 1) like concat(#{pd.introName}, "%")
+		</if>
+		<if test="pd.contanName != null and pd.contanName != ''"><!-- 联系人 -->
+			and (select YBCCO002 from YBC_CONTACTS where ybc001 = y.ybc001 limit 0, 1) like concat(#{pd.contanName}, "%")
+		</if>
+		<if test="pd.YBC015_TMStart != null and pd.YBC015_TMStart != ''"><!-- 跟进时间 -->
+			and y.YBC022_TM <![CDATA[>=]]> #{pd.YBC015_TMStart}
+		</if>
+		<if test="pd.YBC015_TMEnd != null and pd.YBC015_TMEnd != ''"><!-- 跟进时间 -->
+			and y.YBC022_TM <![CDATA[<=]]> #{pd.YBC015_TMEnd}
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and y.USER_ID = #{pd.USER_ID_Sea} 
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and y.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+		</if>
+	<!-- 搜索 end -->
+		order by y.YBC015_TM desc
+	</select>
+	
+	<!-- 更新客户 -->
+	<update id="updateCusBasicData" parameterType="pd" flushCache="false">
+		update
+			ybc 
+				<set>
+					<!-- 系统修改资料 -->
+						YBC015_TM			= now() 
+					<!-- 基本资料 -->
+					<if test="YBC002 != null and YBC002 !=''">
+						,YBC002				= #{YBC002}
+					</if>
+					<if test="YBC003 != null and YBC003 !=''">
+						,YBC003				= #{YBC003}
+					</if>
+					<if test="YBC004_TP != null and YBC004_TP !=''">
+						,YBC004_TP			= #{YBC004_TP}
+					</if>
+					<if test="YBC005 != null and YBC005 !=''">
+						,YBC005				= #{YBC005}
+					</if>
+					<if test="YBC006 != null and YBC006 !=''">
+						,YBC006				= #{YBC006}
+					</if>
+					<if test="YBC007_TP != null and YBC007_TP !=''">
+						,YBC007_TP			= #{YBC007_TP}
+					</if>
+					<if test="YBC009_TP != null and YBC009_TP !=''">
+						,YBC009_TP			= #{YBC009_TP}
+					</if>
+					<if test="YBC010 != null and YBC010 !=''">
+						,YBC010				= #{YBC010}
+					</if>
+					<if test="YBC011 != null and YBC011 !=''">
+						,YBC011				= #{YBC011}
+					</if>
+					<if test="YBC012 != null and YBC012 !=''">
+						,YBC012				= #{YBC012}
+					</if>
+					<if test="YBC013 != null and YBC013 !=''">
+						,YBC013				= #{YBC013}
+					</if>
+					<if test="PYBC001 != null and PYBC001 !=''">
+						,PYBC001				= #{PYBC001}
+					</if>
+					<if test="YBC018_TP != null and YBC018_TP !=''">
+						,YBC018_TP			= #{YBC018_TP}
+					</if>
+					<!-- 常用资料（流程） -->
+					<if test="YBC008_TP != null and YBC008_TP !=''">
+						,YBC008_TP			= #{YBC008_TP}
+					</if>
+					<!-- 			1）修改用户  start-->
+					<if test="USER_ID != null and USER_ID !=''">
+						,USER_ID				= #{USER_ID}
+					</if>
+					<if test="YBC029 != null and YBC029 !=''">
+						,YBC029				= #{YBC029}
+					</if>
+					<if test="DEPT_LAYERORDER != null and DEPT_LAYERORDER !=''">
+						,DEPT_LAYERORDER		= #{DEPT_LAYERORDER}
+					</if>
+					<!-- 			1）修改用户 end -->
+					<if test="YBC016_TP != null and YBC016_TP !=''">
+						,YBC016_TP			= #{YBC016_TP}
+					</if>
+					<if test="YBC017_TP != null and YBC017_TP !=''">
+						,YBC017_TP			= #{YBC017_TP}
+					</if>
+					<if test="YBC020 != null and YBC020 !=''">
+						,YBC020				= #{YBC020}
+					</if>
+					<if test="YBC021 != null and YBC021 !=''">
+						,YBC021				= #{YBC021}
+					</if>
+					<if test="YBC022_TM != null and YBC022_TM !=''">
+						,YBC022_TM				= #{YBC022_TM}
+					</if>
+					<if test="YBC023 != null and YBC023 !=''"><!-- 客户标签 -->
+						,YBC023				= #{YBC023}
+					</if>
+					<if test="YBC024 != null and YBC024 !=''">
+						,YBC024				= #{YBC024}
+					</if>
+					<if test="YBC025_TM != null and YBC025_TM !=''">
+						,YBC025_TM			= #{YBC025_TM}
+					</if>
+					<if test="YBC026_TP != null and YBC026_TP !=''">
+						,YBC026_TP			= #{YBC026_TP}
+						,YBC027_TM			= now() 
+					</if>
+					<if test="YBC028 != null and YBC028 !=''">
+						,YBC028				= #{YBC028}
+					</if>
+					<if test="YBC035_TM != null and YBC035_TM !=''"><!-- 客户转为意向客户时间 -->
+						,YBC035_TM				= #{YBC035_TM}
+					</if>
+					<if test="YBC041 != null and YBC041 !=''">
+						,YBC041				= #{YBC041}
+					</if>
+				</set>
+			where
+						YBC001  			= #{YBC001}		
+	</update>
+	
+	<select id="getCusById" parameterType="pd" resultType="pd" useCache="false">
+		select
+			y.*, 
+			(
+				case y.YBC018_TP 
+					when 1 then 'A'
+					when 2 then 'B'
+					when 3 then 'C'
+					when 4 then 'D'
+				end 
+			) as level, 
+			(
+				case y.YBC008_TP 
+					when 0 then '临时（大类）' 
+					when 10 then '临时（小类）' 
+					when 1 then '意向'
+					when 2 then '上门'
+					when 3 then '签单'
+					when 4 then '回收'
+					when 5 then '再签单'
+				end
+			) as state, 
+			(
+				case y.YBC004_TP 
+					when 1 then '男'	
+					when 2 then '女'	
+				end
+			) as sex, 
+			(
+				case y.YBC009_TP
+					when 1 then '未婚'
+					when 2 then '已婚' 
+				end
+			) as maritalStatus,
+			(SELECT dept_name from sys_dept where DEPT_LAYERORDER = y.DEPT_LAYERORDER) as DEPTNAME,
+			y.YBC029 as name <!-- 客户归属 -->
+		from ybc y 
+		where y.YBC001	= #{YBC001}
+	</select>
+	
+	<!-- 更新客户状态为回收客户 -->
+	<!-- <update id="updateCusToRecovery" parameterType="pd" flushCache="false">
+		update 
+			ybc
+				set 
+					YBC024			= 1, 
+					YBC025_TM		= now(), 
+					YBC015_TM		= now()
+				where
+					ybc001 
+						in 
+							(
+								SELECT
+									*
+								FROM
+									(
+										SELECT
+											ybc001
+										FROM
+											ybc
+										WHERE
+											(
+												TIMESTAMPDIFF(MONTH, YBC015_TM, now())
+											) > 1
+									) AS ybcs
+							)
+					
+	</update> -->
+	
+	<!-- 查看客户介绍人 -->
+	<select id="getIntroducerByCusId" parameterType="pd" resultType="pd" useCache="false">
+		select
+			c.PYBC001 as introducerId, 
+			c1.ybc002 as introducerName, <!-- 介绍人姓名 -->
+			c1.ybc003 as introducerTel, <!-- 介绍人号码 -->
+			c.YBC015_TM <!-- 介绍时间 -->
+		from ybc c, ybc c1
+		where c.PYBC001 = c1.YBC001
+		and c.ybc001 = #{YBC001}
+	</select>
+	
+	<!-- 通过号码获取客户名称、客户经理及其所属部门名称 -->
+	<select id="getCusNameByPhone" parameterType="pd" resultType="pd" useCache="false">
+		select
+			c.YBC001, 
+			c.YBC002, 
+			c.YBC029,  <!-- 客户所属客户经理姓名 -->
+			(select DEPT_NAME from sys_dept where DEPT_LAYERORDER = c.DEPT_LAYERORDER) as deptName
+		from ybc c
+		where c.ybc003 = #{YBC003} 
+		limit 0, 1
+	</select>
+	
+	<!-- 获取客户所有进度信息 -->
+	<select id="getybcSpeedLst" parameterType="pd" resultType="pd" useCache="false">
+		<!-- 0表示未到此步骤 -->
+		<!-- 1代表已到此步骤-->
+		SELECT
+		IFNULL(y.YBC001,'end') as SPEED1,<!-- 添加客户,-->
+		IFNULL(y.YBC001,'end') as SPEED2,<!-- 客户跟进,-->
+		IFNULL(s.YBCS001,'end') as SPEED3,<!--是否签单,-->
+		IFNULL(s.YBCS016_TM,'end')  as SPEED4,<!--财务签单确认,-->
+		IFNULL(s.YBCS014_TP,'end') as SPEED5,<!--后台确认做单,-->
+		IFNULL(s.YBCS007,'end') as SPEED6,<!--财务编号,-->
+		IFNULL(s.YBCS052_TM,'end') as SPEED7,<!--做单分配,-->
+		IFNULL(m.YBCMA001,'end') as SPEED8,<!--做单,-->
+		IFNULL(m.YBCMA005_TP,'end') as SPEED9,<!--做单跟进,-->
+		IFNULL(m.YBCMA030,'end') as SPEED10,<!-- 放贷,-->
+		IFNULL(m.YBCMA012,'end') as SPEED11,<!--收款,-->
+		IFNULL(m.YBCMA015_TM,'end') as SPEED12,<!--确认收款,-->
+		IFNULL(m.YBCMA019_TM,'end') as SPEED13,<!--成本录入,-->
+		IFNULL(m.YBCMA025_TM,'end') as SPEED14<!--已结账-->
+		FROM ybc y
+		left JOIN ybc_sign s on y.ybc001 = s.ybc001
+		left JOIN	ybc_match m on s.ybcs001 = m.ybcs001
+		where y.ybc001 = #{YBC001}
+	</select>
+	
+	<update id="updateCusLabel" parameterType="pd" flushCache="false">
+		update
+			ybc 
+				<set>
+					YBC015_TM			= now()
+					,YBC023				= #{YBC023} <!-- 客户标签 -->
+				</set>
+			where
+					YBC001				= #{YBC001}
+				
+	</update>
+	
+</mapper>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.customer.CusSignMapper">
+	<!-- 签单 -->
+	
+	<select id="getSignsByYBC001" parameterType="pd" resultType="pd" useCache="false">
+		select	
+			s.*,  
+			(select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName, 
+			(
+				case s.YBCS050_TP 
+					when 1 then '按比例付款'
+					when 2 then '包干制'
+				end
+			) as payment<!-- 付款方式 -->
+			
+		from ybc_sign s	
+		where s.YBC001	= #{YBC001} 
+		order by s.YBCS002_TM desc
+	</select>
+	
+	<select id="getSignByYBCS001" parameterType="pd" resultType="pd" useCache="false">
+		select	
+			s.*, 
+			(select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName, 
+			(
+				case s.YBCS050_TP 
+					when 1 then '按比例付款'
+					when 2 then '包干制'
+				end
+			) as payment<!-- 付款方式 -->
+		from ybc_sign s	
+		where s.YBCS001	= #{YBCS001}
+	</select>
+	
+	<insert id="addSign" parameterType="pd" flushCache="false">
+		insert
+			into 
+				ybc_sign 
+				(
+					YBCS001, 
+					YBC001, 
+					USER_ID,
+					YBCS002_TM, 
+					YBCS003, 
+					YBCS004_TP, 
+					DEPT_LAYERORDER,
+					POSITION,
+					YBCS006,
+					YBC_STATE,
+					YBCS009_TP,
+					YBCS010,
+					YBCS011,
+					YBCS012, 
+					YBCS021_TP, 
+					YBCS038,
+					YBCS049_TM, 
+					YBCS039, 
+					YBCS050_TP, 
+					YBCS051, 
+					YBCS017, 
+					YBCS018_TP
+				)
+				values
+				(
+					#{YBCS001}, 
+					#{YBC001}, 
+					#{USER_ID},
+					now(), 
+					#{YBCS003}, 
+					1, 
+					#{DEPT_LAYERORDER},
+					1,
+					#{YBCS006},
+					1,
+					#{YBCS009_TP},
+					#{YBCS010},
+					#{YBCS011},
+					(select YBCT004_ID from ybc_type where YBCT001 = #{YBCS009_TP}), <!-- 类型负责人ID（即做单分配人） -->
+					1, <!-- 签单最终状态 -->
+					(select u.name from sys_user u where u.user_id = #{USER_ID}),<!-- 签单姓名 -->
+					#{YBCS049_TM},<!-- 签单录入时间 -->
+					(select name from sys_user where user_id = (select YBCT004_ID from ybc_type where YBCT001 = #{YBCS009_TP})), <!-- 做单人姓名 -->
+					#{YBCS050_TP}, <!-- 付款方式 -->
+					#{YBCS051}, <!-- 包干金额 -->
+					#{YBCS017}, 
+					#{YBCS018_TP}
+				)
+				
+	</insert>
+	
+</mapper>

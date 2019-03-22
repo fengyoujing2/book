@@ -1,0 +1,19 @@
+package com.dbsun.mapper.importallot;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+
+public interface ImpAllotFirstMapper {
+	
+	public List<PageData> getPageCanFirstAltLst(Page page);
+	//2018-05-11新增需求：读取自己的导入数据仅用于推广导入
+	public List<PageData> getPageCanFirstAltLst2(Page page);
+	public int updateImpToAltEd(PageData pd);
+	public int addIMP2(PageData pd);
+	public int addCus(PageData pd);
+	public PageData getCountOfCanFirstAlt(PageData pd);
+	public int delAltEdDb(PageData pd);
+}

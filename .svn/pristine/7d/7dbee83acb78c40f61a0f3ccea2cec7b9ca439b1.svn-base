@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.task.TaskMyOrderMapper">
+	<!-- 我下达的任务 -->
+	
+	<!-- 我命令的任务 -->
+	<select id="getPageMyOrderLst" parameterType="page" resultType="pd" useCache="false">
+		select
+		t.*,
+		(
+		case t.YBT003_TP
+		when 1 then "签单任务"
+		when 2 then "利润任务"
+		end
+		) as taskType,
+		(
+		case t.YBT009_TP
+		when 1 then "部门任务"
+		when 2 then "个人任务"
+		end
+		) as orderType,
+		<!-- 个人 start -->
+
+		(
+		select count(s.YBCS001)
+		from ybc_sign s
+		where 1 = 1
+		and s.user_id = t.user_id
+		AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM
+		AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005
+		) as doSTotalNum, <!-- 签单数 -->
+
+		(
+		select
+		IFNULL(sum(m.YBCMA022), 0) as 完成额
+		from ybc_match m
+		where m.user_id2 = t.user_id
+		and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+		and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+		) as doIncomeTolNum,<!-- 利润额 -->
+		<!-- 个人 end -->
+		<!-- 部门 start -->
+
+		(
+		select count(s.YBCS001)
+		from ybc_sign s
+		where 1 = 1
+		and s.DEPT_LAYERORDER like concat(t.DEPT_LAYERORDER, '%')
+		AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM
+		AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005
+		) as doSTotalNumdept, <!-- 部门签单量 -->
+
+		(
+		select
+		sum(IFNULL(m.YBCMA022, 0)) as 完成利润额
+		from ybc_match m
+		where 1 = 1
+		and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+		and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+		and m.DEPT_LAYERORDER2 like concat(t.DEPT_LAYERORDER, '%')
+		) as doIncomeTolNumdept, <!-- 部门利润完成利润额 -->
+		<!-- 部门 end -->
+		<!-- 完成率 Start -->
+		(
+		case
+		when (t.YBT003_TP = 1 and t.YBT009_TP = 1) then
+		(
+		<!-- ( -->
+		select 	left (count(s.YBCS001) / t.YBT012 *100,5) as 部门签单完成率
+		from ybc_sign s
+		where 1 = 1
+		and s.DEPT_LAYERORDER like concat(t.DEPT_LAYERORDER, '%')
+		AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM
+		AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005
+		<!-- ) as doSTotaldept,  --><!-- 部门签单率 -->
+		)
+		when (t.YBT003_TP = 1 and t.YBT009_TP = 2) then
+		(
+		<!-- ( -->
+		select left (COUNT(s.YBCS001) / t.YBT012 *100,5)
+		from ybc_sign s
+		where 1 = 1
+		and s.user_id = t.user_id
+		AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 任务开始时间 -->
+		AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005 <!-- 任务结束时间 -->
+		<!-- ) as doSTotal,  --><!-- 签单率 -->
+		)
+		when (t.YBT003_TP = 2 and t.YBT009_TP = 1) then
+		(
+		<!-- ( -->
+		select
+		left (IFNULL(sum(m.YBCMA022), 0) / t.YBT012 *100,5) as 完成率
+		from ybc_match m
+		where 1 = 1
+		and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+		and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+		and m.DEPT_LAYERORDER2 like concat(t.DEPT_LAYERORDER, '%')
+		<!-- ) as doIncomeToldept, --> <!-- 部门利润完成率 -->
+		)
+		when (t.YBT003_TP = 2 and t.YBT009_TP = 2) then
+		(
+		<!-- ( -->
+		select
+		left (IFNULL(sum(m.YBCMA022), 0) / t.YBT012 *100,5) as 完成率
+		from ybc_match m
+		where m.user_id2 = t.user_id
+		and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+		and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+		<!-- ) as doIncomeTol, --> <!-- 利润率 -->
+		) <!-- 个人利润 -->
+		else 0
+		end
+		) as completionRate
+		<!-- 完成率 End -->
+		from YBT t
+		where 1 = 1
+		<!-- 权限Start -->
+		and
+		(
+		t.YBT011 = #{pd.USER_ID} <!-- 下达任务人 -->
+		or
+		(
+		t.DEPT_LAYERORDER LIKE CONCAT(#{pd.DEPT_LAYERORDER},'%')
+		AND
+		t.POSITION = #{pd.POSITION}
+		)<!-- 执行人上级 -->
+		or
+		t.user_id = #{pd.USER_ID}<!-- 任务执行人 -->
+		)
+		<!-- 权限 End -->
+		<!-- 搜索Start -->
+		<!-- 按照任务开始时间搜索 -->
+		<if test="pd.YBT008_TMStart != null and pd.YBT008_TMStart != ''">
+			and t.YBT008_TM <![CDATA[ >= ]]> #{pd.YBT008_TMStart}
+		</if>
+		<if test="pd.YBT008_TMEnd != null and pd.YBT008_TMEnd != ''">
+			and t.YBT008_TM <![CDATA[ <= ]]> #{pd.YBT008_TMEnd}
+		</if>
+		<!-- 任务类型：签单/利润 -->
+		<if test="pd.YBT003_TP != null and pd.YBT003_TP != ''">
+			and t.YBT003_TP = #{pd.YBT003_TP}
+		</if>
+		<!-- 任务下达类型：部门/个人 -->
+		<if test="pd.YBT009_TP != null and pd.YBT009_TP != ''">
+			and t.YBT009_TP = #{pd.YBT009_TP}
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and
+			(
+			t.USER_ID = #{pd.USER_ID_Sea}
+			or
+			t.YBT011 = #{pd.USER_ID_Sea}
+			)
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and
+			(
+			t.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+			)
+		</if>
+		<!-- 搜索End -->
+		order by t.YBT008_TM desc <!-- 以任务开始时间排序 -->
+	</select>
+
+</mapper>

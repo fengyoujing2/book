@@ -1,0 +1,150 @@
+package com.dbsun.service.LuckDraw;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.luckdraw.LucMapper;
+import com.dbsun.service.BaseService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+
+@Service
+public class LucService extends BaseService {
+
+	@Autowired
+	private LucMapper lucMapper;
+
+	public List<PageData> getWtLucUsers(PageData pd){
+		return  lucMapper.getWtLucUsers(pd);
+	}
+
+	/**
+	 * 抽奖
+	 * @param pd
+	 * @return
+	 */
+	public List<PageData> updateOfluckDraw(PageData pd) {
+		//中奖集合
+		List<PageData> prizedEmpsLst = null;
+
+		//获取奖项等级及抽奖人数
+		int ldLvl = Integer.parseInt(pd.getString("ldLevel"));//奖项
+		int empNum = Integer.parseInt(pd.getString("empNum"));//参与人数
+
+//		pd.put("empNum", empNum);
+		try {
+			//五等奖在低端局抽
+			if(ldLvl == 5){
+                //新老员工都可以参与
+//                pd.put("EMP_LD003_TP", 1);
+
+                prizedEmpsLst =  getUsersOfRandomByAttrPls(empNum, pd);
+
+            }else{
+				//查询老员工
+				pd.put("EMP_LD003_TP", 0);
+				prizedEmpsLst =  getUsersOfRandomByAttrPls(empNum, pd);
+            }
+
+			//更新中奖的状态和奖品级别
+			Map map = new HashMap();
+			map.put("list", prizedEmpsLst);
+			map.put("pd", pd);
+
+			//当中奖集合不为空的时候，标记中奖级别及是否中奖
+			if(prizedEmpsLst.size() > 0)updateUsersLdLvlAdIsLd(map);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return prizedEmpsLst;
+	}
+
+	public List<PageData> getUsersOfRandomByAttr(PageData pd) throws Exception{
+		return lucMapper.getUsersOfRandomByAttr(pd);
+	}
+
+	/**
+	 * 移除
+	 * @param empNum
+	 * 			参与抽奖人数
+	 * @param pd
+	 * @return
+	 * @throws Exception
+	 */
+	public List<PageData> getUsersOfRandomByAttrPls(int empNum, PageData pd) throws Exception{
+		//参与本轮抽奖的数据
+		List<PageData> wtRadLst = this.getUsersOfRandomByAttr(pd);
+		//中奖集合
+		List<PageData> prizeLst = new ArrayList<PageData>();
+		//抽到中奖名额满为止，有符合抽奖的数据
+		for(int i = 0 ; i < empNum && wtRadLst.size() > 0; i ++){
+			int rdm = new Random().nextInt(wtRadLst.size());
+			prizeLst.add(wtRadLst.get(rdm));
+			wtRadLst.remove(rdm);//移出
+		}
+
+		return prizeLst;
+	}
+
+	public static void main(String[] args) {
+//		List<Integer> wtRadLst = new ArrayList<Integer>();
+//		wtRadLst.add(1);
+//		wtRadLst.add(2);
+//		wtRadLst.add(3);
+//		wtRadLst.add(4);
+//		List<Integer> prizeLst = new ArrayList<Integer>();
+//		//抽到中奖名额满为止
+//		for(int i = 0 ; i < 5; i ++){
+//			if(wtRadLst.size() == 0)break;
+//			int rdm = new Random().nextInt(wtRadLst.size());
+//			prizeLst.add(wtRadLst.get(rdm));
+//			wtRadLst.remove(rdm);//移出
+//		}
+//		System.out.println(prizeLst);
+
+		Object o = 1;
+		System.out.println(o.equals(1));
+		System.out.println(o.equals("1"));
+		System.out.println("1".equals("1"));
+		System.out.println("1".equals(1));
+
+	}
+
+	/**
+	 * 标记
+	 * @param pd
+	 * @return
+	 * @throws Exception
+	 */
+	public List<PageData> getUsersOfRandomByAttrPlsTest(PageData pd) throws Exception{
+		int empNum = Integer.parseInt(pd.getString("empNum"));
+
+		//从list随机抓取n条数据
+		List<PageData> wtRadLst = lucMapper.getUsersOfRandomByAttr(pd);
+		List<PageData> prizeLst = new ArrayList<PageData>();
+		//抽到中奖名额满为止
+		for(int i = 0 ; prizeLst.size() <= empNum; i ++){
+			int rdm = new Random().nextInt(wtRadLst.size());
+			if(wtRadLst.get(i).get("isGrab").equals(1))continue;
+			wtRadLst.get(rdm).put("isGrab", 1);//标记已经抓取
+			prizeLst.add(wtRadLst.get(rdm));
+		}
+
+		return prizeLst;
+	}
+
+	public int updateUsersLdLvlAdIsLd(Map map) throws Exception{
+		return lucMapper.updateUsersLdLvlAdIsLd(map);
+	}
+
+	public List<PageData> getPrizeOfEmps(PageData pd){
+		return lucMapper.getPrizeOfEmps(pd);
+	}
+
+	public int updateForPrizeInit(PageData pd){
+		return lucMapper.updateForPrizeInit(pd);
+	}
+
+}

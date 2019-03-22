@@ -1,0 +1,110 @@
+package com.dbsun.controller;
+
+
+import java.util.List;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.BaseService;
+
+@Controller
+@Component 
+@RequestMapping("/pubSys")
+public class SysPubController extends BaseController{
+    @Autowired
+    private BaseService baseService;
+
+    /**
+     * 获取类型列表（指定大类下的子类数据）
+     * 传入参数YBCS001
+     * */
+    @RequestMapping(value = "/getTypeLst",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject getTypeLst(){
+        PageData pd = getPageData();
+        JSONArray productLst =  baseService.getProductTypeLst(pd);
+        return getSucJson(productLst);
+    }
+    /**
+     * 获取产品列表传入产品类型ID
+     * YBCT001传入参数
+     * */
+    @RequestMapping(value = "/getTypeAllLst",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject getTypeAllLst(){
+        PageData pd = getPageData();
+        List<PageData>  pdLst =  baseService.getProductLst(pd);
+        return getSucJson(pdLst);
+    }
+    /**
+     * 获取第一级产品类型列表
+     * */
+    @RequestMapping(value = "/getTypeOneLst",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject getTypeOneLst(){
+        PageData pd = getPageData();
+        List<PageData>  pdLst =  baseService.getProductTypeOneLst(pd);
+        return getSucJson(pdLst);
+    }
+
+    /**
+     * 获取所有标签
+     * */
+    @RequestMapping(value = "/getLabelLst",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject getLabelLst(){
+        PageData pd = getPageData();
+        JSONArray  pdLst =  baseService.getLabelAllLst(pd);
+        return getSucJson(pdLst);
+    }
+    /**
+     * 获取所有贷款用途数据
+     * */
+    @RequestMapping(value = "/getLabelTpLst",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject getLabelTpLst(){
+        PageData pd = getPageData();
+        List<PageData>   pdLst =  baseService.getLabelAllTpLst(pd);
+        return getSucJson(pdLst);
+    }
+    /**
+     * 跳转到导入客户数据界面
+     * */
+    @RequestMapping(value = "/impDataIndex",method=RequestMethod.GET)
+    public String impDataIndex(ModelMap model){
+        PageData pd = getPageData();
+        return "html/system/impData/impIndex";
+    }
+
+    /**
+     * 获取客户进度数据
+     * */
+    @RequestMapping(value = "/getybcSpeed",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject getybcSpeed(){
+        PageData pd = getPageData();
+        List<PageData>   pdLst =  baseService.getybcSpeedLst(pd);
+        return getSucJson(pdLst);
+    }
+    /**
+     * 获取首页后台做单员当前正在做单的数量（房贷-信贷）
+     * */
+    @RequestMapping(value = "/getIndexBackNum",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject getIndexBackNum(){
+        PageData pd = getPageData();
+        List<PageData>   pdLst =  baseService.getBackDeptJson(pd);
+        return getSucJson(pdLst);
+    }
+}

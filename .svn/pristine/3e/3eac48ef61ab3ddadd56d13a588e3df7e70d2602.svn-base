@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.finance.FinNumMapper">
+    <!-- 待编号 -->
+
+    <!-- 主页 -->
+    <select id="getPageConfNumLst" parameterType="page" resultType="pd" useCache="false">
+        select
+        s.*,
+        c.YBC002, <!-- 客户名称 -->
+        c.YBC003,
+        (
+        case c.YBC018_TP
+        when 1 then 'A'
+        when 2 then 'B'
+        when 3 then 'C'
+        when 4 then 'D'
+        end
+        ) as level,
+        (
+        case c.YBC004_TP
+        when 1 then '男'
+        when 2 then '女'
+        end
+        ) as sex,
+        (select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName, <!-- 产品类型名称 -->
+        (
+        case s.YBCS050_TP
+        when 1 then '按比例付款'
+        when 2 then '包干制'
+        end
+        ) as payment<!-- 付款方式 -->
+
+        from ybc_sign s, ybc c
+        where s.ybc001 = c.ybc001
+        and s.YBCS014_TP = 1 <!-- 后台能做单 -->
+        and s.YBCS020_TM is null<!-- 财务未编号 -->
+        <!-- 搜索 start -->
+        <if test="pd.YBC002 != null and pd.YBC002 != ''">
+            and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+        </if>
+        <if test="pd.YBC003 != null and pd.YBC003 != ''">
+            and c.YBC003 like concat_ws(#{pd.YBC003}, "%", "%")
+        </if>
+        <if test="pd.YBCS017 != null and pd.YBCS017 != ''"><!-- 合同编号 -->
+            and s.YBCS017 like concat_ws(#{pd.YBCS017}, "%", "%")
+        </if>
+        <if test="pd.YBCS038 != null and pd.YBCS038 != ''"><!-- 签单客户经理 -->
+            and s.YBCS038 like concat_ws(#{pd.YBCS038}, "%", "%")
+        </if>
+        <if test="pd.signTmStart != null and pd.signTmStart != ''"><!-- 签单时间 -->
+            and s.YBCS002_TM <![CDATA[>=]]> #{pd.signTmStart}
+        </if>
+        <if test="pd.signTmEnd != null and pd.signTmEnd != ''"><!-- 签单时间 -->
+            and s.YBCS002_TM <![CDATA[<=]]> #{pd.signTmEnd}
+        </if>
+        <if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+            and s.USER_ID = #{pd.USER_ID_Sea}
+        </if>
+        <if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+        </if>
+        <!-- 搜索 end -->
+        order by s.YBCS019_TM desc<!-- 按后台确认时间排序 -->
+    </select>
+
+
+    <update id="updateFinNum" parameterType="pd" flushCache="false">
+        update
+        ybc_sign
+        <set>
+            YBCS007 = #{YBCS007}, <!-- 财务编号 -->
+            YBCS008 = #{USER_ID}, <!-- 财务编号录入人ID -->
+            YBCS020_TM = now(), <!-- 录入时间 -->
+            YBCS021_TP = 4 <!-- 签单最终状态 -->
+        </set>
+        where
+        YBCS001 = #{YBCS001}
+    </update>
+
+    <!--瑞信公司 获得财务编号的对应 前缀 2018/6/20 14:23-->
+    <select id="getGeneratedFinNum" resultType="com.dbsun.entity.system.PageData">
+	  SELECT t.YBCT008 from ybc_type t WHERE t.YBCT001 =#{YBCS009_TP}
+	</select>
+
+
+    <!-- 瑞信公司 最后的财务编号 2018/6/20 14:23-->
+    <select id="getFinNumByPrefix" resultType="com.dbsun.entity.system.PageData">
+        <!--  目前只编辑网贷 4位数字  例WD22502-->
+        SELECT
+        IFNULL(LPAD(MAX(RIGHT(YBCS007,5)+1),5,'0'),'22502')AS num
+        FROM ybc_sign
+        WHERE YBCS007 LIKE CONCAT(#{YBCT008},'%') AND YBCS007 REGEXP '^[A-z]{2}[0-9]{5}$'
+    </select>
+    <!-- 金贝壳公司 最后的财务编号 2018/7/09 14:23-->
+    <!--<select id="getFinNumByPrefix" resultType="com.dbsun.entity.system.PageData">-->
+        <!--&lt;!&ndash;  目前只编辑网贷 4位数字  例WD 20150101 001&ndash;&gt;-->
+        <!--SELECT-->
+        <!--CONCAT(DATE_FORMAT(NOW(), '%Y%m%d'),IFNULL(LPAD(MAX(RIGHT(YBCS007,3)+1),3,'0'),'001'))AS num-->
+        <!--FROM ybc_sign-->
+        <!--WHERE YBCS007 LIKE CONCAT(#{YBCT008},DATE_FORMAT(NOW(), '%Y%m%d'),'%') AND YBCS007 REGEXP '^[A-z]{2}[0-9]{11}$'-->
+    <!--</select>-->
+
+</mapper>

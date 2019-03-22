@@ -1,0 +1,14 @@
+package com.dbsun.mapper.count;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+import java.util.List;
+
+public interface CntSignAndMebMapper {
+
+	public List<PageData> getPageMembershipList(Page page);
+
+	public List<PageData> getPageSignCntLst(Page page);
+
+}

@@ -1,0 +1,11 @@
+package com.dbsun.mapper.customer;
+
+import java.util.List;
+
+import com.dbsun.entity.system.PageData;
+
+public interface CusLabelMapper {
+	
+	public List<PageData> getAllLabel(PageData pd);
+	
+}

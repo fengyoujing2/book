@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+    <title>导入客户分析统计</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0];
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+
+    <script src="../static/js/echarts.js"></script>
+    <script src="../static/js/essos.js"></script>
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+
+    <style>
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        .tct{
+            text-align: center;
+            font-size: 22px;
+            color: #fff;
+            padding: 8px 0;
+            background-color: #1f90fb;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        .tcn{
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+        .tcn span{
+            color: #333;
+            font-weight: 600;
+        }
+        #main,#main1,#main2,#main3,#main4{
+            margin: auto;
+            background-color: inherit !important;
+        }
+        #main,#main1,#main2,#main3,#main4 div{
+            margin: auto;
+        }
+        .el-carousel__container{
+            height: 420px !important;
+        }
+        .con{
+            display: flex;
+            justify-content:space-around;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .cusMTable{
+            margin-top: 20px;
+        }
+        .cusMTable .el-table tr{
+            background-color: #4aa5fb;
+            color:#fff;
+        }
+        .el-table .odd-row {
+            background: #f1f7fe !important;
+            color:#878787 !important;
+        }
+        .el-table .even-row {
+            background: #ffffff !important;
+            color:#878787 !important;
+        }
+        .el-input-group__append{
+            color: #4aa5fb !important;
+        }
+        .nowSel{
+            text-align: center;
+        }
+        .nowSel label{
+            color: red;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:10px;">
+    <div id="chartImpNum" v-cloak>
+        <div class="con">
+            <div style="width:19.5%;">
+                <div class="tct" @click="selItem(0,0)">临时大类</div>
+                <div class="tcn">总计：<span>{{total}}</span></div>
+                <div id="main" style="width:100%;height:250px;text-align:center;"></div>
+            </div>
+            <div style="width:19.5%;">
+                <div class="tct" @click="selItem(10,0)">临时小类</div>
+                <div class="tcn">总计：<span>{{total1}}</span></div>
+                <div id="main1" style="width:100%;height:250px;text-align:center;"></div>
+            </div>
+            <div style="width:19.5%;">
+                <div class="tct" @click="selItem(11,0)">临时推广</div>
+                <div class="tcn">总计：<span>{{total2}}</span></div>
+                <div id="main2" style="width:100%;height:250px;text-align:center;"></div>
+            </div>
+            <div style="width:19.5%;">
+                <div class="tct" @click="selItem(13,0)">临时抵押</div>
+                <div class="tcn">总计：<span>{{total3}}</span></div>
+                <div id="main3" style="width:100%;height:250px;text-align:center;"></div>
+            </div>
+            <div style="width:19.5%;">
+                <div class="tct" @click="selItem(12,0)">群呼渠道</div>
+                <div class="tcn">总计：<span>{{total4}}</span></div>
+                <div id="main4" style="width:100%;height:250px;text-align:center;"></div>
+            </div>
+        </div>
+        <div class="nowSel">
+            <label>当前选中：</label>
+            <label>{{type1}}</label>
+            <label>{{type2}}</label>
+        </div>
+        <div class="cusMTable">
+            <el-table
+            :data="cusTableLstInit"
+            style="width: 100%"
+            :row-class-name="tableRowClassName">
+                <el-table-column
+                  prop="YBC002"
+                  label="客户姓名" min-width="80">
+                </el-table-column>
+                <el-table-column
+                  prop="YBC003"
+                  label="联系电话"
+                  :formatter="formatter"
+                  min-width="160">
+                </el-table-column>
+                <!-- <el-table-column
+                  prop="YBCS002_TM"
+                  label="签单时间" min-width="160">
+                </el-table-column> -->
+                <el-table-column
+                  prop="YBC028"
+                  label="最近跟进人" min-width="160">
+                </el-table-column>
+                <el-table-column
+                  prop="YBC022_TM"
+                  label="最近跟进时间" min-width="200">
+                </el-table-column>
+                <el-table-column label="操作"  fixed="right" width="100">
+                  <template slot-scope="scope">
+                    <el-button
+                      size="mini"
+                      @click="handleUserInfo(scope.$index, scope.row)">查看详情</el-button>
+                  </template>
+                </el-table-column>
+            </el-table>
+            <div style="text-align:right;">
+                <el-pagination
+                  @current-change="handleCurrentChange"
+                  :current-page="pageInit.currentPage"
+                  :page-size="10"
+                  layout="total, prev, pager, next, jumper"
+                  :total="pageInit.totalResult">
+                </el-pagination>
+            </div>
+        </div>
+    </div>
+</body>
+<script th:inline="javascript">
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+
+    new Vue({
+        el:"#chartImpNum",
+        data(){
+            return {
+                cusTableLstInit:[],
+                pageInit:{},
+                yjNum:[],
+                yjNum1:[],
+                yjNum2:[],
+                yjNum3:[],
+                yjNum4:[],
+                total:0,
+                total1:0,
+                total2:0,
+                total3:0,
+                total4:0,
+                type1:'临时大类',
+                type2:'',
+                soMoreUserIpt:{YBC042_TP:0,STATE:0}
+            }
+        },
+//        DOM渲染前执行
+        mounted(){
+            this.getList();
+            this.getList1();
+            this.getList2();
+            this.getList3();
+            this.getList4();
+        },
+        methods:{
+
+            formatter(row,column){
+                let phone=(row.YBC003).replace(/[^0-9]/ig,"");
+                if(phone.length==11){
+                    return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+                }else{
+                    return phone
+                }
+            },
+    //            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                if(rowIndex==1){
+
+                }else if (rowIndex%2 == 0) {
+                    return 'odd-row';
+                }
+                return 'even-row';
+            },
+//            查看详情
+            handleUserInfo(index,row){
+                let url=`${basePath}/cus_/goUpdateCusBasicPage?YBC001=${row.YBC001}`
+                let newTabs={
+                    name:"客户详情",
+                    url
+                }
+                for(let index in app.$data.editableTabs){
+                    if(app.$data.editableTabs[index].name=="客户详情"){
+                        app.$data.editableTabs.splice(index,1)
+                    }
+                }
+                app.$data.editableTabs.push(newTabs);
+                setTimeout(function(){
+                    app.$data.editableTabsValue="客户详情";
+                },500)
+            },
+//            当前页翻页
+            handleCurrentChange(val){
+                console.log(this.soMoreUserIpt);
+                this.soMoreUserIpt.currentPage=val;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/charts/getPageUploadTheSourceList`,
+                    data:that.soMoreUserIpt,
+                    success:function(data){
+                        console.log(data);
+                        that.cusTableLstInit=data.rows;
+                        that.pageInit.totalResult=data.total;
+                        that.pageInit.currentPage=val;
+                    }
+                })
+            },
+//            获取临时大类
+            getList(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/charts/getUploadTheSourceSum`,
+                    data:{YBC042_TP:0},
+                    success:function(data){
+                        console.log('临时大类');
+                        console.log(data);
+                        that.yjNum=[];
+                        that.total=data.total;
+                        let num=data.total-data.intentionSum-data.signSUM-data.lendingSum-data.closedAccountSum;
+                        that.yjNum[0]={name:'意向',value:data.intentionSum,type:0,sel:1};
+                        that.yjNum[1]={name:'签单',value:data.signSUM,type:0,sel:2};
+                        that.yjNum[2]={name:'放贷',value:data.lendingSum,type:0,sel:3};
+                        that.yjNum[3]={name:'结账',value:data.closedAccountSum,type:0,sel:4};
+                        that.yjNum[4]={name:'其他',value:num,type:0,sel:5};
+                        that.markEcharts();
+                    }
+                })
+            },
+//            获取临时小类
+            getList1(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/charts/getUploadTheSourceSum`,
+                    data:{YBC042_TP:10},
+                    success:function(data){
+                        console.log('临时小类');
+                        console.log(data);
+                        that.yjNum1=[];
+                        that.total1=data.total;
+                        let num=data.total-data.intentionSum-data.signSUM-data.lendingSum-data.closedAccountSum;
+                        that.yjNum1[0]={name:'意向',value:data.intentionSum,type:10,sel:1};
+                        that.yjNum1[1]={name:'签单',value:data.signSUM,type:10,sel:2};
+                        that.yjNum1[2]={name:'放贷',value:data.lendingSum,type:10,sel:3};
+                        that.yjNum1[3]={name:'结账',value:data.closedAccountSum,type:10,sel:4};
+                        that.yjNum1[4]={name:'其他',value:num,type:10,sel:5};
+                        that.markEcharts1();
+                    }
+                })
+            },
+//            获取临时推广
+            getList2(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/charts/getUploadTheSourceSum`,
+                    data:{YBC042_TP:11},
+                    success:function(data){
+                        console.log('临时推广');
+                        console.log(data);
+                        that.yjNum2=[];
+                        that.total2=data.total;
+                        let num=data.total-data.intentionSum-data.signSUM-data.lendingSum-data.closedAccountSum;
+                        that.yjNum2[0]={name:'意向',value:data.intentionSum,type:11,sel:1};
+                        that.yjNum2[1]={name:'签单',value:data.signSUM,type:11,sel:2};
+                        that.yjNum2[2]={name:'放贷',value:data.lendingSum,type:11,sel:3};
+                        that.yjNum2[3]={name:'结账',value:data.closedAccountSum,type:11,sel:4};
+                        that.yjNum2[4]={name:'其他',value:num,type:11,sel:5};
+                        that.markEcharts2();
+                    }
+                })
+            },
+
+//            获取群呼渠道
+            getList4(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/charts/getUploadTheSourceSum`,
+                    data:{YBC042_TP:12},
+                    success:function(data){
+                        console.log('群呼渠道');
+                        console.log(data);
+                        that.yjNum4=[];
+                        that.total4=data.total;
+                        let num=data.total-data.intentionSum-data.signSUM-data.lendingSum-data.closedAccountSum;
+                        that.yjNum4[0]={name:'意向',value:data.intentionSum,type:12,sel:1};
+                        that.yjNum4[1]={name:'签单',value:data.signSUM,type:12,sel:2};
+                        that.yjNum4[2]={name:'放贷',value:data.lendingSum,type:12,sel:3};
+                        that.yjNum4[3]={name:'结账',value:data.closedAccountSum,type:12,sel:4};
+                        that.yjNum4[4]={name:'其他',value:num,type:12,sel:5};
+                        that.markEcharts4();
+                    }
+                })
+            },
+
+//            获取临时抵押
+            getList3(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/charts/getUploadTheSourceSum`,
+                    data:{YBC042_TP:13},
+                    success:function(data){
+                        console.log('临时抵押');
+                        console.log(data);
+                        that.yjNum3=[];
+                        that.total3=data.total;
+                        let num=data.total-data.intentionSum-data.signSUM-data.lendingSum-data.closedAccountSum;
+                        that.yjNum3[0]={name:'意向',value:data.intentionSum,type:13,sel:1};
+                        that.yjNum3[1]={name:'签单',value:data.signSUM,type:13,sel:2};
+                        that.yjNum3[2]={name:'放贷',value:data.lendingSum,type:13,sel:3};
+                        that.yjNum3[3]={name:'结账',value:data.closedAccountSum,type:13,sel:4};
+                        that.yjNum3[4]={name:'其他',value:num,type:13,sel:5};
+                        that.markEcharts3();
+                    }
+                })
+            },
+            selItem(type,num){
+                console.log('类型:'+type+'分类:'+num);
+                let that=this;
+                that.type2='';
+                switch (type) {
+                  case 0:
+                      that.type1='临时大类';
+                      that.soMoreUserIpt.YBC042_TP=0;
+                      break;
+                  case 10:
+                      that.type1='临时小类';
+                      that.soMoreUserIpt.YBC042_TP=10;
+                      break;
+                  case 11:
+                      that.type1='临时推广';
+                      that.soMoreUserIpt.YBC042_TP=11;
+                      break;
+                  case 12:
+                      that.type1='群呼渠道';
+                      that.soMoreUserIpt.YBC042_TP=12;
+                      break;
+                  case 13:
+                      that.type1='临时抵押';
+                      that.soMoreUserIpt.YBC042_TP=13;
+                      break;
+                }
+                switch(num){
+                    case 0:
+                        that.soMoreUserIpt.STATE=0;
+                        that.type2='';
+                        break;
+                    case 1:
+                        that.soMoreUserIpt.STATE=1;
+                        that.type2='意向';
+                        break;
+                    case 2:
+                        that.soMoreUserIpt.STATE=2;
+                        that.type2='签单';
+                        break;
+                    case 3:
+                        that.soMoreUserIpt.STATE=3;
+                        that.type2='放贷';
+                        break;
+                    case 4:
+                        that.soMoreUserIpt.STATE=4;
+                        that.type2='结账';
+                        break;
+                    case 5:
+                        that.soMoreUserIpt.STATE=5;
+                        that.type2='其他';
+                        break;
+                }
+                this.handleCurrentChange(1);
+            },
+
+//            圆柱图
+            markEcharts(){
+                let that = this;
+//**************只显示前十的数据柱形图************************************
+                // 基于准备好的dom，初始化echarts实例
+                let myChart = echarts.init(document.getElementById('main'),"essos");
+                let total = this.total;
+                let data = this.yjNum;
+
+
+                option = {
+                    // title: {
+                    //     text: '临时大类',
+                    //     subtext: '总计：'+total,
+                    //     left: 'center'
+                    // },
+                    //设置饼图的颜色
+                    color:['#4ecb72','#ffad00','#4ca9ff','#f1627a','#d7d7d7'],
+                    tooltip : {
+                        trigger: 'item',
+                        formatter: "{b} <br/>数量： {c} <br/>百分比：{d}%"
+                    },
+                    legend: {
+                        bottom: 10,
+                        left: 'center'
+                    },
+                    series : [
+                        {
+                            type: 'pie',
+                            radius : '65%',
+                            center: ['50%', '50%'],
+                            selectedMode: 'single',
+                            label: {
+                                normal: {
+                                    formatter: "{b}:{d}%",
+                                    // position: 'inner'
+                                }
+                            },
+                            data:data,
+                            itemStyle: {
+                                emphasis: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.8)'
+                                }
+                            }
+                        }
+                    ]
+                };
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+                myChart.off('click'); // 防止重复绑定事件
+                myChart.on('click', function (obj){
+                    var type = obj.data.type; // 获取需要传递的值1
+                    var sel = obj.data.sel; // 获取需要传递的值2
+                    that.selItem(type,sel);
+                    // do something
+
+                });
+            },
+//            圆柱图
+            markEcharts1(){
+                let that = this;
+//**************只显示前十的数据柱形图************************************
+                // 基于准备好的dom，初始化echarts实例
+                let myChart = echarts.init(document.getElementById('main1'),"essos");
+                let total = this.total1;
+                let data = this.yjNum1;
+
+
+                option1 = {
+                    // title: {
+                    //     text: '临时小类',
+                    //     subtext: '总计：'+total,
+                    //     left: 'center'
+                    // },
+                    //设置饼图的颜色
+                    color:['#4ecb72','#ffad00','#4ca9ff','#f1627a','#d7d7d7'],
+                    tooltip : {
+                        trigger: 'item',
+                        formatter: "{b} <br/>数量： {c} <br/>百分比：{d}%"
+                    },
+                    legend: {
+                        bottom: 10,
+                        left: 'center'
+                    },
+                    series : [
+                        {
+                            type: 'pie',
+                            radius : '65%',
+                            center: ['50%', '50%'],
+                            selectedMode: 'single',
+                            label: {
+                                normal: {
+                                    formatter: "{b}:{d}%",
+                                    // position: 'inner'
+                                }
+                            },
+                            data:data,
+                            itemStyle: {
+                                emphasis: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.8)'
+                                }
+                            }
+                        }
+                    ]
+                };
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option1);
+                myChart.off('click'); // 防止重复绑定事件
+                myChart.on('click', function (obj){
+                    var type = obj.data.type; // 获取需要传递的值1
+                    var sel = obj.data.sel; // 获取需要传递的值2
+                    that.selItem(type,sel)
+                    // do something
+
+                });
+            },
+//            圆柱图
+            markEcharts2(){
+                let that = this;
+//**************只显示前十的数据柱形图************************************
+                // 基于准备好的dom，初始化echarts实例
+                let myChart = echarts.init(document.getElementById('main2'),"essos");
+                let total = this.total2;
+                let data = this.yjNum2;
+
+
+                option2 = {
+                    // title: {
+                    //     text: '临时推广',
+                    //     subtext: '总计：'+total,
+                    //     left: 'center'
+                    // },
+                    //设置饼图的颜色
+                    color:['#4ecb72','#ffad00','#4ca9ff','#f1627a','#d7d7d7'],
+                    tooltip : {
+                        trigger: 'item',
+                        formatter: "{b} <br/>数量： {c} <br/>百分比：{d}%"
+                    },
+                    legend: {
+                        bottom: 10,
+                        left: 'center'
+                    },
+                    series : [
+                        {
+                            type: 'pie',
+                            radius : '65%',
+                            center: ['50%', '50%'],
+                            selectedMode: 'single',
+                            label: {
+                                normal: {
+                                    formatter: "{b}:{d}%",
+                                    // position: 'inner'
+                                }
+                            },
+                            data:data,
+                            itemStyle: {
+                                emphasis: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.8)'
+                                }
+                            }
+                        }
+                    ]
+                };
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option2);
+                myChart.off('click'); // 防止重复绑定事件
+                myChart.on('click', function (obj){
+                    var type = obj.data.type; // 获取需要传递的值1
+                    var sel = obj.data.sel; // 获取需要传递的值2
+                    that.selItem(type,sel)
+                    // do something
+
+                });
+            },
+            markEcharts3(){
+                let that = this;
+//**************只显示前十的数据柱形图************************************
+                // 基于准备好的dom，初始化echarts实例
+                let myChart = echarts.init(document.getElementById('main3'),"essos");
+                let total = this.total3;
+                let data = this.yjNum3;
+
+
+                option3 = {
+                    // title: {
+                    //     text: '临时推广',
+                    //     subtext: '总计：'+total,
+                    //     left: 'center'
+                    // },
+                    //设置饼图的颜色
+                    color:['#4ecb72','#ffad00','#4ca9ff','#f1627a','#d7d7d7'],
+                    tooltip : {
+                        trigger: 'item',
+                        formatter: "{b} <br/>数量： {c} <br/>百分比：{d}%"
+                    },
+                    legend: {
+                        bottom: 10,
+                        left: 'center'
+                    },
+                    series : [
+                        {
+                            type: 'pie',
+                            radius : '65%',
+                            center: ['50%', '50%'],
+                            selectedMode: 'single',
+                            label: {
+                                normal: {
+                                    formatter: "{b}:{d}%",
+                                    // position: 'inner'
+                                }
+                            },
+                            data:data,
+                            itemStyle: {
+                                emphasis: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.8)'
+                                }
+                            }
+                        }
+                    ]
+                };
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option3);
+                myChart.off('click'); // 防止重复绑定事件
+                myChart.on('click', function (obj){
+                    var type = obj.data.type; // 获取需要传递的值1
+                    var sel = obj.data.sel; // 获取需要传递的值2
+                    that.selItem(type,sel)
+                    // do something
+
+                });
+            },
+            markEcharts4(){
+                let that = this;
+//**************只显示前十的数据柱形图************************************
+                // 基于准备好的dom，初始化echarts实例
+                let myChart = echarts.init(document.getElementById('main4'),"essos");
+                let total = this.total4;
+                let data = this.yjNum4;
+
+
+                option4 = {
+                    // title: {
+                    //     text: '临时推广',
+                    //     subtext: '总计：'+total,
+                    //     left: 'center'
+                    // },
+                    //设置饼图的颜色
+                    color:['#4ecb72','#ffad00','#4ca9ff','#f1627a','#d7d7d7'],
+                    tooltip : {
+                        trigger: 'item',
+                        formatter: "{b} <br/>数量： {c} <br/>百分比：{d}%"
+                    },
+                    legend: {
+                        bottom: 10,
+                        left: 'center'
+                    },
+                    series : [
+                        {
+                            type: 'pie',
+                            radius : '65%',
+                            center: ['50%', '50%'],
+                            selectedMode: 'single',
+                            label: {
+                                normal: {
+                                    formatter: "{b}:{d}%",
+                                    // position: 'inner'
+                                }
+                            },
+                            data:data,
+                            itemStyle: {
+                                emphasis: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.8)'
+                                }
+                            }
+                        }
+                    ]
+                };
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option4);
+                myChart.off('click'); // 防止重复绑定事件
+                myChart.on('click', function (obj){
+                    var type = obj.data.type; // 获取需要传递的值1
+                    var sel = obj.data.sel; // 获取需要传递的值2
+                    that.selItem(type,sel)
+                    // do something
+
+                });
+            }
+        }
+    })
+
+</script>
+</html>

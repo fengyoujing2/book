@@ -1,0 +1,51 @@
+package com.dbsun.service.wechat;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.WechatMenuMapper;
+
+@Service
+public class WechatMenuService {
+    @Autowired
+    private WechatMenuMapper wechatMenuMapper;
+
+    /**
+   	 * 获取所有菜单数据 分页
+   	 * 
+   	 * */
+    public List<PageData> getAllWechatMenuLst(Page pd){
+    	List<PageData> rl = wechatMenuMapper.getPageWechatMenuByAll(pd);
+		return rl;
+    }
+    
+    /**
+	 * 获取所有菜单数据 无分页
+	 * 
+	 * */
+    public List<PageData> getWechatMenuByAllnoPage(){
+    	List<PageData> rl = wechatMenuMapper.getByWechatMenuAllnoPage();
+		return rl;
+    }
+    /**
+   	 * 插入新菜单数据
+   	 * 
+   	 * */
+       public int addWechatMenu(PageData pd){
+    	   wechatMenuMapper.addWechatMenu(pd);
+   		return 0;
+       }
+     /**
+   	 * 修改菜单数据
+   	 * 
+   	 * */
+       public int updateWechatMenu(PageData pd){
+    	   
+    	   wechatMenuMapper.updateWechatMenu(pd);
+   		return 0;
+       }
+}

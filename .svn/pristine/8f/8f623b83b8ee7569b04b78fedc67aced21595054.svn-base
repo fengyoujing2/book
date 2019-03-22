@@ -1,0 +1,49 @@
+package com.dbsun.controller.system;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.dbsun.controller.WeixinController;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.YwuService;
+
+/**
+ * 用户账号
+ * 
+ * @author DongZai
+ * 
+ */
+@Controller
+@RequestMapping("/wx_more")
+public class MoreController extends WeixinController {
+	
+	@Autowired
+	private YwuService ywuService;
+
+	/**去更多页面*/
+	@RequestMapping("/goMore")
+	public String goMore() {
+		return wxReturnvalidataPage("/html/wechat/mine/more");
+	}
+	
+	/**常见问题*/
+	@RequestMapping("/commPro")
+	public String commPro() {
+		return wxReturnvalidataPage("/html/wechat/more/changjianwenti");
+	}
+	
+	/**关于我们*/
+	@RequestMapping("/aboutWe")
+	public String aboutWe(Model model) {
+		getPublicCode();
+		PageData pd = new PageData();
+		pd.put("YWU010", getYwu010());
+		model.addAttribute("pd", ywuService.getYwuByYwu010(pd));
+		return wxReturnvalidataPage("/html/wechat/more/guanyuwomen");
+	}
+	
+	
+	
+}

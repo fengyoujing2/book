@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.YwuMapper">
+	<!-- 用户账号 -->
+
+	<!-- 账号列表数据 -->
+	<select id="getPageYwuLst" parameterType="page" resultType="pd"
+		useCache="false">
+		select
+		u.*
+		from ywu u
+	</select>
+
+	<!-- 新增用户 -->
+	<insert id="addYwu" parameterType="pd" flushCache="false">
+		insert into
+		ywu (
+		YWU002,
+		YWU003,
+		YWU004,
+		YWU005_TP,
+		YWU006_TM,
+		YWU007_TP,
+		YWU008,
+		YWU009_TM,
+		YWU010,
+		YWU011,
+		YWU012_TP,
+		YWU013,
+		YWU014,
+		YWU015,
+		YWU016, 
+		YWU0017_TM
+		) values (
+		#{YWU002},
+		#{YWU003},
+		#{YWU004},
+		#{YWU005_TP},
+		#{YWU006_TM},
+		#{YWU007_TP},
+		#{YWU008},
+		#{YWU009_TM},
+		#{YWU010},
+		#{YWU011},
+		#{YWU012_TP},
+		#{YWU013},
+		#{YWU014},
+		#{YWU015},
+		#{YWU016}, 
+		#{YWU0017_TM}
+		)
+	</insert>
+
+	<!-- 更新用户 -->
+	<update id="updateYwu" parameterType="pd" flushCache="false">
+		update ywu
+		<set>
+			<if test="YWU005_TP != null and YWU005_TP !=''">
+				YWU005_TP			= #{YWU005_TP},
+			</if>
+			<if test="YWU007_TP != null and YWU007_TP !=''">
+				YWU007_TP			= #{YWU007_TP},
+			</if>
+			<if test="YWU008 != null and YWU008 != ''">
+				YWU008				= #{YWU008},
+			</if>
+			<if test="YWU009_TM != null and YWU009_TM != ''">
+				YWU009_TM			= #{YWU009_TM},
+			</if>
+			<if test="YWU010 != null and YWU010 != ''">
+				YWU010				= #{YWU010},
+			</if>
+			<if test="YWU011 != null and YWU011 != ''">
+				YWU011				= #{YWU011},
+			</if>
+			<if test="YWU012_TP != null and YWU012_TP != ''">
+				YWU012_TP			= #{YWU012_TP},
+			</if>
+			<if test="YWU013 != null and YWU013 != ''">
+				YWU013				= #{YWU013},
+			</if>
+			<if test="YWU014 != null and YWU014 != ''">
+				YWU014				= #{YWU014},
+			</if>
+			<if test="YWU015 != null and YWU015 != ''">
+				YWU015				= #{YWU015},
+			</if>
+			<if test="YWU016 != null and YWU016 != ''">
+				YWU016				= #{YWU016}
+			</if>
+		</set>
+		where YWU010 = #{YWU010}
+	</update>
+	
+	<update id="updateBindTel" parameterType="pd" flushCache="false">
+		update ywu 
+		<set>
+			YWU007_TP			= #{YWU007_TP}, 
+			<if test="YWU008 != null and YWU008 != ''">
+			YWU008			= #{YWU008}, 
+			</if>
+			<if test="YWU009_TM != null and YWU009_TM != ''">
+			YWU009_TM			= #{YWU009_TM}, 
+			</if>
+			<if test="YWU0017_TM != null and YWU0017_TM != ''">
+			YWU0017_TM			= #{YWU0017_TM}
+			</if>
+		</set>
+		where 1 = 1 
+		and YWU010				= #{YWU010}
+	</update>
+	
+	<select id="getYwuByYwu010" parameterType="pd" resultType="pd" useCache="false">
+		select
+			ifnull(u.YWU007_TP, 2) as YWU007_TP, 
+			u.*
+		from ywu u 
+		where 1 = 1
+		and u.YWU010 = #{YWU010}
+	</select>
+	
+</mapper>

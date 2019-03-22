@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+
+    <title> - 主页</title>
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+
+    <link rel="shortcut icon" href="favicon.ico"/>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+
+    <style>
+        html,body{
+            margin: 0;
+            padding: 0;
+        }
+        .indexTop{
+            width: 100%;
+            padding: 0 20px;
+            height: 40px;
+            border-bottom: 1px solid #666;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        .btwFlex{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .listCon{
+            width: 960px;
+            margin: auto;
+        }
+        .listConDiv{
+            padding: 20px;
+        }
+        .newsName{
+            width: 900px;
+            font-size: 26px;
+            color: #000;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow:ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .newsName:hover{
+            color: red;
+            text-decoration: underline;
+        }
+        .newsCom{
+            width: 900px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin:20px 0;
+        }
+        .newsCom img{
+            width: 300px;
+        }
+        .newsCom div{
+            width: 550px;
+            font-size: 24px;
+            color: #666;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            overflow: hidden;
+        }
+        .newsTime{
+            font-size: 14px;
+            color: #ccc;
+            margin-top: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+        .ajaxMore{
+            width: 900px;
+            text-align: center;
+            margin: 20px auto;
+        }
+    </style>
+
+</head>
+
+<body class="gray-bg" style="background-repeat:no-repeat; background-size:100% 100%;-moz-background-size:100% 100%;">
+<!--    sessionguoqichongdingxiang-->
+    <div id="indexApp" style="height:100%;">
+        <div class="indexTop">
+            <div v-if="loginFlag" class="btwFlex">
+                <div>欢迎你，{{loginName}}</div>
+                <div v-if="!listFlag"><el-button type="text" icon="el-icon-back" @click="back">返回</el-button><el-button type="text" icon="el-icon-star-off" @click="collection">收藏</el-button></div>
+                <div v-else></div>
+            </div>
+            <div v-else class="btwFlex">
+                <div><el-button type="text" @click="goLogin">登陆</el-button><el-button type="text" @click="goReg">注册</el-button></div>
+                <div><el-button v-if="!listFlag" type="text" icon="el-icon-back" @click="back">返回</el-button></div>
+            </div>
+        </div>
+        <div style="height: 50px;"></div>
+        <div v-if="listFlag" class="listCon">
+            <el-tabs v-model="activeName">
+                <el-tab-pane label="智能推荐" name="first">
+                    <div v-for="(item,index) in listArr" class="listConDiv">
+                        <div class="newsName" @click="goNEWs(item)">{{item.title}}</div>
+                        <div class="newsCom" v-if="item.img_url">
+                            <img :src="item.img_url"/>
+                            <div>{{item.author}}</div>
+                        </div>
+                        <div class="newsTime">{{item.time}}</div>
+                    </div>
+                    <div class="ajaxMore"><el-button round icon="el-icon-refresh" @click="ajaxMore">点击加载更多</el-button></div>
+                </el-tab-pane>
+                <el-tab-pane label="热门新闻" name="second">
+                    <div v-for="(item,index) in listArr2" class="listConDiv">
+                        <div class="newsName" @click="goNEWs(item)">{{item.title}}</div>
+                        <div class="newsCom" v-if="item.img_url">
+                            <img :src="item.img_url"/>
+                            <div>{{item.author}}</div>
+                        </div>
+                        <div class="newsTime">{{item.time}}</div>
+                    </div>
+                </el-tab-pane>
+            </el-tabs>
+        </div>
+        <iframe v-else :src="newsUrl"  frameborder="0" width="100%" height="1000px" min-width="100%" min-height="1200px" scrolling="auto"></iframe>
+    </div>
+
+</body>
+
+
+    <!-- 全局js -->
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+	<script th:inline="javascript">
+        var basePath="/"+window.location.pathname.split("/")[1];
+        window.onload=function(){
+            $("#account").focus();
+        }
+
+        function getContextPath(){
+            var localObj = window.location;
+            var contextPath = localObj.pathname.split("/")[1];
+            return contextPath ;
+        }
+        window.onbeforeunload=function (){
+            alert("===onbeforeunload===");
+            if(event.clientX>document.body.clientWidth && event.clientY < 0 || event.altKey){
+                alert("你关闭了浏览器");
+            }else{
+                alert("你正在刷新页面");
+            }
+            indexApp.back();
+        }
+        var indexApp=new Vue({
+            el:"#indexApp",
+            data(){
+                return {
+                    loginFlag:false,
+                    loginName:'小二郎',
+                    newsUrl:'https://www.baidu.com/',
+                    listFlag:true,
+                    listArr:[],
+                    listArr2:[],
+                    nowNewsID:'',
+                    page:0,
+                    activeName:'first'
+                }
+            },
+            mounted(){
+                this.ajaxMore();
+                this.ajaxHost();
+                console.log([[${session.user.USERNAME}]]);
+                if([[${session.user.USERNAME}]]){
+                    this.loginName=[[${session.user.USERNAME}]];
+                    this.loginFlag=true;
+                }else{
+                    this.loginFlag=false;
+                }
+            },
+            methods:{
+                goLogin(){
+                    window.location=basePath+"/gd_/idx_login";
+                },
+                goReg(){
+                    window.location=basePath+"/gd_/idx_reg";
+                },
+                collection(){
+                    let that=this;
+                    $.ajax({
+                        type: "get",
+                        url: basePath+"/gd_/updateNews",
+                        async: false,
+                        data: {id:that.nowNewsID,collection:1},
+                        success: function (data){
+                            if(data.msg=="200"){
+                                that.$message({
+                                    message: '恭喜你，收藏成功！',
+                                    type: 'success'
+                                });
+                            }
+                            
+                        }
+                    }); 
+                      
+                },
+                back(){
+                    let that=this;
+                    this.listFlag=true; 
+                    this.newsUrl="";
+                    $.ajax({
+                        type: "get",
+                        url: basePath+"/gd_/endBrowse",
+                        async: false,
+                        data: {id:that.nowNewsID},
+                        success: function (data){
+
+                            
+                        }
+                    }); 
+                    
+                    this.nowNewsID='';
+                },
+                ajaxMore(){
+                    this.page+=1;
+                    let that=this;
+                    $.ajax({
+                        type: "get",
+                        url: basePath+"/gd_/getPageNewsLst",
+                        async: false,
+                        data: {currentPage:that.page},
+                        success: function (data){
+                            console.log(data);
+                            var arr=that.listArr || [];
+                            that.listArr=arr.concat(data.rows);
+                        }
+                     });
+                },
+                
+                ajaxHost(){
+                    let that=this;
+                    $.ajax({
+                        type: "get",
+                        url: basePath+"/gd_/getPageHotNewsLst",
+                        async: false,
+                        data: {currentPage:1},
+                        success: function (data){
+                            console.log(data);
+                            that.listArr2=data.rows;
+                        }
+                     });
+                },
+                goNEWs(item){
+                    console.log(item);
+                    this.nowNewsID=item.id;
+                    this.newsUrl=item.content_url;
+                    this.listFlag=false;
+                    let that=this;
+                    $.ajax({
+                        type: "get",
+                        url: basePath+"/gd_/updateNews",
+                        async: false,
+                        data: {id:item.id,click_number:1},
+                        success: function (data){
+
+                            
+                        }
+                    });
+                    $.ajax({
+                        type: "get",
+                        url: basePath+"/gd_/startBrowse",
+                        async: false,
+                        data: {id:item.id},
+                        success: function (data){
+
+                            
+                        }
+                    });
+                    
+                }
+            }
+        })
+
+    </script>
+</html>

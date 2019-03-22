@@ -1,0 +1,12 @@
+package com.dbsun.mapper.finance;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface FinConfCusEnterGetMyMapper {
+	
+	public List<PageData> getPageConfCusGetMyLst(Page page);
+	public int updateForConfCusGetMy(PageData pd);
+}

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title> - Bootstrap Table</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+</head>
+
+<body class="gray-bg">
+    <div class="wrapper wrapper-content animated fadeInRight">
+               <!-- Panel Other -->
+        <div class="ibox float-e-margins">
+	            <div class="ibox-title">
+	                <h5>角色列表</h5>
+	                <div class="ibox-tools">
+	                    <a href="javascript:addOpen()" class="btn btn-primary btn-xs">新增角色</a>
+	                </div>
+	            </div>
+	            <table 
+									id="datalist"
+									data-toggle="table"
+									data-url="roleLst"
+									data-side-pagination="server"
+									data-mobile-responsive="true"
+									data-height="500"   
+									data-pagination="true" 
+									data-icon-size="outline" >
+									<thead>
+										<tr>
+											<th data-field="state" data-checkbox="true"></th>
+											<th data-field="ROLE_NAME">角色名字</th>
+		                                    <th data-field="RIGHTS">角色权限</th>
+		                                    <th data-field="operation" 
+										        data-formatter="actionFormatter"
+										        data-events="actionEvents">操作</th>
+										</tr>
+									</thead>
+								</table>
+			
+                </div>
+            </div>
+        <div th:include="html/page/contentpublic :: html"></div>
+        <!-- End Panel Other -->
+
+    
+	<script type="text/javascript">
+		//添加如下代码
+	    function actionFormatter(value, row, index) {
+	    	return '<a class="mod"><small class="label label-primary">分配菜单权限</small></a>' + '<a class="edit">  <small class="label label-primary">编辑</small></a>' + '<a class="delete">  <small class="label label-primary">删除</small></a>'
+    	}
+	  //表格  - 操作 - 事件
+	    window.actionEvents = {
+	        'click .mod': function(e, value, row, index) {      
+	              //修改操作
+	             editOpen(row);
+	            },
+	        'click .delete' : function(e, value, row, index) {
+	              //删除操作 
+	        	delRole(row);
+	            },
+	        'click .edit' : function(e, value, row, index) {
+	              //编辑操作
+	        	editRole(row);
+	            }
+	        }
+	  //iframe窗
+      function editRole(row){
+      var url = 'role/roleEditOpen';
+      var data = '?ROLE_ID='+row.ROLE_ID+'&ROLE_NAME='+row.ROLE_NAME;
+    	  parent.layer.open({
+              type: 2,
+              title: '编辑角色',
+              //closeBtn: 0, //不显示关闭按钮
+              shade: [0.8],//透明度背景
+              area: ['30%', '50%'],
+              //offset: 'rb', //右下角弹出
+              //time: 2000, //2秒后自动关闭
+              anim: 2,
+              content: [url+data] //iframe的url，no代表不显示滚动条
+             // btn: ['按钮一', '按钮二', '按钮三']
+            });
+      }
+	  //查询方法
+	    $(function () {
+            //$('#datalist').bootstrapTable('refresh', { url: '/Home/GetPaginationData2' });
+            $('#search').click(function () {
+                var seachVal = $('#seachVal').val();
+                $('#datalist').bootstrapTable('refresh', { url: 'menuIndex3?seachVal=' + seachVal });
+            });
+        });
+        //删除角色
+      function delRole(row){
+    	  var basePath = "/"+window.location.pathname.split("/")[1];
+                $.ajax({
+                            type: "get",
+                            url: basePath+"/role/delRole",
+                            async: false,
+                            data: {"ROLE_ID":row.ROLE_ID},
+                            success: function (data)
+                            {
+                                if(data.msg == 200){
+                                    alert("删除成功");
+                                }else{
+									alert("该角色已有关联数据无法删除!");
+                                }
+                            },
+                            error:function(){
+                                alert("出错！");
+                            }
+                         });
+      }
+      //iframe窗
+      function editOpen(row){
+      var url = 'role/roleOpen';
+      var data = '?ROLE_ID='+row.ROLE_ID;
+    	  parent.layer.open({
+              type: 2,
+              title: '标题',
+              //closeBtn: 0, //不显示关闭按钮
+              shade: [0.8],//透明度背景
+              area: ['30%', '50%'],
+              //offset: 'rb', //右下角弹出
+              //time: 2000, //2秒后自动关闭
+              anim: 2,
+              content: [url+data] //iframe的url，no代表不显示滚动条
+             // btn: ['按钮一', '按钮二', '按钮三']
+            });
+      }
+      //iframe窗
+      function addOpen(){
+      var url = 'role/roleNewOpen';
+    	  parent.layer.open({
+              type: 2,
+              title: '新增角色',
+              //closeBtn: 0, //不显示关闭按钮
+              shade: [0.8],//透明度背景
+              area: ['30%', '50%'],
+              //offset: 'rb', //右下角弹出
+              //time: 2000, //2秒后自动关闭
+              anim: 2,
+              content: [url] //iframe的url，no代表不显示滚动条
+             // btn: ['按钮一', '按钮二', '按钮三']
+            });
+      }
+	</script>
+    
+    
+
+</body>
+
+</html>

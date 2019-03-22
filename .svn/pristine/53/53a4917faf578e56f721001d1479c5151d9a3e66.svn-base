@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>首页</title>
+    <!-- 首页轮播需要的资源 -->
+    <link rel="stylesheet" href="../static/css/swiper.min.css">
+    <script src="../static/js/swiper.min.js"></script>
+    <style>
+        a:hover{
+            text-decoration: none;
+        }
+
+        a:visited{
+            text-decoration: none;
+        }
+
+        a:active{
+            text-decoration: none;
+        }
+		
+		a{
+		     color:black
+		}
+
+        #boda{
+           font-size: 18px;
+            padding-top: 12px;
+        }
+
+        @media screen  and (max-width: 320px) {
+            #boda{
+             font-size: 16px;
+                padding-top: 15px;
+            }
+        }
+
+    </style>
+
+</head>
+<body style="background:#ffffff">
+
+<div class="container-fluid jianju"  id="contain" >
+
+        <div class="row" style="background:white">
+            <div class="col-xs-12  text-center" style="padding: 0px;margin-right: 0">
+                <div class="swiper-container" style="width: 100%;">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide " >
+                            <a href="">
+                                <img src="../static/img/bg_02.jpg" style="width: 100%"  >
+                            </a>
+                        </div>
+
+                        <div class="swiper-slide">
+                            <a href="">
+                                <img src="../static/img/bg_02.jpg" style="width: 100%" >
+                            </a>
+                        </div>
+
+                        <div class="swiper-slide">
+                            <a href="">
+                                <img src="../static/img/bg_02.jpg" style="width: 100%" >
+                            </a>
+                        </div>
+
+                    </div>
+                    <div class="swiper-pagination"></div>
+
+                </div>
+            </div>
+        </div>
+
+        <div style="padding-top: 30px;padding-left: 15px;padding-right: 15px">
+            <a href="tel:02866002200">
+                <div style="text-align: center;height: 51px;border: 1px solid #FC763B;border-radius:5px;margin: auto;;width: 100%;">
+                    <div style="height: 39px;padding: 0px">
+                        <div style="width: 20%;float: left;padding-top: 6px;text-align: right;padding-left: 0px;padding-right: 5px">
+                            <img src="../static/img/tel.png" style="width: 30px;vertical-align: middle;display: inline-block;padding-top: 3px">
+                        </div>
+                        <div style="width: 80%;float: left;text-align: left">
+                            <span style="vertical-align: middle;color: #FC763B;display: inline-block;padding-left: 9px" id="boda">点击拨打 028-66002200</span>
+                        </div>
+
+                    </div>
+                </div>
+            </a>
+        </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;padding-left: 30px;padding-right: 30px;padding-top: 30px">
+            <a th:href="@{/wx_ywApply/goDY}">
+                <div style="border: 1px solid rgb(219,219,219);width: 100%;border-radius: 5px;background: #ffffff;padding: 2px">
+                    <div style="border: 1px solid white;width: 100%;border-radius: 5px;background: #FEF5F0;padding-top: 25px;padding-bottom: 72px;text-align: center">
+                        <div style="float: left;width: 20%;padding-top: 4px;text-align: right;padding-right: 5px">
+                            <div style="vertical-align: middle;width: 35px;height: 35px;background: url('../static/img/shouye_03.png');background-size: 100%;background-position-y: -100px;background-position-x: -1px;display: inline-block"></div>
+                        </div>
+
+                        <div style="float: left;vertical-align: middle;width: 60%;text-align: center;">
+                            <span style="font-size: 18px">抵押贷 <span style="font-size: 15px;color:#827E7D">(1000-50000)</span></span>
+                            <br/>
+                            <span style="font-size: 13px;color:#827E7D">优先审核，放款额度高</span>
+                        </div>
+
+                        <div style="float: left;width: 20%;padding-top: 10px;text-align: left;padding-left: 5px">
+                            <span>
+                            <img src="../static/img/arrow-you.png" style="width: 21px;" >
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-left: 30px;padding-right: 30px">
+             <a th:href="@{/wx_ywApply/goXY}">
+                <div style="border: 1px solid rgb(219,219,219);width: 100%;border-radius: 5px;background: #ffffff;padding: 2px">
+                    <div style="border: 1px solid white;width: 100%;border-radius: 5px;background: #FEF5F0;padding-top: 25px;padding-bottom: 72px;text-align: center">
+                        <div style="float: left;width: 20%;padding-top: 4px;text-align: right;padding-right: 5px">
+                            <div style="vertical-align: middle;width: 35px;height: 35px;background: url(../static/img/shouye_03.png);background-size: 100%;background-position-y: -215px;background-position-x: -1px;display: inline-block"></div>
+                        </div>
+
+                        <div style="float: left;vertical-align: middle;width: 60%;text-align: center;">
+                            <span style="font-size: 18px">信用贷 <span style="font-size: 15px;color:#827E7D">(1000-10000)</span></span>
+                            <br/>
+                            <span style="font-size: 13px;color:#827E7D">快速放款，审核门槛低</span>
+                        </div>
+
+                        <div style="float: left;width: 20%;padding-top: 10px;text-align: left;padding-left: 5px">
+                            <span>
+                            <img src="../static/img/arrow-you.png" style="width: 21px;" >
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+    </div>
+	
+	
+	<div class="container-fluid" style="width: 100%;z-index: 20000;background:#ffffff;border-top: 1px solid rgb(245,245,245);opacity: 0;">
+        <div class="row">
+            <a>
+                <div class="  text-center  " style="padding: 5px;width: 33.3333%;float: left">
+                    <span class="	glyphicon glyphicon-home" style="color:rgb(1,152,239);font-size: 22px"></span>
+                    <br>
+                    <span style="vertical-align: middle;color: rgb(1,152,239);font-size: 22px">哈哈</span>
+                </div>
+
+            </a>
+
+            <a>
+                <div class="  text-center  " style="padding: 5px;width: 33.3333%;float: left">
+                    <span class="	glyphicon glyphicon-user" style="color:rgb(166,166,166);font-size: 22px"></span>
+                    <br>
+                    <span style="vertical-align: middle;color: rgb(166,166,166);font-size: 22px">哈哈</span>
+                </div>
+            </a>
+
+            <a>
+                <div class="  text-center  " style="padding: 5px;width: 33.3333%;float: left;">
+                    <span class="glyphicon glyphicon-th-large" style="color: rgb(166,166,166);font-size: 22px"></span>
+                    <br>
+                    <span style="vertical-align: middle;color:rgb(166,166,166)">哈哈</span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="container-fluid" style="position: fixed;bottom: 0;right: 0;width: 100%;z-index: 20000;background:#ffffff;border-top: 1px solid rgb(245,245,245)">
+            <div class="row" >
+                <a th:href="@{/wx_index/goIndex}">
+                    <div class="  text-center  " style="padding: 5px;width: 33.3333%;float: left" id="shouye">
+                        <span class="	glyphicon glyphicon-home" style="color:#FF884D;"></span>
+                        <br>
+                        <span style="vertical-align: middle;color:#FF884D">首页</span>
+                    </div>
+
+                </a>
+
+                <a th:href="@{/wx_mine/goMinePg}">
+                    <div class="  text-center  " style="padding: 5px;width: 33.3333%;float: left" id="wode">
+                        <span class="	glyphicon glyphicon-user" style="color:#C9C6C6;"></span>
+                        <br>
+                        <span style="vertical-align: middle;color: #C9C6C6">我的</span>
+                    </div>
+                </a>
+
+                <a th:href="@{/wx_more/goMore}">
+                    <div class="  text-center  " style="padding: 5px;width: 33.3333%;float: left;" id="gengduo">
+                        <span class="glyphicon glyphicon-th-large" style="color: #C9C6C6;"></span>
+                        <br>
+                        <span style="vertical-align: middle;color:#C9C6C6">更多</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+</div>
+
+<div th:include="html/page/contentpublic :: html"></div>
+
+<script>
+    var mySwiper = new Swiper('.swiper-container',{
+        loop: true,
+       // effect : 'flip',
+        autoplay: 3000,
+        autoplayDisableOnInteraction : false,
+        pagination : '.swiper-pagination',
+        paginationClickable: true,
+        prevButton:'.swiper-button-prev',
+        nextButton:'.swiper-button-next'
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+package com.dbsun.mapper;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.entity.wechat.WechatMenu;
+
+
+
+
+
+/**
+ * 微信菜单管理
+ */
+public interface WechatMenuMapper {
+	
+	/**
+	 * 获取所有菜单数据
+	 * 
+	 * */
+	public List<PageData> getPageWechatMenuByAll(Page pd);
+
+	/**
+	 * 获取所有菜单数据 无分页
+	 * 
+	 * */
+	public List<PageData> getByWechatMenuAllnoPage();
+	
+	/**
+	 * 修改菜单信息
+	 * 
+	 * */
+	public int updateWechatMenu(PageData pd);
+	
+	/**
+	 * 新增菜单信息
+	 * 
+	 * */
+	public int addWechatMenu(PageData pd);
+	
+	
+	
+}

@@ -1,0 +1,44 @@
+package com.dbsun.mapper.finance;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+
+public interface FinNumMapper {
+
+    public List<PageData> getPageConfNumLst(Page page);
+
+    public int updateFinNum(PageData pd);
+
+
+
+
+
+    /**
+     * 瑞信公司
+     * 获得财务编号的对应 前缀
+     *
+     * @Author: zhao yi
+     * @Date : 2018/6/20 14:23
+     * @Param : [pd] YBCS009_TP 贷款类型ID EPT_LAYERORDER 部门
+     * @return: com.dbsun.entity.system.PageData
+     */
+    public PageData getGeneratedFinNum(PageData pd);
+
+    /**
+     * 瑞信公司
+     * 根据前缀获得 最后的财务编号 例如 :FD10001
+     *
+     * @Author: zhao yi
+     * @Date  : 2018/6/20 15:06
+     * @Param : [prefix]
+     * @return: com.dbsun.entity.system.PageData
+     * @param prefix
+     */
+    public PageData getFinNumByPrefix(PageData prefix);
+
+
+
+}

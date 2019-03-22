@@ -1,0 +1,27 @@
+package com.dbsun.mapper;
+
+import java.util.List;
+
+import com.dbsun.entity.system.PageData;
+
+/**
+ * 个人银行卡
+ * @author DongZai
+ *
+ */
+public interface YwBankMapper {
+	
+	/**通过YWU001获取个人银行卡*/
+	public List<PageData> getYwBankByYwu001(PageData pd);
+	
+	/**新增个人银行卡*/
+	public int addYwBank(PageData pd);
+	
+	/**更新个人银行卡*/
+	public int updateYwBank(PageData pd);
+	
+	/**解绑银行卡*/
+	public int updateUnBindBankByYwBank001(PageData pd);
+	
+	
+}

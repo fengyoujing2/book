@@ -1,0 +1,97 @@
+package com.dbsun.controller.background;
+
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.background.BacSituationService;
+import com.dbsun.service.customer.CusService;
+/**
+ * 后台情况
+ * @author DongZai
+ *
+ */
+@Controller
+@RequestMapping("/bac_situ")
+public class BacSituationController extends BaseController {
+	
+	@Autowired
+	private BacSituationService bacSituationService;
+	@Autowired
+	private CusService cusService;
+	/**
+	 * 跳转到后台情况界面
+	 * @return
+	 */
+	@RequestMapping("/goPageBacSituationIndex")
+	public String goPageBacSituationIndex(ModelMap model){
+		//构建初始数据
+		Page page = this.getPage();
+		PageData pd = this.getPageData();
+		page.setPd(pd);
+		List<PageData> sitLst = null;
+		try {
+			sitLst = bacSituationService.getPageBacSituationLst(this.putUserIdAdDeLAdPosPd(page, pd));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		model.addAttribute("sitTableLst",sitLst);
+		model.addAttribute("page",page);
+		System.out.println("跳转页面返回的****:" + model);
+		return "html/system/background/backstageSit";
+	}
+	
+	/**
+	 * 后台情况列表数据
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping("/getPageBacSituationLst")
+	@ResponseBody
+	public JSONObject getPageBacSituationLst(){
+		PageData pd = this.getPageData();
+		Page page = this.getPage();
+		page.setPd(pd);
+		List<PageData> sitLst = null;
+		try {
+			sitLst = bacSituationService.getPageBacSituationLst(this.putUserIdAdDeLAdPosPd(page, pd));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return viewReturnPageData(page, sitLst);
+	}
+	
+	/**
+	 * 去后台情况详情页面
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping("/goBacSituationDetaPage")
+	public String goBacSituationDetaPage(Model model){
+		PageData pd = this.getPageData();
+		model.addAttribute("json", this.getSucJson(cusService.getCusById(pd)));//客户基本信息
+		return "html/system/background/bg_Cusdetails";
+	}
+	
+	/**
+	 * 客户的后台做单情况
+	 * @return
+	 */
+	@RequestMapping("/getSinglesForCus")
+	@ResponseBody
+	public JSONObject getSinglesForCus(){
+		PageData pd = this.getPageData();
+		return this.getSucJson(bacSituationService.getSinglesForCus(pd));
+	}
+	
+}

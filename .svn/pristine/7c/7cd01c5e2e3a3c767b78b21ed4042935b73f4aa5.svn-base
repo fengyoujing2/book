@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.settleAccounts.SettleAccountsInMapper">
+
+    <sql id="Base_Column_List">
+        YBCACI001 ,
+        YBCACI002 , <!--客户名称-->
+        YBCACI003 , <!--合同编号(财务编号)-->
+        YBCACI004 , <!--合同类型(贷款类型)-->
+        YBCACI005 , <!--付款方式-->
+        YBCACI006 , <!--付款金额-->
+        YBCACI007 , <!--前台利润(付款金额-运营成本-提现手续费-其他费用)-->
+        YBCACI008 , <!--客户经理-->
+        YBCACI010 , <!--客户经理部门-->
+        YBCACI011 , <!--团队经理姓名-->
+        YBCACI012 , <!--客户总监姓名-->
+        YBCACI013 , <!--贷款金额-->
+        YBCACI014 , <!--贷款渠道-->
+        YBCACI015 , <!--期限-->
+        YBCACI016 , <!--运营成本-->
+        YBCACI017 , <!--提现手续费-->
+        YBCACI018 , <!--其他费用-->
+        YBCACI019 , <!--后台做单人姓名-->
+        YBCACI020 , <!--后台做单人组长姓名-->
+        YBCACI021 , <!--后台做单人部长姓名-->
+        YBCACI022_TM , <!--结账时间(手工录入)-->
+        USER_ID , <!--操作人-->
+        YBCACI024 , <!--操作人姓名-->
+        YBCACI025_TM , <!--操作人时间-->
+        YBCACI026_TP , <!--结账类型 1结账 2违约金-->
+        YBCACI027  <!--付款公式-->
+    </sql>
+
+
+    <!-- 查询+组合条件 -->
+    <select id="getPageSettleAccountsInList" parameterType="page" resultType="pd">
+        select
+        <include refid="Base_Column_List"/>
+        from ybc_account_in
+        <where>
+
+            <if test="pd.YBCACI001  != null">
+                AND YBCACI001 = #{pd.YBCACI001 }
+            </if>
+            <if test="pd.YBCACI002  != null">
+                AND YBCACI002 LIKE CONCAT(#{pd.YBCACI002},'%')
+            </if>
+            <if test="pd.YBCACI003  != null">
+                AND YBCACI003 LIKE CONCAT(#{pd.YBCACI003},'%')
+            </if>
+            <if test="pd.YBCACI004  != null">
+                AND YBCACI004 = #{pd.YBCACI004 }
+            </if>
+            <if test="pd.YBCACI005  != null">
+                AND YBCACI005 = #{pd.YBCACI005 }
+            </if>
+            <if test="pd.YBCACI006  != null">
+                AND YBCACI006 = #{pd.YBCACI006 }
+            </if>
+            <if test="pd.YBCACI007  != null">
+                AND YBCACI007 = #{pd.YBCACI007 }
+            </if>
+            <if test="pd.YBCACI008  != null">
+                AND YBCACI008  LIKE CONCAT(#{pd.YBCACI008 },'%')
+            </if>
+            <if test="pd.YBCACI010  != null">
+                AND YBCACI010  LIKE CONCAT(#{pd.YBCACI010 },'%')
+            </if>
+            <if test="pd.YBCACI011  != null">
+                AND YBCACI011  LIKE CONCAT(#{pd.YBCACI011 },'%')
+            </if>
+            <if test="pd.YBCACI012  != null">
+                AND YBCACI012  LIKE CONCAT(#{pd.YBCACI012 },'%')
+            </if>
+            <if test="pd.YBCACI013  != null">
+                AND YBCACI013  LIKE CONCAT(#{pd.YBCACI013 },'%')
+            </if>
+            <if test="pd.YBCACI014  != null">
+                AND YBCACI014 = #{pd.YBCACI014 }
+            </if>
+            <if test="pd.YBCACI015  != null">
+                AND YBCACI015  LIKE CONCAT( #{pd.YBCACI015 },'%')
+            </if>
+            <if test="pd.YBCACI016  != null">
+                AND YBCACI016 = #{pd.YBCACI016 }
+            </if>
+            <if test="pd.YBCACI017  != null">
+                AND YBCACI017 = #{pd.YBCACI017 }
+            </if>
+            <if test="pd.YBCACI018  != null">
+                AND YBCACI018 = #{pd.YBCACI018 }
+            </if>
+            <if test="pd.YBCACI019  != null">
+                AND YBCACI019  LIKE CONCAT(#{pd.YBCACI019 },'%')
+            </if>
+            <if test="pd.YBCACI020  != null">
+                AND YBCACI020  LIKE CONCAT(#{pd.YBCACI020 },'%')
+            </if>
+            <if test="pd.YBCACI021  != null">
+                AND YBCACI021  LIKE CONCAT(#{pd.YBCACI021 },'%')
+            </if>
+            <if test="pd.YBCACI022_TM  != null">
+                AND YBCACI022_TM = #{pd.YBCACI022_TM }
+            </if>
+            <if test="pd.YBCACI024  != null">
+                AND YBCACI024  LIKE CONCAT(#{pd.YBCACI024 },'%')
+            </if>
+            <if test="pd.YBCACI025_TM  != null">
+                AND YBCACI025_TM = #{pd.YBCACI025_TM }
+            </if>
+            <if test="pd.YBCACI026_TP  != null">
+                AND YBCACI026_TP = #{pd.YBCACI026_TP }
+            </if>
+            <if test="pd.YBCACI027  != null">
+                AND YBCACI027 = #{pd.YBCACI027 }
+            </if>
+            <if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''">
+                and USER_ID = #{pd.USER_ID_Sea}
+            </if>
+            <!--时间搜素  时间-->
+            <if test='  pd.dateStart != "" and pd.dateStart != null   '>
+                AND YBCACI022_TM <![CDATA[>=]]> DATE(#{pd.dateStart})
+            </if>
+            <if test='  pd.dateEnd != "" and pd.dateEnd != null   '>
+                AND YBCACI022_TM <![CDATA[<=]]> DATE(#{pd.dateEnd})
+            </if>
+        </where>
+
+        ORDER BY YBCACI025_TM DESC <!--操作时间-->
+    </select>
+
+
+    <!-- 选择新增 -->
+    <insert id="addSettleAccountsIn">
+        insert into ybc_account_in(
+            YBCACI001,
+            YBCACI002,  <!--客户名称-->
+            YBCACI003,  <!--合同编号(财务编号)-->
+            YBCACI004,  <!--合同类型(贷款类型)-->
+            YBCACI005,  <!--付款方式-->
+            YBCACI006,  <!--付款金额-->
+            YBCACI007,  <!--前台利润(付款金额-运营成本-提现手续费-其他费用)-->
+            YBCACI008,  <!--客户经理-->
+            YBCACI010,  <!--客户经理部门-->
+            YBCACI011,  <!--团队经理姓名-->
+            YBCACI012,  <!--客户总监姓名-->
+            YBCACI013,  <!--贷款金额-->
+            YBCACI014,  <!--贷款渠道-->
+            YBCACI015,  <!--期限-->
+            YBCACI016,  <!--运营成本-->
+            YBCACI017,  <!--提现手续费-->
+            YBCACI018,  <!--其他费用-->
+            YBCACI019,  <!--后台做单人姓名-->
+            YBCACI020,  <!--后台做单人组长姓名-->
+            YBCACI021,  <!--后台做单人部长姓名-->
+            YBCACI022_TM,  <!--结账时间(手工录入)-->
+            USER_ID,  <!--操作人-->
+            YBCACI024,  <!--操作人姓名-->
+            YBCACI025_TM,  <!--操作人时间-->
+            YBCACI026_TP,  <!--结账类型 1结账 2违约金-->
+            YBCACI027  <!--付款公式-->
+        )
+        values
+        (
+        <if test="YBCACI001 == null">REPLACE(UUID(),'-',''),</if><if test="YBCACI001 != null">#{YBCACI001},</if>
+            #{YBCACI002},
+            #{YBCACI003},
+            #{YBCACI004},
+            #{YBCACI005},
+            #{YBCACI006},
+            #{YBCACI007},
+            #{YBCACI008},
+            #{YBCACI010},
+            #{YBCACI011},
+            #{YBCACI012},
+            #{YBCACI013},
+            #{YBCACI014},
+            #{YBCACI015},
+            #{YBCACI016},
+            #{YBCACI017},
+            #{YBCACI018},
+            #{YBCACI019},
+            #{YBCACI020},
+            #{YBCACI021},
+            #{YBCACI022_TM},
+            #{USER_ID},
+            #{YBCACI024},
+            #{YBCACI025_TM},
+            #{YBCACI026_TP},
+            #{YBCACI027}
+        )
+    </insert>
+
+    <!-- 批量新增 -->
+    <insert id="addBatchSettleAccountsIn">
+        insert into ybc_account_in(
+            YBCACI001,
+            YBCACI002,  <!--客户名称-->
+            YBCACI003,  <!--合同编号(财务编号)-->
+            YBCACI004,  <!--合同类型(贷款类型)-->
+            YBCACI005,  <!--付款方式-->
+            YBCACI006,  <!--付款金额-->
+            YBCACI007,  <!--前台利润(付款金额-运营成本-提现手续费-其他费用)-->
+            YBCACI008,  <!--客户经理-->
+            YBCACI010,  <!--客户经理部门-->
+            YBCACI011,  <!--团队经理姓名-->
+            YBCACI012,  <!--客户总监姓名-->
+            YBCACI013,  <!--贷款金额-->
+            YBCACI014,  <!--贷款渠道-->
+            YBCACI015,  <!--期限-->
+            YBCACI016,  <!--运营成本-->
+            YBCACI017,  <!--提现手续费-->
+            YBCACI018,  <!--其他费用-->
+            YBCACI019,  <!--后台做单人姓名-->
+            YBCACI020,  <!--后台做单人组长姓名-->
+            YBCACI021,  <!--后台做单人部长姓名-->
+            YBCACI022_TM,  <!--结账时间(手工录入)-->
+            USER_ID,  <!--操作人-->
+            YBCACI024,  <!--操作人姓名-->
+            YBCACI025_TM,  <!--操作人时间-->
+            YBCACI026_TP,  <!--结账类型 1结账 2违约金-->
+            YBCACI027  <!--付款公式-->
+        )
+        values
+        <foreach collection="list" item="pds" separator=",">
+            (
+            <if test="pds.YBCACI001 == null">REPLACE(UUID(),'-',''),</if><if test="pds.YBCACI001 != null">#{YBCACI001},</if>
+            #{pds.YBCACI002},
+            #{pds.YBCACI003},
+            #{pds.YBCACI004},
+            #{pds.YBCACI005},
+            #{pds.YBCACI006},
+            #{pds.YBCACI007},
+            #{pds.YBCACI008},
+            #{pds.YBCACI010},
+            #{pds.YBCACI011},
+            #{pds.YBCACI012},
+            #{pds.YBCACI013},
+            #{pds.YBCACI014},
+            #{pds.YBCACI015},
+            #{pds.YBCACI016},
+            #{pds.YBCACI017},
+            #{pds.YBCACI018},
+            #{pds.YBCACI019},
+            #{pds.YBCACI020},
+            #{pds.YBCACI021},
+            #{pds.YBCACI022_TM},
+            #{pds.USER_ID},
+            #{pds.YBCACI024},
+            #{pds.YBCACI025_TM},
+            #{pds.YBCACI026_TP},
+            #{pds.YBCACI027}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 删除-根据主键 -->
+    <delete id="delSettleAccountsInByPrimaryKey">
+        delete from ybc_account_in
+        where YBCACI001 =  #{YBCACI001}
+    </delete>
+
+    <!-- 批量删除-根据主键 -->
+    <delete id="delBatchSettleAccountsInByPrimaryKey">
+        delete from ybc_account_in
+        where YBCACI001 in
+        <foreach collection="list" item="pds" separator="," open="(" close=")">
+        #{pds.YBCACI001}
+        </foreach>
+    </delete>
+
+
+    <!-- 修改-根据主键 -->
+    <update id="updSettleAccountsInByPrimaryKey">
+        update ybc_account_in
+        <set>
+                <if test="YBCACI001 != null">YBCACI001 = #{YBCACI001},</if>
+                <if test="YBCACI002 != null">YBCACI002 = #{YBCACI002},</if>
+                <if test="YBCACI003 != null">YBCACI003 = #{YBCACI003},</if>
+                <if test="YBCACI004 != null">YBCACI004 = #{YBCACI004},</if>
+                <if test="YBCACI005 != null">YBCACI005 = #{YBCACI005},</if>
+                <if test="YBCACI006 != null">YBCACI006 = #{YBCACI006},</if>
+                <if test="YBCACI007 != null">YBCACI007 = #{YBCACI007},</if>
+                <if test="YBCACI008 != null">YBCACI008 = #{YBCACI008},</if>
+                <if test="YBCACI010 != null">YBCACI010 = #{YBCACI010},</if>
+                <if test="YBCACI011 != null">YBCACI011 = #{YBCACI011},</if>
+                <if test="YBCACI012 != null">YBCACI012 = #{YBCACI012},</if>
+                <if test="YBCACI013 != null">YBCACI013 = #{YBCACI013},</if>
+                <if test="YBCACI014 != null">YBCACI014 = #{YBCACI014},</if>
+                <if test="YBCACI015 != null">YBCACI015 = #{YBCACI015},</if>
+                <if test="YBCACI016 != null">YBCACI016 = #{YBCACI016},</if>
+                <if test="YBCACI017 != null">YBCACI017 = #{YBCACI017},</if>
+                <if test="YBCACI018 != null">YBCACI018 = #{YBCACI018},</if>
+                <if test="YBCACI019 != null">YBCACI019 = #{YBCACI019},</if>
+                <if test="YBCACI020 != null">YBCACI020 = #{YBCACI020},</if>
+                <if test="YBCACI021 != null">YBCACI021 = #{YBCACI021},</if>
+                <if test="YBCACI022_TM != null">YBCACI022_TM = #{YBCACI022_TM},</if>
+                <if test="USER_ID != null">USER_ID = #{USER_ID},</if>
+                <if test="YBCACI024 != null">YBCACI024 = #{YBCACI024},</if>
+                <if test="YBCACI025_TM != null">YBCACI025_TM = #{YBCACI025_TM},</if>
+                <if test="YBCACI026_TP != null">YBCACI026_TP = #{YBCACI026_TP},</if>
+                <if test="YBCACI027 != null">YBCACI027 = #{YBCACI027},</if>
+        </set>
+        where YBCACI001 =  #{YBCACI001}
+    </update>
+
+</mapper>

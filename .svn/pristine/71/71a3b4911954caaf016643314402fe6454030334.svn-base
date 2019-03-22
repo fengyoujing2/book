@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.finance.FinSignMapper">
+    <!-- 待确认签单 -->
+
+    <!-- 待签单确认 -->
+    <select id="getPageConfSignLst" parameterType="page" resultType="pd" useCache="false">
+        select
+        s.*,
+        c.YBC002,
+        (select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName,
+        (
+        case s.YBCS050_TP
+        when 1 then '按比例付款'
+        when 2 then '包干制'
+        end
+        ) as payment<!-- 付款方式 -->
+
+        from ybc_sign s, ybc c
+        where s.ybc001 = c.ybc001
+        <!-- and s.YBCS002_TM is not null --> <!-- 系统签单时间不能为空，表示有签单信息 -->
+        and s.YBCS016_TM is null <!-- 财务未确认 -->
+        <!-- 搜索 start -->
+        <if test="pd.YBC002 != null and pd.YBC002 != ''">
+            and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+        </if>
+        <if test="pd.YBC003 != null and pd.YBC003 != ''">
+            and c.YBC003 like concat_ws(#{pd.YBC003}, "%", "%")
+        </if>
+        <if test="pd.YBCS017 != null and pd.YBCS017 != ''"><!-- 合同编号 -->
+            and s.YBCS017 like concat_ws(#{pd.YBCS017}, "%", "%")
+        </if>
+        <if test="pd.YBCS038 != null and pd.YBCS038 != ''"><!-- 签单客户经理 -->
+            and s.YBCS038 like concat_ws(#{pd.YBCS038}, "%", "%")
+        </if>
+        <if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+            and s.USER_ID = #{pd.USER_ID_Sea}
+        </if>
+        <if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+        </if>
+        <!-- 搜索 end -->
+        order by s.YBCS002_TM desc
+    </select>
+
+
+    <!-- 确认签单 -->
+    <update id="updateConfSign" parameterType="pd" flushCache="false">
+        update
+        ybc_sign
+        set
+        YBCS015 = #{USER_ID}, <!-- 财务签单确认人 -->
+        YBCS016_TM = now(), <!-- 财务签单确认时间 -->
+        YBCS021_TP = 2 <!-- 签单最终状态 -->
+        where
+        YBCS001 = #{YBCS001}
+    </update>
+
+    <!-- 修改签单 -->
+    <update id="updateSign" parameterType="pd" flushCache="false">
+        update
+        ybc_sign
+        <set>
+            YBCS055_TM = now() <!-- 签单表最近更新时间 -->
+            <if test="YBCS017 != null and YBCS017 != ''">
+                ,YBCS017 = #{YBCS017} <!-- 合同编号 -->
+            </if>
+            <if test="YBCS009_TP != null and YBCS009_TP != ''"><!-- 贷款类型变更，修改签单类型，签单类型负责人ID,签单类型负责人姓名 -->
+                ,YBCS009_TP = #{YBCS009_TP}
+                ,YBCS012 = (select YBCT004_ID from ybc_type where YBCT001 = #{YBCS009_TP})
+                ,YBCS039 = (select name from sys_user where user_id = (select YBCT004_ID from ybc_type where YBCT001 =
+                #{YBCS009_TP}))
+            </if>
+            <if test="YBCS010 != null and YBCS010 != ''">
+                ,YBCS010 = #{YBCS010} <!-- 合同金额 -->
+            </if>
+            <if test="YBCS049_TM != null and YBCS049_TM != ''">
+                ,YBCS049_TM = #{YBCS049_TM} <!-- 签单录入时间 -->
+            </if>
+            <if test="YBCS050_TP != null and YBCS050_TP != ''">
+                ,YBCS050_TP = #{YBCS050_TP} <!-- 付款方式(按比例付款、包干费) -->
+            </if>
+            <if test="YBCS050_TP == 1"><!-- 按比例：设置管理费和服务费，同时清空包干金额 -->
+                ,YBCS006 = #{YBCS006} <!-- 贷后管理费千分比 -->
+                ,YBCS003 = #{YBCS003} <!-- 服务费 -->
+                ,YBCS051 = null <!-- 包干金额 -->
+            </if>
+            <if test="YBCS050_TP == 2"><!-- 按包干方式：设置包干金额，同时清空管理费和服务费 -->
+                ,YBCS051 = #{YBCS051} <!-- 包干金额 -->
+                ,YBCS006 = null <!-- 贷后管理费千分比 -->
+                ,YBCS003 = null <!-- 服务费 -->
+            </if>
+            <if test="YBCS011 != null and YBCS011 != ''">
+                ,YBCS011 = #{YBCS011} <!-- 贷款期限 -->
+            </if>
+            <if test="YBCS018_TP != null and YBCS018_TP != ''">
+                ,YBCS018_TP = #{YBCS018_TP} <!-- 贷款用途 -->
+            </if>
+        </set>
+        where
+        YBCS001 = #{YBCS001}
+    </update>
+
+    <!--财务确认签单-瑞信版本 2018/11/14 10:07 -->
+    <update id="updateConfSignAuto">
+        UPDATE
+        ybc_sign
+        SET
+        YBCS015 = #{USER_ID}, <!-- 财务签单确认人 -->
+        YBCS016_TM = now(),      <!-- 财务签单确认时间 -->
+        YBCS021_TP = 2,          <!-- 签单最终状态 -->
+
+        YBCS013 = #{USER_ID},    <!-- 确认做单人ID -->
+        YBCS014_TP = 1,              <!-- 确认是否做单(1能2不能) -->
+        YBCS019_TM = now(),          <!-- 后台确认时间 -->
+        YBCS041 = #{NAME},          <!-- 确认做单人姓名 -->
+        YBCS021_TP = 3              <!-- 签单最终状态 -->
+        WHERE
+        YBCS001 = #{YBCS001}
+
+    </update>
+
+    <!--获得财务编号的对应 前缀-->
+    <select id="getGeneratedFinNumCustom" resultType="com.dbsun.entity.system.PageData">
+        	 SELECT t.YBCT008 from ybc_type t WHERE t.YBCT001 =#{YBCS009_TP}
+    </select>
+
+    <!--根据前缀获得 最后的财务编号 例如 :FD10001-->
+    <select id="getFinNumByPrefixCustom" resultType="com.dbsun.entity.system.PageData">
+        <!--  目前只编辑网贷 4位数字  例WD22502-->
+        SELECT
+        IFNULL(LPAD(MAX(RIGHT(YBCS007,5)+1),5,'0'),'22502')AS num
+        FROM ybc_sign
+        WHERE YBCS007 LIKE CONCAT(#{YBCT008},'%') AND YBCS007 REGEXP '^[A-z]{2}[0-9]{5}$'
+    </select>
+
+    <!--财务编号-->
+    <update id="updateFinNumCustom">
+        update
+        ybc_sign
+        <set>
+            YBCS007 = #{YBCS007}, <!-- 财务编号 -->
+            YBCS008 = #{USER_ID}, <!-- 财务编号录入人ID -->
+            YBCS020_TM = now()<!-- 录入时间 -->
+        </set>
+        where
+        YBCS001 = #{YBCS001}
+    </update>
+
+
+</mapper>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.phonesys.PhoCalTotalAdDetailsMapper">
+<!-- 通话记录汇总及明细 -->
+
+	<!-- 通话记录汇总及明细列表 -->
+	<select id="getPageCalTolAdDetailsLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			f.YBCF001, 
+			f.YBCF002_TM, <!-- 跟进时间 -->
+			f.YBCF008, <!-- 客户经理 -->
+			(SELECT count(YBCF001) from ybc_follow WHERE USER_ID = #{pd.USER_ID} and YBCF0011_TP = 2) as callOutNum, <!-- 外呼次数 -->
+			sum(f.YBCF0012) as callTim<!-- 每个客户经理的通话时长（呼出/呼入） -->
+		from ybc_follow f
+		where 1 = 1 
+		and f.YBCF007_TP = 2
+	<!-- 权限 start -->
+		and (
+				(
+					f.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+					and 
+					f.POSITION	= #{pd.POSITION}
+				)<!-- 主管 -->
+				or
+				f.USER_ID = #{pd.USER_ID} <!-- 客户经理 -->
+		)
+	<!-- 权限 end -->
+		group by f.user_id
+		order by f.YBCF002_TM desc
+	</select>
+	
+	<select id="getTotal" parameterType="pd" resultType="pd" useCache="false">
+		select
+			sum(tab1.callOutNum), <!-- 总次数 -->
+			sum(tab1.callTim)<!-- 总通话时长 -->
+		from 
+			(
+				select
+					(SELECT count(YBCF001) from ybc_follow WHERE USER_ID = #{USER_ID} and YBCF0011_TP = 2) as callOutNum, <!-- 外呼次数 -->
+					sum(f.YBCF0012) as callTim<!-- 每个客户经理的通话时长（呼出/呼入） -->
+				from ybc_follow f
+				where 1 = 1 
+				and f.YBCF0011_TP in (1, 2)
+				<!-- 权限 start -->
+				and (
+						(
+							f.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+							and 
+							f.POSITION	= #{pd.POSITION}
+						)<!-- 主管 -->
+						or
+						f.USER_ID = #{pd.USER_ID} <!-- 客户经理 -->
+				)
+				<!-- 权限 end -->
+				group by f.user_id
+				order by f.YBCF002_TM desc
+			)as tab1
+	</select>
+
+</mapper>

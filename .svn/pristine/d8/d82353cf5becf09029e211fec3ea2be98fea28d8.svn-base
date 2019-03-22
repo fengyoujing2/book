@@ -1,0 +1,12 @@
+package com.dbsun.mapper.background;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface BacSingleNoFlwMapper {
+	
+	public List<PageData> getPageSingleNoFlwLst(Page page);
+	public int updateForFlwState(PageData pd);
+}

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.YwBankMapper">
+	<!-- 个人银行卡 -->
+	
+	<!-- 通过YWU001获取个人银行卡 -->
+	<select id="getYwBankByYwu001" parameterType="pd" resultType="pd" useCache="false">
+		select
+			ifnull(yb.YWBANK003_TP, 0) as YWBANK003_TP, 
+			yb.*,  
+			(select 
+				case yb.YWBANK004_TP  
+					WHEN 1 THEN '储蓄'
+					WHEN 2 THEN '信用' 
+					WHEN 3 THEN '其他'
+				end
+			) as YWBANK004_TPName
+			
+		from ywbank yb 
+		where 1 = 1 
+		and yb.YWBANK007_TP = 1 <!-- 已绑定 -->
+		and yb.YWU010 = #{YWU010} 
+	</select>
+
+	<!-- 新增个人银行卡 -->
+	<insert id="addYwBank" parameterType="pd" flushCache="false">
+		insert into
+		ywbank (
+			YWU001, 
+			YWBANK002, 
+			YWBANK003_TP, 
+			YWBANK004_TP, 
+			YWBANK005, 
+			YWBANK006, 
+			YWBANK007_TP, 
+			YWBANK008_TM, 
+			YWBANK009_TM, 
+			YWU010
+		) values
+		(
+			#{YWU001}, 
+			#{YWBANK002}, 
+			#{YWBANK003_TP}, 
+			1, 
+			#{YWBANK005}, 
+			#{YWBANK006}, 
+			#{YWBANK007_TP}, 
+			#{YWBANK008_TM},
+			#{YWBANK009_TM}, 
+			#{YWU010}
+		)
+	</insert>
+	
+	<update id="updateYwBank" parameterType="pd" flushCache="false">
+		update ywbank
+		<set>
+			<if test="YWBANK002 != null and YWBANK002 !=''">
+				YWBANK002 			= #{YWBANK002},
+			</if>
+			<if test="YWBANK003_TP != null and YWBANK003_TP !=''">
+				YWBANK003_TP 		= #{YWBANK003_TP},
+			</if>
+			<if test="YWBANK004_TP != null and YWBANK004_TP !=''">
+				YWBANK004_TP 		= #{YWBANK004_TP},
+			</if>
+			<if test="YWBANK005 != null and YWBANK005 !=''">
+				YWBANK005 			= #{YWBANK005},
+			</if>
+			<if test="YWBANK006 != null and YWBANK006 !=''">
+				YWBANK006 			= #{YWBANK006},
+			</if>
+			<if test="YWBANK007_TP != null and YWBANK007_TP !=''">
+				YWBANK007_TP 		= #{YWBANK007_TP},
+			</if>
+			<if test="YWBANK009_TM != null and YWBANK009_TM !=''">
+				YWBANK009_TM 		= #{YWBANK009_TM},
+			</if>
+			<if test="YWU010 != null and YWU010 !=''">
+				YWU010 			= #{YWU010}
+			</if>
+		</set>
+		where YWBANK001 		= #{YWBANK001}
+	</update>
+	
+	<update id="updateUnBindBankByYwBank001" parameterType="pd" flushCache="false">
+		update ywbank
+		<set>
+			YWBANK009_TM		= #{YWBANK009_TM}, 
+			YWBANK007_TP		= #{YWBANK007_TP}
+		</set>
+		where 1 = 1 
+		and YWBANK001 			= #{YWBANK001}
+	</update>
+
+</mapper>

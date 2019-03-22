@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.YwProductMapper">
+	<!-- 产品表 -->
+	
+	<!-- 产品列表数据 -->
+	<select id="getPageYwProductLst" parameterType="page" resultType="pd"
+		useCache="false">
+		select
+		yp.*
+		from ywproduct yp
+	</select>
+	
+	<!-- 通过YWPRODUCT001获取产品-->
+	<select id="getYwProductByYwProduct001" parameterType="pd" resultType="pd" useCache="false">
+		select * from ywproduct 
+		where 1=1
+		and YWPRODUCT001 = #{YWPRODUCT001}
+	</select>
+
+	<!-- 新增产品 -->
+	<insert id="addYwProduct" parameterType="pd" flushCache="false">
+		insert into
+		ywproduct (
+			YWPRODUCT001, 
+			YWPRODUCT002_TP, 
+			YWPRODUCT003, 
+			YWPRODUCT004, 
+			YWPRODUCT005, 
+			YWPRODUCT006_TM
+		) values (
+			#{YWPRODUCT001}, 
+			#{YWPRODUCT002_TP}, 
+			#{YWPRODUCT003}, 
+			#{YWPRODUCT004}, 
+			#{YWPRODUCT005}, 
+			now()
+		)
+	</insert>
+
+	<!-- 更新产品 -->
+	<update id="updateYwProduct" parameterType="pd" flushCache="false">
+		update ywproduct
+		<set>
+			<if test="YWPRODUCT003 != null and YWPRODUCT003 !=''">
+				YWPRODUCT003				= #{YWPRODUCT003},
+			</if>
+			<if test="YWPRODUCT004 != null and YWPRODUCT004 !=''">
+				YWPRODUCT004				= #{YWPRODUCT004},
+			</if>
+			<if test="YWPRODUCT005 != null and YWPRODUCT005 != ''">
+				YWPRODUCT005				= #{YWPRODUCT005}
+			</if>
+		</set>
+		where YWPRODUCT001 = #{YWPRODUCT001}
+	</update>
+
+</mapper>

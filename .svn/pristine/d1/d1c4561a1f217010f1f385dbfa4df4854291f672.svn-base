@@ -1,0 +1,22 @@
+package com.dbsun.mapper.customer;
+
+import java.util.List;
+
+import com.dbsun.entity.system.PageData;
+
+public interface CusDoorMapper {
+	
+	/**
+	 * 添加上门
+	 * @param pd
+	 * 			含有：YBC001
+	 * @return
+	 */
+	public int addDoor(PageData pd);
+	
+	public List<PageData> getDoorsByYbc001(PageData pd);
+	
+	public PageData getDoorById(PageData pd);
+	
+	public int updateDoor(PageData pd);
+}

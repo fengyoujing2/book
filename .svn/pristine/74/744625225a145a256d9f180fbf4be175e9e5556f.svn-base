@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.SysImpMapper">
+
+	<!-- 获取某个符合推送时间段的所有待办数据-->
+	<select id="addImp" parameterType="String">
+		load data local infile #{PATH} into table tmp_ybc character set gbk fields terminated by ',';
+	</select>
+	<!-- 写入导入正式表 -->
+	<insert id="addTmpTable" parameterType="pd" flushCache="false">
+		insert
+		into
+		imptable
+		(
+		YBC002,<!-- 客户姓名 -->
+		YBC003,<!-- 客户电话 -->
+		USER_ID,<!-- 录入人员 -->
+		YBC014_TM,<!-- 录入时间 -->
+		YBC016_TP,<!-- 是否已经分配 -->
+		YBC008_TP<!-- 客户等级标记当前是临时大类还是临时小类 -->
+		)
+		SELECT
+		ty.YBC002,
+		ty.YBC003,
+		#{USER_ID},
+		now(),
+		0, <!--默认未分配-->
+		#{YBC008_TP}<!--临时大类0临时小类10 -->
+		from ( select t.ybc003 FROM( select  ybc003 from tmp_ybc ty where not EXISTS(select ybc003 from imptable i where i.ybc003=ty.ybc003 )) t
+		where   not EXISTS(select ybc003 from ybc c where c.ybc003=t.ybc003 ) GROUP BY t.ybc003
+		having count(t.ybc003) = 1) vl,tmp_ybc ty where vl.ybc003 = ty.ybc003;
+
+		<!--下面的是老方法 -->
+		<!--from (select ybc003 from (select  ybc003 from tmp_ybc ty-->
+		<!--UNION ALL-->
+		<!--select  ybc003 from imptable it-->
+		<!--UNION ALL-->
+		<!--select  ybc003 from ybc yc) t GROUP BY t.ybc003 having count(t.ybc003) = 1) vl,tmp_ybc ty where vl.ybc003 = ty.ybc003;-->
+
+
+		<!--and ty.YBC003 REGEXP "^[1][35678][0-9]{9}$" &lt;!&ndash;只有符合的11条数据&ndash;&gt;-->
+		<!--FROM tmp_ybc ty LEFT JOIN ybc yb ON ty.YBC003=yb.YBC003 LEFT JOIN imptable it ON ty.YBC003=it.YBC003-->
+		<!--WHERE yb.ybc003 is null-->
+		<!--AND it.ybc003 is null-->
+		<!--&lt;!&ndash; AND ty.YBC003 REGEXP "^[1][35678][0-9]{9}$" &ndash;&gt;-->
+		<!--group by ty.ybc003-->
+		<!--&lt;!&ndash; having count(ty.ybc003) = 1 &ndash;&gt;-->
+	</insert>
+	<!-- 删除导入表数据-->
+	<delete id="delImp" parameterType="pd" flushCache="false">
+		delete from tmp_ybc;
+	</delete>
+	
+	<update id="updateImpYbc003" parameterType="pd" >
+		update tmp_ybc set
+		ybc003 = REPLACE(REPLACE(ybc003, CHAR(10), ''), CHAR(13), '');
+
+	</update>
+
+</mapper>

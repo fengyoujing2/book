@@ -1,0 +1,18 @@
+package com.dbsun.controller.system;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.dbsun.base.BaseController;
+
+/**
+ * 账号绑定历史
+ * 
+ * @author DongZai
+ * 
+ */
+@Controller
+@RequestMapping("/wx_ywBind")
+public class YwBindController extends BaseController {
+	
+}

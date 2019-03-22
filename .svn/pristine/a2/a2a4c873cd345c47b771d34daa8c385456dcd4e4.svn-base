@@ -1,0 +1,128 @@
+package com.dbsun.controller.phonesys;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.core.TokenLimit;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.phonesys.PhoGroupBusyService;
+import com.dbsun.util.UuidUtil;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpSession;
+
+/**
+ * 群呼业务
+ *
+ * @author DongZai
+ */
+@Controller
+@RequestMapping("/pho_group_call")
+public class PhoGroupBusyController extends BaseController {
+
+    @Autowired
+    private PhoGroupBusyService phoGroupBusyService;
+
+    /**
+     * 添加通话记录
+     *
+     * @param YBC001 YBCF009流水号
+     * @return
+     * @Desc 添加更进表 呼叫跟进记录
+     */
+    @TokenLimit
+    @RequestMapping("/addFlowForCall")
+    @ResponseBody
+    public JSONObject addFlowForCall() {
+        PageData pd = this.getPageData();
+        return this.getAddOrUpdJson(phoGroupBusyService.addFlowForCall(this.putUserPd(pd)));
+    }
+
+
+    /***
+     * 获得令牌
+     * 转为意向接口-令牌,防止表单重复提交
+     * @return
+     */
+    @RequestMapping("/toIntentionToken")
+    @ResponseBody
+    public JSONObject toIntentionToken(HttpSession session) {
+        JSONObject token = new JSONObject();
+        final String uuid = UuidUtil.get32UUID();
+        token.put("Token", uuid);
+        session.setAttribute("Token", uuid);
+        return getSucJson(token);
+    }
+
+
+    /**
+     * 转为意向
+     *
+     * @param YBC001 YBC002  YBC003 手机号码 YBC009流水号 state号码是否存在 1存在 2不存在
+     * @return
+     * @Desc 检查来电号码是否存在.如果不存在, 新增一个签单状态的用户
+     */
+    @RequestMapping("/toIntention")
+    @ResponseBody
+    public JSONObject toIntention(HttpSession session) {
+        PageData userPd = this.getUserPd();
+        PageData pd = this.getPageData();// YBC003	 手机号码 Token 令牌
+        pd.putAll(userPd);
+        //令牌已经使用过,或者盗链
+        Object sesionToken = session.getAttribute("Token");
+        if (sesionToken == null || pd.get("Token") == null) {
+            JSONObject json = new JSONObject();
+            json.put("msg", "501");
+            json.put("result", "令牌已经使用过,或者盗链");
+            return json;
+        }
+        //验证令牌
+        if (!sesionToken.toString().equals(pd.getString("Token"))) {
+            JSONObject json = new JSONObject();
+            json.put("msg", "502");
+            json.put("result", "令牌错误");
+            return json;
+        }
+        try {
+            final JSONObject rs = phoGroupBusyService.toIntention(pd, userPd);
+            //消费令牌token (只能用一次)
+            session.removeAttribute("Token");
+            return rs;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return getFalJson();
+        }
+    }
+
+
+    /**
+     * 跳转页面 群呼转意向 凭证页面
+     *
+     * @return
+     * @Desc 客户通过群呼系统已经转为意向客户
+     */
+    @RequestMapping("/showCus_gCallRecord")
+    public String showCus_gCallRecord() {
+        return "html/system/statistics/cus_gCallRecord";
+    }
+
+    /**
+     * 查询 群呼转意向 凭证列表
+     *
+     * @return
+     * @Desc
+     */
+    @RequestMapping("/getPageRedistributeCus")
+    @ResponseBody
+    public JSONObject getPageRedistributeCus() {
+        Page page = this.getPage();
+        PageData pd = this.putUserPd(this.getPageData());
+        page.setPd(pd);
+        return this.viewReturnPageData(page, phoGroupBusyService.getPageRedistributeCus(page));
+    }
+
+
+}

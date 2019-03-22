@@ -1,0 +1,90 @@
+package com.dbsun.service;
+
+import com.dbsun.entity.system.Menu;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.MenuMapper;
+import com.dbsun.mapper.NoticeMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class NoticeService {
+	@Autowired
+	private NoticeMapper noticeMapper;
+	/**
+	 * 添加通知信息
+	 * */
+	public void addNotice(PageData pageData){
+		PageData pd = new PageData();
+//		pd.put("YBC_NOT002_TP",pageData.get(""));
+//		pd.put("YBC_NOT003",pageData.get(""));
+//		pd.put("YBC_NOT004",pageData.get(""));
+//		pd.put("YBC_NOT005_TP",pageData.get(""));
+//		pd.put("YBC_NOT006_TP",pageData.get(""));
+//		pd.put("YBC_NOT007_TM",pageData.get(""));
+//		pd.put("YBC_NOT008_TM",pageData.get(""));
+//		pd.put("YBC_NOT009",pageData.get(""));
+//		pd.put("YBC_NOT010",pageData.get(""));
+//		pd.put("DEPT_LAYERORDER",);
+//		pd.put("POSITION",);
+		noticeMapper.addNotice(pageData);
+	}
+	/**
+	 * 添加待办信息
+	 * */
+	public void addNeed(PageData pageData,int YBC_NEE002_TP){
+		PageData pd = new PageData();
+		pd.put("YBC_NEE002_TP",YBC_NEE002_TP);//待办类型页面传入类型为其他
+		pd.put("YBC_NEE003",pageData.get("YBC_NEE003"));//待办内容
+//		pd.put("YBC_NEE004_TM",pageData.get(""));//待办生成时间SQL生成
+		pd.put("YBC_NEE005_TP",1);//待办状态（有效、删除）默认有效
+		pd.put("YBC_NEE006_TP",1);//是否处理（2处理1未处理）默认未处理
+//		pd.put("YBC_NEE007_TM",pageData.get(""));//处理时间SQL生成
+		pd.put("YBC_NEE008",pageData.get("USER_ID"));//信息所属人
+		pd.put("YBC_NEE009",pageData.get("NAME"));//信息所属姓名
+		pd.put("YBC_NEE010_TP",pageData.get("YBC_NEE010_TP"));//是否提醒（1提醒2不提醒）
+		pd.put("YBC_NEE011_TM",pageData.get("YBC_NEE011_TM"));//提醒时间
+		pd.put("DEPT_LAYERORDER",pageData.get("DEPT_LAYERORDER"));//部门组织ID
+		pd.put("POSITION",1);//是否主管
+		noticeMapper.addNeed(pd);
+	}
+	/**
+	 * 获取所有需要通知的待办数据
+	 *
+	 * */
+	public  List<PageData> getNeedLst(){
+		List<PageData> pageDataList =  noticeMapper.getNeedByTime();
+		return pageDataList;
+	}
+	/**
+	 * 更新待办数据
+	 *
+	 * */
+	public  int updateNeedForOne(PageData pd){
+
+		pd.put("YBC_NEE006_TP","2");//处理状态不在提醒
+		pd.put("YBC_NEE011_TM",null);
+		int i = noticeMapper.updateNeed(pd);
+		return i;
+	}
+	/**
+	 * 删除待办数据
+	 *
+	 * */
+	public  int updateNeeddelForOne(PageData pd){
+		int i = noticeMapper.delNeedForOne(pd);
+		return i;
+	}
+
+	/**
+	 * 获取所有需要通知的待办数据(具体某个员工的数据)
+	 *
+	 * */
+	public  List<PageData> getNoticeLst(PageData pd){
+		List<PageData> pageDataList =  noticeMapper.getNoticeLst(pd);
+		return pageDataList;
+	}
+}

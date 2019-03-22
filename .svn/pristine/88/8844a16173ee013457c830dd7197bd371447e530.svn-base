@@ -1,0 +1,23 @@
+package com.dbsun.service.textmsg;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.TextmsgMapper;
+
+
+@Service("textmsgService")
+public class TextmsgService {
+
+	@Autowired
+    private TextmsgMapper textmsgMapper;
+	
+	/*
+	* 匹配关键词
+	*/
+	public PageData getByKw(PageData pd)throws Exception{
+		return textmsgMapper.findByKw(pd);
+	}
+}
+

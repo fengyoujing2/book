@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>设置</title>
+    <style>
+        a:hover{
+            text-decoration: none;
+        }
+
+        a:visited{
+            text-decoration: none;
+        }
+
+        a:active{
+            text-decoration: none;
+        }
+
+        #wanshan{
+            display: none;
+        }
+
+    </style>
+
+</head>
+<body style="background:#ffffff;">
+
+<div th:include="html/page/contentpublic :: html"></div>
+
+<div class="container-fluid jianju"  id="contain" >
+    <div class="page-body">
+
+        <div class="row" style="background: white;border-bottom: 1px solid rgb(245,245,245);">
+            <div class="col-xs-6  text-left  " style="padding: 15px;">
+               	 版本说明
+            </div>
+            <div class="col-xs-6  text-right" style="padding: 15px;">
+                  V.1.1.1 &nbsp;&nbsp;<i class="fa fa-angle-right" style="font-size: 18px"></i>
+            </div>
+        </div>
+
+        <div class="row" style="background: white;border-bottom: 1px solid rgb(245,245,245);" id="zhuxiaoyonghu">
+            <div onclick="logOut();" class="col-xs-6  text-left  " style="padding: 15px;">
+                	注销用户
+            </div>
+            <div class="col-xs-6  text-right" style="padding: 15px;">
+              <i class="fa fa-angle-right" style="font-size: 18px"></i>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div style="width: 100%; height: 100%; color: rgb(0, 0, 0); position: fixed; top: 0px; left: 0px; z-index: 55500; background: url('../static/img/back2.png'); " id="wanshan">
+    <div style="opacity: 1">
+        <div style="position: absolute;width: 250px;height:170px;top: 50%;left: 50%;margin: -85px 0 0 -125px;border: 1px solid transparent;color: #ffffff;border-radius: 10px;background: #ffffff;color: #000000;text-align: center">
+            <div style="width: 100%;font-size: 16px;border-top-right-radius: 10px;border-top-left-radius: 10px;padding: 23px 0;overflow: hidden">
+                <div>
+                    提示
+                </div>
+                <div style="font-size: 14px;margin-top: 15px;padding-bottom: 15px">注销账户资料后您的资料将被删除</div>
+                <div style="text-align: center;margin-top: 10px;">
+                    <div style="width: 50%;float: left;text-align: center;padding: 0 15px">
+                        <button type="button" class="btn btn-primary btn-sm btn-block" style="border-radius: 20px;background:#E5E5E5;;border: 1px solid transparent;font-size: 13px;color: black" id="queding" >确定</button>
+                    </div>
+                    <div style="width: 50%;float: left;text-align: center;padding: 0 15px">
+                        <button type="button" class="btn btn-primary btn-sm btn-block" style="border-radius: 20px;background:#FC8B4D;;border: 1px solid transparent;font-size: 13px" id="quxiao">取消</button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<div th:include="html/page/contentpublic :: html"></div>
+<script>
+	var basePath = "/"+getContextPath();
+	
+	function logOut(){
+	
+		$.ajax({
+	        type: "POST",
+	        url: basePath+"/wx_login/logout",
+	        success: function (data)
+	        {
+	        	if(data == "success"){
+	        		window.location.href=basePath+"/wx_index/goIndex";
+	        	}else{
+	        		tip("服务器开小差了，请稍后再试(*^▽^*)");
+	        	}
+	        },
+			error:function(result, status){
+                 if(status=="parsererror"){
+                	 tip("解析出错");
+                 }else if(status=="error"){
+                	 tip("信息提交失败");
+                 }else if(status=="timeout"){
+                	 tip("发送超时");
+                 }else{
+                	 tip("发送出错");
+                 }
+		    }
+		 });
+	}
+
+    $(document).ready(function(){
+
+        $("#quxiao").click(function(){
+            $("#wanshan").hide();
+        });
+
+        $("#queding").click(function(){
+            $("#wanshan").hide();
+        });
+
+    });
+</script>
+
+
+</body>
+</html>

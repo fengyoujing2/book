@@ -1,0 +1,1120 @@
+package com.dbsun.controller;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.apache.log4j.Logger;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.session.Session;
+import org.apache.shiro.subject.Subject;
+import org.marker.weixin.DefaultSession;
+import org.marker.weixin.HandleMessageAdapter;
+import org.marker.weixin.MySecurity;
+import org.marker.weixin.msg.Data4Item;
+import org.marker.weixin.msg.Msg4Event;
+import org.marker.weixin.msg.Msg4Image;
+import org.marker.weixin.msg.Msg4ImageText;
+import org.marker.weixin.msg.Msg4Link;
+import org.marker.weixin.msg.Msg4Location;
+import org.marker.weixin.msg.Msg4Text;
+import org.marker.weixin.msg.Msg4Video;
+import org.marker.weixin.msg.Msg4Voice;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.init.Config;
+import com.dbsun.service.WbYbcService;
+import com.dbsun.service.YwRewardService;
+import com.dbsun.service.YwuService;
+import com.dbsun.service.command.CommandService;
+import com.dbsun.service.imgmsg.ImgmsgService;
+import com.dbsun.service.textmsg.TextmsgService;
+import com.dbsun.util.Const;
+import com.dbsun.util.DateUtil;
+import com.dbsun.util.FileUtil;
+import com.dbsun.util.RedisUtil;
+import com.dbsun.util.SessionUtil;
+import com.dbsun.util.Sign;
+import com.dbsun.util.Tools;
+import com.dbsun.util.Util;
+
+
+/**
+ * 微信公共入口方法体
+ */
+@Controller
+@RequestMapping(value="/wechat")
+public class WeixinController extends BaseController{
+	
+	@SuppressWarnings("unused")
+	private Logger wechatLogger = Logger.getLogger("wechat");
+	
+	@Resource(name="textmsgService")
+	private TextmsgService textmsgService;
+	@Resource(name="commandService")
+	private CommandService commandService;
+	@Resource(name="imgmsgService")
+	private ImgmsgService imgmsgService;
+	@Resource(name="ywRewardService")
+	private YwRewardService ywRewardService;
+	@Resource(name="ywuService")
+	private YwuService ywuService;
+	@SuppressWarnings("rawtypes")
+	//redis存储数据库封装方法
+	@Resource
+	public  RedisUtil redisutil;
+	
+	/**
+	 * 获取access_token
+	 * @author DongZai
+	 */
+	class MyX509TrustManager implements X509TrustManager
+	{
+
+		public void checkClientTrusted(X509Certificate[] chain, String authType)
+				throws CertificateException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void checkServerTrusted(X509Certificate[] chain, String authType)
+				throws CertificateException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public X509Certificate[] getAcceptedIssuers() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+	}
+	
+	/**
+	 * 接口验证,总入口
+	 * @param out
+	 * @param request
+	 * @param response
+	 * @throws Exception
+	 */
+	@RequestMapping("/wxAuth")
+    public @ResponseBody String wxAuth(String signature,String timestamp,String nonce,String echostr,
+			 HttpServletResponse response
+			 ) throws Exception{     
+		try{
+			JSONObject json = new JSONObject();
+			System.out.println("进入方法..............");
+//			String signature = signature;		//微信加密签名
+//			String timestamp = timestamp;		//时间戳
+//			String nonce	 = nonce;			//随机数
+//			String echostr 	 = echostr;			//字符串
+			System.out.println(echostr);
+			if(null != signature && null != timestamp && null != nonce && null != echostr){/* 接口验证  */
+				
+			    List<String> list = new ArrayList<String>(3) { 
+				    private static final long serialVersionUID = 2621444383666420433L; 
+				    public String toString() {  // 重写toString方法，得到三个参数的拼接字符串
+				               return this.get(0) + this.get(1) + this.get(2); 
+				           } 
+				         }; 
+				   list.add(redisutil.weixin_token); 		//读取Token(令牌)
+				   list.add(timestamp); 
+				   list.add(nonce); 
+				   Collections.sort(list);							// 排序 
+				   String tmpStr = new MySecurity().encode(list.toString(), 
+				    MySecurity.SHA_1);								// SHA-1加密 
+				    if (signature.equals(tmpStr)) { 
+				    	System.out.println("请求成功..............");
+				           return echostr;						// 请求验证成功，返回随机码 
+				     }else{ 
+				    	 return "";
+			       } 
+			}else{/* 消息处理  */
+				System.out.println("消息处理..............");
+				response.reset();
+				sendMsg(request,response);
+			}
+		} catch(Exception e){
+//			logger.error(e.toString(), e);
+			System.out.println("出错..............");
+		}
+		return null;
+   }
+	
+    /**
+	 * 处理微信服务器发过来的各种消息，包括：文本、图片、地理位置、音乐等等 
+	 * @param request
+	 * @param response
+	 * @throws Exception
+	 */
+    public void sendMsg(HttpServletRequest request, HttpServletResponse response) throws Exception{ 
+
+         InputStream is = request.getInputStream(); 
+         OutputStream os = response.getOutputStream(); 
+
+         final DefaultSession sessionDef = DefaultSession.newInstance(); 
+         
+         sessionDef.addOnHandleMessageListener(new HandleMessageAdapter(){ 
+        	 
+        	/**
+        	 * 事件
+        	 */
+        	@Override
+        	public void onEventMsg(Msg4Event msg) {
+        		/** msg.getEvent()
+        		 * unsubscribe：取消关注 ; subscribe：关注
+        		 */
+        		System.out.println(msg.getEvent());
+        		if("subscribe".equals(msg.getEvent())){
+        			//扫推荐码之后实际是关注事件，获取事件key值
+        			System.out.println("获取数据"+msg.getEvent());
+        			wechatLogger.info("扫码获取到的场景之为： " + msg.getEventKey());//邀请人的openid
+        			//建立关系到数据库
+        			//为空不需要添加邀请数据
+        			String ywu013 = msg.getEventKey().split("_")[1];//邀请人的openid
+        			String ywu010 = msg.getFromUserName();//新关注用户自己的openid
+        			if(!Tools.isObjEmpty(msg.getEventKey())){
+        				PageData pda = new PageData();
+        				pda.put("YWU010", ywu010);
+        				PageData ywudata = ywuService.getYwuByYwu010(pda);
+	        				if(Tools.isObjEmpty(ywudata)){//查询当前用户是否已经有数据，有则不需要做其他操作
+	        				//给邀请用户增加积分数据
+	        				PageData pd = new PageData();
+		        			pd.put("YWREWARD002_TP", 1);
+		        			pd.put("YWREWARD003_TP", 1);
+		        			pd.put("YWREWARD004_TM", DateUtil.get1000ParsedDate());
+		        			pd.put("YWREWARD005", 10);//获得奖励
+		        			pd.put("YWU001_RELATION",ywu010);//邀请人的openid(目前暂时这里存储被邀请人的openid)
+		        			
+		        			try {
+		        				//添加邀请积分
+		        				if(!Tools.isObjEmpty(ywu013)){//邀请人不为空才会写入 邀请数据否则只需要写入注册数据
+		        				pd.put("YWU010",ywu013);//邀请人的openid
+								ywRewardService.addYwReward(pd);
+		        				}
+		        			//增加用户数据 
+		            			//获取微信的用户基本信息
+		            			JSONObject userInfojson = null;
+		            			String access_token = redisutil.readWxToken();
+		        				String requestUrl = redisutil.GETUSERGZINFOURL.replace("ACCESS_TOKEN",access_token).replace("OPENID",ywu010);//这里采用另外的access获取用户信息
+		        				userInfojson = httpRequst(requestUrl, "GET", null);
+		            			//写入数据库(关注用户数据)
+		            			pd.put("YWU007_TP",2);//是否绑定1绑定2未绑定3已解绑
+		            			pd.put("YWU010",ywu010);
+		            			pd.put("YWU006_TM",DateUtil.get1000ParsedDate());
+		            			pd.put("YWU011",userInfojson.getString("headimgurl"));//头像
+		            			pd.put("YWU004",Util.filterEmoji(userInfojson.getString("nickname").replaceAll("[\\ud800\\udc00-\\udbff\\udfff\\ud800-\\udfff]", "*")));//昵称
+		            			pd.put("YWU005_TP",userInfojson.getString("sex"));//性别
+		            			//获取数据是否有邀请数据有的话则增加邀人信息
+		            			pd.put("YWU013",ywu013);//邀请人(谁 邀请的该用户存入传进来的openid)
+		            			ywuService.addYwu(pd);
+		            			System.out.println("写入新关注用户数据...");
+		            			//写入缓存
+		            			//redisutil.writeWxOpenIdAndInfo(pd);
+		        			} catch (Exception e) {
+								e.printStackTrace();
+							}
+        				}
+        			}
+        			returnMSg(msg,null,"欢迎关注瑞信梦想金服!");
+        		}
+        		/**
+        		 * 点击事件
+        		 * */
+        		if("CLICK".equals(msg.getEvent())){
+        			returnMSg(msg,null,"ContactUs");
+        		}
+        	}
+        	
+        	 /**
+        	  * 收到的文本消息
+        	  */
+        	 @Override 
+             public void onTextMsg(Msg4Text msg) {
+        		 
+                returnMSg(null,msg,msg.getContent().trim());
+             }
+        	 
+        	 @Override
+        	public void onImageMsg(Msg4Image msg) {
+        		// TODO Auto-generated method stub
+        		super.onImageMsg(msg);
+        	}
+        	 
+        	 @Override
+        	public void onLocationMsg(Msg4Location msg) {
+        		// TODO Auto-generated method stub
+        		super.onLocationMsg(msg);
+        	}
+        	 
+        	@Override
+        	public void onLinkMsg(Msg4Link msg) {
+        		// TODO Auto-generated method stub
+        		super.onLinkMsg(msg);
+        	}
+        	
+        	@Override
+        	public void onVideoMsg(Msg4Video msg) {
+        		// TODO Auto-generated method stub
+        		super.onVideoMsg(msg);
+        	}
+        	
+        	@Override
+        	public void onVoiceMsg(Msg4Voice msg) {
+        		// TODO Auto-generated method stub
+        		super.onVoiceMsg(msg);
+        	}
+        	
+        	@Override
+        	public void onErrorMsg(int errorCode) {
+        		// TODO Auto-generated method stub
+        		super.onErrorMsg(errorCode);
+        	}
+        	
+        	/**
+        	 * 返回消息
+        	 * @param emsg
+        	 * @param tmsg
+        	 * @param getmsg
+        	 */
+        	public void returnMSg(Msg4Event emsg, Msg4Text tmsg, String getmsg){
+        		 PageData msgpd;
+                 PageData pd = new PageData();
+                 String toUserName,fromUserName,createTime;
+                 if(null == emsg){
+                	 toUserName = tmsg.getToUserName();
+                	 fromUserName = tmsg.getFromUserName();
+                	 createTime = tmsg.getCreateTime();
+                 }else{
+                	 toUserName = emsg.getToUserName();
+                	 fromUserName = emsg.getFromUserName();
+                	 createTime = emsg.getCreateTime();
+                 }
+                 pd.put("KEYWORD", getmsg);
+                 try {
+ 						msgpd = textmsgService.getByKw(pd);
+ 						if(null != msgpd){
+ 							 Msg4Text rmsg = new Msg4Text(); 
+ 		                     rmsg.setFromUserName(toUserName); 
+ 		                     rmsg.setToUserName(fromUserName); 
+ 		                     //rmsg.setFuncFlag("0"); 
+ 		                     rmsg.setContent(msgpd.getString("CONTENT")); //回复文字消息
+ 		                     sessionDef.callback(rmsg); 
+ 						}else{
+ 							msgpd = imgmsgService.getByKw(pd);
+ 							if(null != msgpd){
+ 								 Msg4ImageText mit = new Msg4ImageText(); 
+ 				                 mit.setFromUserName(toUserName); 
+ 				                 mit.setToUserName(fromUserName);  
+ 				                 mit.setCreateTime(createTime);  
+ 								 //回复图文消息
+ 				                 if(null != msgpd.getString("TITLE1") && null != msgpd.getString("IMGURL1")){
+ 				                	 Data4Item d1 = new Data4Item(msgpd.getString("TITLE1"),msgpd.getString("DESCRIPTION1"),msgpd.getString("IMGURL1"),msgpd.getString("TOURL1"));  
+ 				                	 mit.addItem(d1);
+ 				                	 
+ 				                	 if(null != msgpd.getString("TITLE2") && null != msgpd.getString("IMGURL2") && !"".equals(msgpd.getString("TITLE2").trim()) && !"".equals(msgpd.getString("IMGURL2").trim())){
+ 					                	 Data4Item d2 = new Data4Item(msgpd.getString("TITLE2"),msgpd.getString("DESCRIPTION2"),msgpd.getString("IMGURL2"),msgpd.getString("TOURL2"));  
+ 					                	 mit.addItem(d2);
+ 					                 }
+ 				                	 if(null != msgpd.getString("TITLE3") && null != msgpd.getString("IMGURL3") && !"".equals(msgpd.getString("TITLE3").trim()) && !"".equals(msgpd.getString("IMGURL3").trim())){
+ 					                	 Data4Item d3 = new Data4Item(msgpd.getString("TITLE3"),msgpd.getString("DESCRIPTION3"),msgpd.getString("IMGURL3"),msgpd.getString("TOURL3"));  
+ 					                	 mit.addItem(d3);
+ 					                 }
+ 				                	 if(null != msgpd.getString("TITLE4") && null != msgpd.getString("IMGURL4") && !"".equals(msgpd.getString("TITLE4").trim()) && !"".equals(msgpd.getString("IMGURL4").trim())){
+ 					                	 Data4Item d4 = new Data4Item(msgpd.getString("TITLE4"),msgpd.getString("DESCRIPTION4"),msgpd.getString("IMGURL4"),msgpd.getString("TOURL4"));  
+ 					                	 mit.addItem(d4);
+ 					                 }
+ 				                	 if(null != msgpd.getString("TITLE5") && null != msgpd.getString("IMGURL5") && !"".equals(msgpd.getString("TITLE5").trim()) && !"".equals(msgpd.getString("IMGURL5").trim())){
+ 					                	 Data4Item d5 = new Data4Item(msgpd.getString("TITLE5"),msgpd.getString("DESCRIPTION5"),msgpd.getString("IMGURL5"),msgpd.getString("TOURL5"));  
+ 					                	 mit.addItem(d5);
+ 					                 }
+ 				                	 if(null != msgpd.getString("TITLE6") && null != msgpd.getString("IMGURL6") && !"".equals(msgpd.getString("TITLE6").trim()) && !"".equals(msgpd.getString("IMGURL6").trim())){
+ 					                	 Data4Item d6 = new Data4Item(msgpd.getString("TITLE6"),msgpd.getString("DESCRIPTION6"),msgpd.getString("IMGURL6"),msgpd.getString("TOURL6"));  
+ 					                	 mit.addItem(d6);
+ 					                 }
+ 				                	 if(null != msgpd.getString("TITLE7") && null != msgpd.getString("IMGURL7") && !"".equals(msgpd.getString("TITLE7").trim()) && !"".equals(msgpd.getString("IMGURL7").trim())){
+ 					                	 Data4Item d7 = new Data4Item(msgpd.getString("TITLE7"),msgpd.getString("DESCRIPTION7"),msgpd.getString("IMGURL7"),msgpd.getString("TOURL7"));  
+ 					                	 mit.addItem(d7);
+ 					                 }
+ 				                	 if(null != msgpd.getString("TITLE8") && null != msgpd.getString("IMGURL8") && !"".equals(msgpd.getString("TITLE8").trim()) && !"".equals(msgpd.getString("IMGURL8").trim())){
+ 					                	 Data4Item d8 = new Data4Item(msgpd.getString("TITLE8"),msgpd.getString("DESCRIPTION8"),msgpd.getString("IMGURL8"),msgpd.getString("TOURL8"));  
+ 					                	 mit.addItem(d8);
+ 					                 }
+ 				                 }
+ 				                 //mit.setFuncFlag("0");   
+ 				                 sessionDef.callback(mit); 
+ 							}else{
+ 								msgpd = commandService.getByKw(pd);
+ 								if(null != msgpd){
+ 			             			Runtime runtime = Runtime.getRuntime(); 
+ 			             			runtime.exec(msgpd.getString("COMMANDCODE"));
+ 								}else{
+ 									 Msg4Text rmsg = new Msg4Text(); 
+ 				                     rmsg.setFromUserName(toUserName); 
+ 				                     rmsg.setToUserName(fromUserName); 
+ 				                     rmsg.setContent("无匹配结果");
+ 				                     sessionDef.callback(rmsg); 
+ 								}
+ 							}
+ 						}
+ 				} catch (Exception e1) {
+// 					logBefore(logger, "匹配错误");
+ 				}
+        	}
+        	
+        }); 
+         /*必须调用这两个方法   如果不调用close方法，将会出现响应数据串到其它Servlet中。*/ 
+         sessionDef.process(is, os);	//处理微信消息  
+         sessionDef.close();			//关闭Session 
+    } 
+    
+	/**
+	 * 获取关注列表
+	 * @param out
+	 */
+	@RequestMapping(value="/getGz")
+	public @ResponseBody void getGz(PrintWriter out) {
+//		logBefore(logger, "获取关注列表");
+		try{
+			String access_token = redisutil.readWxToken();
+			
+			System.out.println(access_token+"============");
+			
+			String requestUrl=redisutil.GZ_URL.replace("ACCESS_TOKEN", access_token);
+			
+			System.out.println(requestUrl+"============");
+			
+			JSONObject jsonObject = httpRequst(requestUrl, "GET", null);
+			System.out.println(jsonObject);
+			//System.out.println(jsonObject.getString("total")+"============");
+			
+			/*PrintWriter pw;
+			try {
+				pw = new PrintWriter( new FileWriter( "e:/gz.txt" ) );
+				pw.print(jsonObject.getString("total"));
+		        pw.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			out.write("success");
+			out.close();*/
+		} catch(Exception e){
+//			logger.error(e.toString(), e);
+		}
+	}
+	
+	/**
+	 * 获取access_token
+	 */
+	@RequestMapping(value="/getAt")
+	public @ResponseBody String getAt() {
+		//logBefore(logger, "获取access_token");
+			String requestUrl=redisutil.ACCESS_TOKEN_URL.replace("APPID", redisutil.weixin_appid).replace("APPSECRET", redisutil.weixin_secret);
+			JSONObject jsonObject=httpRequst(requestUrl, "GET", null);
+			System.out.println(jsonObject);
+			//写入token进入缓存进行读取
+			jsonObject.getString("access_token");
+			String jsapiUrl=redisutil.JSAPI_TICKET_URL.replace("ACCESS_TOKEN", jsonObject.getString("access_token"));
+			boolean writeTokenState = redisutil.writeWxToken(jsonObject.getString("access_token"));
+			
+			//在同时获取jsapi_ticket，同时写入文件，失效时间跟accesstoken时间一致
+			JSONObject json=httpRequst(jsapiUrl, "GET", null);
+			boolean writeTicketState = redisutil.writeWxTicket(json.getString("ticket"));
+			
+			//重新写入jssdk的ticket
+			
+			if(writeTicketState||writeTokenState){//都写成功
+				return "success";
+			}else{
+				return "falid";
+			}
+	}
+	public boolean getPublicCode() {  
+		PageData pd = getPageData();
+		String code = pd.getString("code");//我们要的code  
+		//写入session 把用户的信息写入session如果这个用户在数据库中不存在则新插入一条数据
+		boolean codepd = false;
+    	PageData pagedata = getWxSession();
+    	if(pagedata != null && Tools.notEmpty(pagedata.getString("YWU010"))){//不为空
+    		//暂时还未处理跳转到对应的地址
+    		codepd = true;
+    	}else{//为空则获取这个用户的所有基本信息放入session，如果没有则新增用户信息
+    		//先从缓存去取，如果取不到则表明用户未注册登录过，需要写入数据库
+    		String url = redisutil.GETPAGEAKURL.replace("APPID",redisutil.weixin_appid).replace("SECRET",redisutil.weixin_secret).replace("CODE",code);  
+	        JSONObject jsonObject = httpRequst(url, "POST",null);
+    		//PageData redisInfoData = redisutil.readWxOpenIdAndInfo(jsonObject.getString("openid"));缓存不可用
+	        System.out.println("========"+jsonObject);
+	        pd.put("YWU010",jsonObject.getString("openid"));
+	        PageData redisInfoData = ywuService.getYwuByYwu010(pd);
+    		if(redisInfoData == null){
+    			//获取的code用来获取
+    			System.out.println("进入获取用户信息方法");
+    	        if (null != jsonObject) {  
+    			//获取微信的用户基本信息
+    			JSONObject userInfojson = null;
+				String requestUrl = redisutil.GETUSERINFOURL.replace("ACCESS_TOKEN", jsonObject.getString("access_token")).replace("OPENID", jsonObject.getString("openid"));//网页授权接口调用凭证,注意：此access_token与基础支持的access_token不同
+				userInfojson = httpRequst(requestUrl, "GET", null);
+    			//写入数据库
+    			pd.put("YWU007_TP",2);//是否绑定1绑定2未绑定3已解绑
+    			pd.put("YWU010",jsonObject.getString("openid"));
+    			pd.put("YWU006_TM",DateUtil.get1000ParsedDate());
+    			pd.put("YWU011",userInfojson.getString("headimgurl"));//头像
+    			pd.put("YWU004",Util.filterEmoji(userInfojson.getString("nickname").replaceAll("[\\ud800\\udc00-\\udbff\\udfff\\ud800-\\udfff]", "*")));//昵称
+    			pd.put("YWU005_TP",userInfojson.getString("sex"));//性别
+    			ywuService.addYwu(pd);
+    			//写入缓存
+    			//redisutil.writeWxOpenIdAndInfo(pd);
+    			//写入session用户基础信息
+        		session.setAttribute(SessionUtil.SESSION_OPENID,pd);
+    	        }
+    		}else{//session为空但是缓存为空，只需要对session重新set一次
+    			session.setAttribute(SessionUtil.SESSION_OPENID,redisInfoData);
+    		}
+    		codepd = true;
+    	}
+    	return codepd;
+	 }
+	/**
+	 * 发送请求
+	 * @param requestUrl
+	 * @param requetMethod
+	 * @param outputStr
+	 * @return
+	 */
+	public JSONObject httpRequst(String requestUrl,String requetMethod,String outputStr){
+		JSONObject jsonobject=null;
+		StringBuffer buffer=new StringBuffer();
+		try
+		{
+			//创建SSLContext对象，并使用我们指定的新人管理器初始化
+			TrustManager[] tm={new MyX509TrustManager()};
+			SSLContext sslcontext=SSLContext.getInstance("SSL","SunJSSE");
+			sslcontext.init(null, tm, new java.security.SecureRandom());
+			//从上述SSLContext对象中得到SSLSocktFactory对象
+			SSLSocketFactory ssf=sslcontext.getSocketFactory();
+			
+			URL url=new URL(requestUrl);
+			HttpsURLConnection httpUrlConn=(HttpsURLConnection)url.openConnection();
+			httpUrlConn.setSSLSocketFactory(ssf);
+			
+			httpUrlConn.setDoOutput(true);
+			httpUrlConn.setDoInput(true);
+			httpUrlConn.setUseCaches(false);
+			//设置请求方式（GET/POST）
+			httpUrlConn.setRequestMethod(requetMethod);
+			
+			if("GET".equalsIgnoreCase(requetMethod))
+				httpUrlConn.connect();
+			
+			//当有数据需要提交时
+			if(null!=outputStr)
+			{
+			OutputStream outputStream=httpUrlConn.getOutputStream();
+			//注意编码格式，防止中文乱码
+			outputStream.write(outputStr.getBytes("UTF-8"));
+			outputStream.close();
+			}
+			
+			//将返回的输入流转换成字符串
+			InputStream inputStream=httpUrlConn.getInputStream();
+			InputStreamReader inputStreamReader=new InputStreamReader(inputStream,"utf-8");
+			BufferedReader bufferedReader=new BufferedReader(inputStreamReader);
+			
+			
+			String str=null;
+			while((str = bufferedReader.readLine()) !=null)
+			{ 
+				buffer.append(str);
+			}
+			bufferedReader.close();
+			inputStreamReader.close();
+			//释放资源
+			inputStream.close();
+			inputStream=null;
+			httpUrlConn.disconnect();
+			jsonobject=JSONObject.fromObject(buffer.toString());
+		}
+		catch (ConnectException ce) {
+			// TODO: handle exception
+		}
+		catch (Exception e) {  
+		}
+		return jsonobject;
+	}
+	/**
+     * 以http方式发送请求,并将请求响应内容输出到文件
+     * @param path    请求路径
+     * @param method  请求方法
+     * @param body    请求数据
+     * @return 返回存储后可以访问的服务器访问地址URL
+     */
+    public static String httpRequestToFile(String path,String method, String body) {
+        //构建生成图片路径
+    	String subFolder = "wxImg";
+    	String imgUrl = null;
+    	subFolder = subFolder + "/" + new SimpleDateFormat("yyyyMM").format(new Date());
+    	//生成时间关联的文件名
+    	String fileName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date())+"_"+new Date().getTime()+".jpg";
+    	//根据静态文件生成在系统中的绝对路径
+    	String filePath = Config.getStaticFilesAbsoluteSavePath(subFolder);
+    	//先生成路径
+    	FileUtil.createFolder(filePath);
+		//拼接绝对路径
+		filePath += fileName;
+    	
+    	
+    	if(path==null||method==null){
+            return null;
+        }
+        
+        File file = null;
+        HttpURLConnection conn = null;
+        InputStream inputStream = null;
+        FileOutputStream fileOut = null;
+        try {
+            URL url = new URL(path);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            conn.setUseCaches(false);
+            conn.setRequestMethod(method);
+            if (null != body) {
+                OutputStream outputStream = conn.getOutputStream();
+                outputStream.write(body.getBytes("UTF-8"));
+                outputStream.close();
+            }
+
+            inputStream = conn.getInputStream();
+            if(inputStream!=null){
+                file = new File(filePath);
+            }else{
+                return null;
+            }
+
+            //写入到文件
+            fileOut = new FileOutputStream(file);
+            if(fileOut!=null){
+                int c = inputStream.read();
+                while(c!=-1){
+                    fileOut.write(c);
+                    c = inputStream.read();
+                }
+            }
+            imgUrl = Config.getStaticFilesRelativeAccessURL(subFolder, fileName);
+    		
+        } catch (Exception e) {
+         
+        }finally{
+            if(conn!=null){
+                conn.disconnect();
+            }
+
+            /*
+             * 必须关闭文件流
+             * 否则JDK运行时，文件被占用其他进程无法访问
+             */
+            try {
+                inputStream.close();
+                fileOut.close();
+            } catch (IOException execption) {
+                
+            }
+        }
+        return imgUrl;
+    }
+	/**
+	 * 统一的获取code入口
+	 * 如果有页面需要授权登录，那么需要给出此方法作为入口用来获取code，通过获取的code来做
+	 * */
+	@RequestMapping("/getWxCode")  
+	public String getWxCode(HttpServletResponse rep) {  
+		PageData pd = getPageData();
+		String code = pd.getString("code");//我们要的code  
+		//写入session 把用户的信息写入session如果这个用户在数据库中不存在则新插入一条数据
+    	PageData pagedata = getWxSession();
+    	if(pagedata != null && Tools.notEmpty(pagedata.getString("YWU010"))){//不为空
+    		//暂时还未处理跳转到对应的地址
+    		
+    	}else{//为空则获取这个用户的所有基本信息放入session，如果没有则新增用户信息
+    		//先从缓存去取，如果取不到则表明用户未注册登录过，需要写入数据库
+    		String url = redisutil.GETPAGEAKURL.replace("APPID",redisutil.weixin_appid).replace("SECRET",redisutil.weixin_secret).replace("CODE",code);  
+	        JSONObject jsonObject = httpRequst(url, "POST",null);
+    		//PageData redisInfoData = redisutil.readWxOpenIdAndInfo(jsonObject.getString("openid"));缓存不可用
+	        System.out.println("========"+jsonObject);
+	        pd.put("YWU010",jsonObject.getString("openid"));
+	        PageData redisInfoData = ywuService.getYwuByYwu010(pd);
+    		if(redisInfoData == null){
+    			//获取的code用来获取
+    			System.out.println("进入获取用户信息方法");
+    	        if (null != jsonObject) {  
+    			//获取微信的用户基本信息
+    			JSONObject userInfojson = null;
+				String requestUrl = redisutil.GETUSERINFOURL.replace("ACCESS_TOKEN", jsonObject.getString("access_token")).replace("OPENID", jsonObject.getString("openid"));//网页授权接口调用凭证,注意：此access_token与基础支持的access_token不同
+				userInfojson = httpRequst(requestUrl, "GET", null);
+    			//写入数据库
+    			pd.put("YWU007_TP",2);//是否绑定1绑定2未绑定3已解绑
+    			pd.put("YWU010",jsonObject.getString("openid"));
+    			pd.put("YWU006_TM",DateUtil.get1000ParsedDate());
+    			pd.put("YWU011",userInfojson.getString("headimgurl"));//头像
+    			pd.put("YWU004",Util.filterEmoji(userInfojson.getString("nickname").replaceAll("[\\ud800\\udc00-\\udbff\\udfff\\ud800-\\udfff]", "*")));//昵称
+    			pd.put("YWU005_TP",userInfojson.getString("sex"));//性别
+    			ywuService.addYwu(pd);
+    			//写入缓存
+    			//redisutil.writeWxOpenIdAndInfo(pd);
+    			//写入session用户基础信息
+        		session.setAttribute(SessionUtil.SESSION_OPENID,pd);
+    	        }
+    		}else{//session为空但是缓存为空，只需要对session重新set一次
+    			session.setAttribute(SessionUtil.SESSION_OPENID,redisInfoData);
+    		}
+    	}
+    	return pd.getString("state");
+	 }  
+	 
+	/**
+	 * 获取永久素材信息
+	 * @param rep
+	 */
+	@RequestMapping("/getWxSc")  
+	public void getWxSc(HttpServletResponse rep) { 
+		 JSONObject jsonin = new JSONObject();
+		 jsonin.put("type", "news");
+		 jsonin.put("offset", "0");
+		 jsonin.put("count", "20");
+		 JSONObject json = new JSONObject();
+		 String scUrl = "https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=-2g-AAtuijH775aBDANEGzAI4n7-HztVemzFbdYlr_e96BwBBoy9KZo2RRbjA5gKtK6U0d162KJGLs0PYslT5VlAyDl389IDnJUp_lhfRc5GdYG40P70iVwBgqdWfQc2EDKiABAJIP";
+		 json=httpRequst(scUrl, "POST", jsonin.toString());
+		 System.out.println(json);
+	}
+	/**
+	 * 获取临时素材信息
+	 * @param MEDIA_ID 上传的图片素材ID（客户端上传至微信服务器后会返回MEDIA_ID）
+	 * 
+	 */
+	public String getWxLsSc(String media_id) { 
+		 PageData pd = getPageData();
+		 String access_token = redisutil.readWxToken();
+		 String scUrl = redisutil.SCLS_URL.replace("ACCESS_TOKEN",access_token).replace("MEDIA_ID",media_id);
+		 String imgurl = null;
+		 imgurl=httpRequestToFile(scUrl, "GET", null);
+		 String path = Config.getStaticFilesAccessURL(imgurl);
+		 System.out.println("上传指定文件夹生成文件后的路径"+imgurl);
+		 System.out.println("生成访问后的地址信息"+path);
+		 return null;
+	}
+	
+	/**
+	 * 根据code获取accessToken 跟openid
+	 * @param code
+	 * @return
+	 */
+	public String getOpenAndToken(String code) {  
+		JSONObject json = new JSONObject();
+		String appid = "wxa0844dadcdcf1727";
+		String SECRET = "cd6ff5003f2c2b8f7b98815c2fb49f9b";
+		String CODE = code;
+//		String requestUrl=openID_url.replace("APPID", appid).replace("SECRET", SECRET).replace("CODE",CODE);
+//		json=httpRequst(requestUrl, "POST", null);
+//		System.out.println("获取的json===="+json.toString());
+//		String openid = json.getString("openid");
+//		System.out.println("获取的openid===="+openid);
+		return ""; 
+	} 
+	
+	/**
+	 * 生成菜单跳转地址
+	 * @param rediUrl
+	 * @return
+	 */
+	public String getCodeContUrl(String rediUrl){
+		String requestUrl = redisutil.GETWXUSERMSGURL
+				.replace("APPID", redisutil.weixin_appid)
+				.replace("REDIRECT_URI", URLEncoder.encode(rediUrl))//处理后的重定向地址，可用https
+				.replace("SCOPE", "snsapi_userinfo")//snsapi_base（不弹出授权页面，直接跳转，只能获取用户openid）
+				.replace("STATE", "123");//state:参数
+		return requestUrl;
+	}
+	
+	/**
+	 * 创建菜单，对外暴露接口
+	 */
+	@RequestMapping(value="/createMenu")
+	@ResponseBody
+	private String createMenu() {
+		try {
+//			String access_token = redisutil.readWxToken();
+			String requestUrl = redisutil.CREATEMENUURL
+					.replace("ACCESS_TOKEN","aTFCwEr8e1eOMEueRnK0C2VG6zT220vbGExc7FqRFIX-ctPoKLVFu8ryvpEaP5y9WSKdWYTWwXHcO6gdS09PwPBe7WSRXW5qn7y7drM9IsfpuZohXIIwG2zBOk6erJ10MNPeAFAFGI");
+			
+			//总btn
+			JSONObject btnJson = new JSONObject();
+			
+			//一级菜单
+			JSONArray btnJsonAry = new JSONArray();
+			
+			//一级菜单1的二级菜单
+			
+			JSONObject btnJson1 = new JSONObject();
+			btnJson1.put("name", "贷款服务");
+			
+			JSONArray btnJsonAry1 = new JSONArray();
+			
+			JSONObject btnJson1_1 = new JSONObject();
+			btnJson1_1.put("type", "view");
+			btnJson1_1.put("name", "在线申请");
+			btnJson1_1.put("url", "http://wx.resunruixin.com/dbSun/wx_index/goIndex");
+			btnJsonAry1.add(btnJson1_1);
+			
+			JSONObject btnJson1_2 = new JSONObject();
+			btnJson1_2.put("type", "view");
+			btnJson1_2.put("name", "进度查询");
+			btnJson1_2.put("url", getCodeContUrl("http://wx.resunruixin.com/dbSun/wx_mine/goDKJD"));
+			btnJsonAry1.add(btnJson1_2);
+			
+			JSONObject btnJson1_3 = new JSONObject();
+			btnJson1_3.put("type", "view");
+			btnJson1_3.put("name", "问题解答");
+			btnJson1_3.put("url", "http://wx.resunruixin.com/dbSun/wx_more/commPro");
+			btnJsonAry1.add(btnJson1_3);
+			
+			JSONObject btnJson1_4 = new JSONObject();
+			btnJson1_4.put("type", "view");
+			btnJson1_4.put("name", "联系我们");
+			btnJson1_4.put("url", getCodeContUrl("http://wx.resunruixin.com/dbSun/wx_more/aboutWe"));
+			btnJsonAry1.add(btnJson1_4);
+
+			btnJson1.put("sub_button", btnJsonAry1);
+			btnJsonAry.add(btnJson1);
+			
+			
+			//一级菜单2的二级菜单
+			JSONObject btnJson2 = new JSONObject();
+			btnJson2.put("name", "事业合伙人");
+			
+			JSONArray btnJsonAry2 = new JSONArray();
+			
+			JSONObject btnJson2_1 = new JSONObject();
+			btnJson2_1.put("type", "view");
+			btnJson2_1.put("name", "资料修改");
+			btnJson2_1.put("url", getCodeContUrl("http://wx.resunruixin.com/dbSun/wx_ywData/goBacMsg"));
+			
+			btnJsonAry2.add(btnJson2_1);
+			
+			btnJson2.put("sub_button", btnJsonAry2);
+			btnJsonAry.add(btnJson2);
+			
+			btnJson.put("button", btnJsonAry);
+			
+			
+			System.out.println(btnJson);
+			JSONObject jsonObject = httpRequst(requestUrl, "POST", btnJson.toString());
+			System.out.println(jsonObject);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return "succes23s";
+	}
+
+	/**
+	 * 创建二维码ticket
+	 */
+	@RequestMapping("/getTicket")
+	@ResponseBody
+	public String getTicket(){
+		//wechatLogger.info("开始获取ticket");
+		try{
+			
+			String access_token = redisutil.readWxToken();
+			
+			String requestUrl=redisutil.GETTKT_URL.replace("TOKEN",access_token);
+			//wechatLogger.info("开始获取ticket的请求地址为：" + requestUrl);
+			
+//			String jsonMsg ="{\"action_name\":\"QR_LIMIT_SCENE\",\"action_info\":{\"scene\"：{\"scene_id\":%d}}}";
+			
+			JSONObject json = new JSONObject();
+			//二维码类型，QR_SCENE为临时的整型参数值，QR_STR_SCENE为临时的字符串参数值，
+			//QR_LIMIT_SCENE为永久的整型参数值，QR_LIMIT_STR_SCENE为永久的字符串参数值
+			json.put("action_name", "QR_STR_SCENE");//QR_STR_SCENE为临时的字符串参数值
+			json.put("expire_seconds",2592000);//临时二维码需要设置默认过期时间，该二维码有效时间，以秒为单位。 最大不超过2592000（即30天），此字段如果不填，则默认有效期为30秒。
+			JSONObject sceneId = new JSONObject();
+			sceneId.put("scene_str", "test");//二维码参数标识
+			
+			JSONObject scene = new JSONObject();
+			scene.put("scene", sceneId);
+			
+			json.put("action_info", scene);
+			
+			//发送请求
+			JSONObject jsonObject = httpRequst(requestUrl, "POST", json.toString());
+			//wechatLogger.info("创建ticket获取到的json为：" + jsonObject);
+			
+			//wechatLogger.info("获取到的ticket为：" + jsonObject.getString("ticket"));
+			
+			//将ticket返回到页面，点击链接即可展示或下载
+			return this.getSceneUrl(jsonObject.getString("ticket"));
+			
+		} catch(Exception e){
+			//logger.error(e.toString(), e);
+		}
+		
+		return "error";
+	}
+	
+	/**
+	 * 获取二维码
+	 */
+	@RequestMapping("/getSceneUrl")
+	public String getSceneUrl(String ticket){
+		//wechatLogger.info("开始获取二维码...");
+		try{
+			String requestUrl = redisutil.GETSCEURL.replace("TICKET", URLEncoder.encode(ticket, "UTF-8"));
+			//wechatLogger.info("通过ticket获取二维码的请求为：" + requestUrl);
+			return requestUrl;
+			//JSONObject jsonObject = httpRequst(requestUrl, "GET", null);
+			//wechatLogger.info("通过ticket获取二维码返回的json为：" + jsonObject);
+			
+		} catch(Exception e){
+			//logger.error(e.toString(), e);
+		}
+		return "error";
+	}
+	
+	/**
+	 * 提交：处理从不同入口提交的信息，由此统计用户来源
+	 * @return
+	 */
+	@RequestMapping(value="/getJssdk", method=RequestMethod.POST, produces="application/json;charset=UTF-8")
+	@ResponseBody
+	public String getJssdk() throws Exception{
+		//logBefore(logger, "获取jssdk：");
+//		JSONObject json = new JSONObject();
+		System.out.println("进入jssdk..........");
+		PageData pd = new PageData();
+		pd = this.getPageData();
+		//获取url
+		String url = pd.getString("URL");
+		String jsapi_ticket = redisutil.readWxTicket();
+		Sign sign = new Sign();
+		String jssdkSign = sign.getSign(url, jsapi_ticket,redisutil.weixin_appid);
+		JSONObject json = JSONObject.fromObject(jssdkSign);
+		json.put("ywu010",getYwu010());
+		System.out.println(json.toString());
+		return json.toString();
+	}
+	
+	/**自动回复*/
+	public String getCurrAutoReplyInfo(){
+		
+		String requestUrl = redisutil.GET_CURRENT_AUTOREPLY_INFO
+				.replace("ACCESS_TOKEN", redisutil.readWxToken());
+		
+		StringBuffer sb = new StringBuffer();
+		sb.append("{");
+		sb.append("	  \"is_add_friend_reply_open\": 1, ");
+		sb.append("	  \"is_autoreply_open\": 1,");
+		sb.append("	  \"add_friend_autoreply_info\": { ");
+		sb.append("	      \"type\": \"text\", ");
+		sb.append("	      \"content\": \"Thanks for your attention!\"");
+		sb.append("},");
+		sb.append("\"message_default_autoreply_info\": { ");
+		sb.append("      \"type\": \"text\", ");
+		sb.append("      \"content\": \"Hello, this is autoreply!\"");
+		sb.append("  }, ");
+		sb.append("  \"keyword_autoreply_info\": { ");//关键字自动回复消息
+		sb.append("      \"list\": [ ");
+		sb.append("         { ");
+		sb.append("              \"rule_name\": \"autoreply-news\",");
+		sb.append("             \"create_time\": 1423028166,");
+		sb.append("             \"reply_mode\": \"reply_all\",");
+		sb.append("              \"keyword_list_info\": [");
+		sb.append("                  { ");
+		sb.append("                      \"type\": \"text\",");
+		sb.append("                      \"match_mode\": \"contain\",");
+		sb.append("                      \"content\": \"news测试\"");//此处content即为关键词内容
+		sb.append("                  }");
+		sb.append("              ], ");
+		sb.append("\"reply_list_info\": [ ");
+		sb.append("                  { ");
+		sb.append("                      \"type\": \"news\", ");
+		sb.append("                      \"news_info\": { ");
+		sb.append("                          \"list\": [ ");
+		sb.append("                              {");
+		sb.append("                                  \"title\": \"it's news\",");
+		sb.append("                                  \"author\": \"jim\", ");
+		sb.append("                                  \"digest\": \"it's digest\", ");
+		sb.append("                                  \"show_cover\": 1,  \"cover_url\": \"http://mmbiz.qpic.cn/mmbiz/GE7et87vE9vicuCibqXsX9GPPLuEtBfXfKbE8sWdt2DDcL0dMfQWJWTVn1N8DxI0gcRmrtqBOuwQHeuPKmFLK0ZQ/0\",");
+		sb.append("                                  \"content_url\": \"http://mp.weixin.qq.com/s?__biz=MjM5ODUwNTM3Ng==&mid=203929886&idx=1&sn=628f964cf0c6d84c026881b6959aea8b#rd\",");
+		sb.append("                                  \"source_url\": \"http://www.url.com\"");
+		sb.append("                              }");
+		sb.append("                          ]");
+		sb.append("                      }");
+		sb.append("                  }");
+		sb.append("              ]");
+		sb.append("          }, ");
+		sb.append("      ]");
+		sb.append("  }");
+		sb.append("}");
+		
+		return sb.toString();
+	}
+	
+	/**客服消息-----------*/
+	
+	/**添加客服账号*/
+	@RequestMapping("/kfAccountAdd")
+	@ResponseBody
+	public void kfAccountAdd() {
+		String requestUrl = redisutil.KFACCOUNT_ADD.replace("ACCESS_TOKEN", "mYMsmw1_zfLi7XOSDmwxfniLvQkaLAF9carYI-C6qiDSTNbO_RoLGMe_m4mHxCjq-zR4SdCt9TDjUBxALx7wYg3cUjO5UI2r9Fr7m0ieFMt843K_LQCX6Gtd9ESiqy93SPTfAIAAXB");
+		
+		JSONObject json = new JSONObject();
+		
+		json.put("kf_account", "瑞信客服");
+		json.put("nickname", "瑞信");
+		json.put("password", "111111");
+		
+		JSONObject jsonObject = httpRequst(requestUrl, "POST", json.toString());
+		
+		System.out.println("返回的json为：" + jsonObject);
+
+		
+	}
+	
+	/**修改客服帐号*/
+	public String kfAccUpdate() {
+		String requestUrl = redisutil.KFACCOUNT_UPDATE.replace("ACCESS_TOKEN", redisutil.readWxToken());
+		
+		JSONObject json = new JSONObject();
+		json.put("kf_account", "test1@test");
+		json.put("nickname", "客服1");
+		json.put("password", "pswmd5");
+		
+		JSONObject jsonObject = httpRequst(requestUrl, "POST", json.toString());
+		System.out.println("修改客服账号返回的json为：" + jsonObject);
+		
+		return "success";
+	}
+	
+	/**删除客服帐号*/
+	public String kfaccountDel() {
+		String requestUrl = redisutil.KFACCOUNT_DEL.replace("ACCESS_TOKEN", redisutil.readWxToken());
+		
+		JSONObject json = new JSONObject();
+		json.put("kf_account", "test1@test");
+		json.put("nickname", "客服1");
+		json.put("password", "pswmd5");
+		
+		JSONObject jsonObject = httpRequst(requestUrl, "GET", json.toString());
+		System.out.println("删除客服帐号返回的json为：" + jsonObject);
+		
+		return "success";
+	}
+	
+	/**设置客服头像*/
+	public String kfAccUploadHeadImg() {
+		String requestUrl = redisutil.KFACCOUNT_UPLOADHEADIMG
+				.replace("ACCESS_TOKEN", redisutil.readWxToken())
+				.replace("KFACCOUNT", "");
+		
+		JSONObject jsonObject = httpRequst(requestUrl, "POST", "");
+		System.out.println("设置客服头像返回的json为：" + jsonObject);
+		
+		return "success";
+	}
+	
+	/**获取所有客服账号*/
+	@RequestMapping("/customServiceGetkfList")
+	@ResponseBody
+	public String customServiceGetkfList() {
+		String requestUrl = redisutil.CUSTOMSERVICE_GETKFLIST.replace("ACCESS_TOKEN", "mYMsmw1_zfLi7XOSDmwxfniLvQkaLAF9carYI-C6qiDSTNbO_RoLGMe_m4mHxCjq-zR4SdCt9TDjUBxALx7wYg3cUjO5UI2r9Fr7m0ieFMt843K_LQCX6Gtd9ESiqy93SPTfAIAAXB");
+		
+		JSONObject jsonObject = httpRequst(requestUrl, "GET", "");
+		System.out.println("获取所有客服账号返回的json为：" + jsonObject);
+		
+		return "success";
+	}
+	
+	/**客服接口-发消息*/
+	@RequestMapping("/customSend")
+	@ResponseBody
+	public String customSend() {
+		
+		String requestUrl = redisutil.CUSTOM_SEND.replace("ACCESS_TOKEN", "mYMsmw1_zfLi7XOSDmwxfniLvQkaLAF9carYI-C6qiDSTNbO_RoLGMe_m4mHxCjq-zR4SdCt9TDjUBxALx7wYg3cUjO5UI2r9Fr7m0ieFMt843K_LQCX6Gtd9ESiqy93SPTfAIAAXB");
+		
+		JSONObject json = new JSONObject();
+		json.put("touser", "oCTss1jeo3dU8DIPBwMQ_GR08E5c");//openId
+		json.put("msgtype", "text");
+		
+		JSONObject conJson = new JSONObject();
+		
+		conJson.put("content", "Hello World");
+
+		json.put("text", conJson);
+		
+		JSONObject jsonObject = httpRequst(requestUrl, "POST", json.toString());
+		
+		//发送不成功
+		if(!jsonObject.get("errcode").equals(0)){
+			
+		}
+		
+		System.out.println("客服接口-发消息返回的json为：" + jsonObject);
+		
+		return "success";
+
+	}
+	
+	/**客服输入状态*/
+	public String customTyping() {
+		
+		String requestUrl = redisutil.CUSTOM_TYPING.replace("ACCESS_TOKEN", redisutil.readWxToken());
+		
+		JSONObject json = new JSONObject();
+		json.put("touser", "OPENID");
+		json.put("command", "Typing");
+		
+		JSONObject jsonObject = httpRequst(requestUrl, "POST", json.toString());
+		System.out.println("客服输入状态返回的json为：" + jsonObject);
+		
+		return "success";
+	}
+	
+	/**客服消息-----------*/
+	
+}

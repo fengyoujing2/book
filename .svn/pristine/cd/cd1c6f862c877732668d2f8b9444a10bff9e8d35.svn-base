@@ -1,0 +1,1431 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.statistics.StatisticsMapper">
+
+    <!-- 后台签单量 -->
+    <select id="getPageChartSign" parameterType="page" resultType="pd" useCache="false">
+        select
+        s.YBCS020_TM, <!-- 接单时间 默认是以财务编号时间为接单时间 -->
+        s.YBCS007, <!-- 财务编号 -->
+        c.YBC002, <!-- 客户姓名 -->
+        c.YBC003, <!-- 客户电话 -->
+        c.YBC029, <!-- 客户经理 -->
+        (select DEPT_NAME from sys_dept where DEPT_LAYERORDER = c.DEPT_LAYERORDER) DEPT_NAME<!-- 客户经理所在部门 -->
+        from ybc_sign s,ybc c
+        where c.ybc001 = s.ybc001
+        <!--and  s.YBCS012 = #{USER_ID} 做单分配人是自己则表明只需要读取自己部门下的数据 -->
+        and s.YBCS007 is not null <!-- 财务编号不为空则表明签单是有效签单数据 -->
+        <if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+            and s.YBCS020_TM <![CDATA[>=]]> #{pd.startTime}
+        </if>
+        <if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+            and s.YBCS020_TM <![CDATA[<=]]> #{pd.endTime}
+        </if>
+        <!-- 2018-5-7 新增需求 过滤产品类型数据-->
+        <if test="pd.YBCS009_TP != null and pd.YBCS009_TP != ''"><!-- 产品类型 -->
+            and s.YBCS009_TP = #{pd.YBCS009_TP}
+        </if>
+    </select>
+    <!-- 后台签单当月总量 -->
+    <select id="getChartSignMonthSum" parameterType="pd" resultType="pd" useCache="false">
+        select
+        ifnull(count(*),0) as sumMonthNum
+        from ybc_sign s,ybc c
+        where c.ybc001 = s.ybc001
+        <!--and  s.YBCS012 = #{USER_ID} 做单分配人是自己则表明只需要读取自己部门下的数据 -->
+        AND s.YBCS007 is not null <!-- 财务编号不为空则表明签单是有效签单数据 -->
+        AND DATE_FORMAT( s.YBCS020_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        <!-- 2018-5-7 新增需求 过滤产品类型数据-->
+        <if test="YBCS009_TP != null and YBCS009_TP != ''"><!-- 产品类型 -->
+            and s.YBCS009_TP = #{YBCS009_TP}
+        </if>
+    </select>
+
+    <!-- 后台退单量 -->
+    <select id="getPageChartBackSign" parameterType="page" resultType="pd" useCache="false">
+        select
+        ifnull(s.YBCS020_TM,'1970-01-01') as YBCS020_TM, <!-- 接单时间 默认是以财务编号时间为接单时间 -->
+        m.YBCMA035_TM, <!-- 退单录入时间 -->
+        s.YBCS007, <!-- 财务编号 -->
+        c.YBC002, <!-- 客户姓名 -->
+        c.YBC003, <!-- 客户电话 -->
+        c.YBC029, <!-- 客户经理 -->
+        m.YBCMA041,<!-- 做单人员 -->
+        (select YBTL002 from YBT_LIST where YBTL001 = m.YBTL001) YBTL002,<!-- 产品名称=跟进渠道 -->
+        (select DEPT_NAME from sys_dept where DEPT_LAYERORDER = c.DEPT_LAYERORDER) DEPT_NAME<!-- 客户经理所在部门 -->
+        from ybc_sign s,ybc c, ybc_match m
+        WHERE c.ybc001 = s.ybc001
+        AND s.ybcs001 = m.YBCS001
+        AND m.YBCMA005_TP = '12' <!-- 状态等于退单-->
+        AND m.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+        <if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+            and m.YBCMA035_TM <![CDATA[>=]]> #{pd.startTime}
+        </if>
+        <if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+            and m.YBCMA035_TM <![CDATA[<=]]> #{pd.endTime}
+        </if>
+        <!-- 2018-5-7 新增需求 过滤产品类型数据-->
+        <if test="pd.YBCS009_TP != null and pd.YBCS009_TP != ''"><!-- 产品类型 -->
+            and s.YBCS009_TP = #{pd.YBCS009_TP}
+        </if>
+    </select>
+    <!-- 后台退单当月总量 -->
+    <select id="getChartBackSignMonthSum" parameterType="pd" resultType="pd" useCache="false">
+        select
+        IFNULL(count(*),0) as sumMonthNum
+        from ybc_sign s,ybc c, ybc_match m
+        WHERE c.ybc001 = s.ybc001
+        AND s.ybcs001 = m.YBCS001
+        AND m.YBCMA005_TP = '12' <!-- 状态等于退单-->
+        AND DATE_FORMAT( m.YBCMA035_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        AND m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+        <!-- 2018-5-7 新增需求 过滤产品类型数据-->
+        <if test="YBCS009_TP != null and YBCS009_TP != ''"><!-- 产品类型 -->
+            and s.YBCS009_TP = #{YBCS009_TP}
+        </if>
+    </select>
+    <!-- 后台过件统计 -->
+    <select id="getPageChartPiece" parameterType="page" resultType="pd" useCache="false">
+        SELECT
+        s.YBCS007, <!-- 财务编号 -->
+        c.YBC002, <!-- 客户姓名 -->
+        c.YBC029, <!-- 客户经理 -->
+        c.YBC003, <!-- 客户电话 -->
+        (select YBTL002 from YBT_LIST where YBTL001 = m.YBTL001) YBTL002,<!-- 产品名称=跟进渠道 -->
+        (select DEPT_NAME from sys_dept where DEPT_LAYERORDER = c.DEPT_LAYERORDER) DEPT_NAME,<!-- 客户经理所在部门 -->
+        m.YBCMA041,<!-- 做单人员 -->
+        m.YBCMA039_TM, <!-- 过件时间 -->
+        m.YBCMA037, <!-- 过件金额 -->
+        m.YBCMA038_TP <!-- 过件客户状态 -->
+        FROM ybc_sign s, ybc c, ybc_match m
+        WHERE c.ybc001 = s.ybc001
+        AND s.ybcs001 = m.YBCS001
+        AND m.YBCMA037 is not null
+        AND m.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+        <if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+            and m.YBCMA039_TM <![CDATA[>=]]> #{pd.startTime}
+        </if>
+        <if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+            and m.YBCMA039_TM <![CDATA[<=]]> #{pd.endTime}
+        </if>
+        <!-- 2018-5-7 新增需求 过滤产品类型数据-->
+        <if test="pd.YBCS009_TP != null and pd.YBCS009_TP != ''"><!-- 产品类型 -->
+            and s.YBCS009_TP = #{pd.YBCS009_TP}
+        </if>
+    </select>
+    <!-- 后台过件当月总数量,当月总过件金额，当月总放贷金额 -->
+    <select id="getChartPieceMonthSum" parameterType="pd" resultType="pd" useCache="false">
+        select
+        IFNULL(count(*),0) as sumMonthNum, <!--过件数量-->
+        IFNULL(sum(m.ybcma037),0) as sumMonthPiece, <!--过件金额-->
+        IFNULL(sum(m.ybcma030),0) as sumLendMonth <!--放贷金额-->
+        from ybc_sign s,ybc c, ybc_match m
+        WHERE c.ybc001 = s.ybc001
+        AND s.ybcs001 = m.YBCS001
+        AND m.YBCMA037 is not null <!-- 过件金额不为空-->
+        AND DATE_FORMAT( m.YBCMA039_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        AND m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+        <!-- 2018-5-7 新增需求 过滤产品类型数据-->
+        <if test="YBCS009_TP != null and YBCS009_TP != ''"><!-- 产品类型 -->
+            and s.YBCS009_TP = #{YBCS009_TP}
+        </if>
+    </select>
+    <!-- 后台过件总汇总 -->
+    <select id="getChartPieceAllSum" parameterType="pd" resultType="pd" useCache="false">
+        select
+        IFNULL(count(*),0) as sumAllNum, <!--过件数量-->
+        IFNULL(sum(m.ybcma037),0) as sumAllPiece, <!--过件金额-->
+        IFNULL(sum(m.ybcma030),0) as sumAllLend <!--放贷金额-->
+        from ybc_sign s,ybc c, ybc_match m
+        WHERE c.ybc001 = s.ybc001
+        AND s.ybcs001 = m.YBCS001
+        AND m.YBCMA037 is not null <!-- 过件金额不为空-->
+        AND m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+        <!-- 2018-5-7 新增需求 过滤产品类型数据-->
+        <if test="YBCS009_TP != null and YBCS009_TP != ''"><!-- 产品类型 -->
+            and s.YBCS009_TP = #{YBCS009_TP}
+        </if>
+    </select>
+    <!-- 后台放贷统计 -->
+    <select id="getPageChartLending" parameterType="page" resultType="pd" useCache="false">
+        SELECT
+        m.YBCMA029_TM, <!-- 放贷日期 -->
+        s.YBCS007, <!-- 财务编号 -->
+        c.YBC002, <!-- 客户姓名 -->
+        c.YBC029, <!-- 客户经理 -->
+        c.YBC003, <!-- 客户电话 -->
+        (select YBTL002 from YBT_LIST where YBTL001 = m.YBTL001) YBTL002,<!-- 产品名称=跟进渠道 -->
+        (select DEPT_NAME from sys_dept where DEPT_LAYERORDER = c.DEPT_LAYERORDER) DEPT_NAME,<!-- 客户经理所在部门 -->
+        m.YBCMA030, <!-- 放贷金额 -->
+        m.YBCMA020, <!-- 后台成本 -->
+        m.YBCMA041<!-- 做单人员 -->
+        FROM ybc_sign s, ybc c, ybc_match m
+        WHERE c.ybc001 = s.ybc001
+        AND s.ybcs001 = m.YBCS001
+        AND m.ybcma030 is not null <!--放贷金额不为空 -->
+        AND m.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+        <if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+            and m.YBCMA029_TM <![CDATA[>=]]> #{pd.startTime}
+        </if>
+        <if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+            and m.YBCMA029_TM <![CDATA[<=]]> #{pd.endTime}
+        </if>
+        <!-- 2018-5-7 新增需求 过滤产品类型数据-->
+        <if test="pd.YBCS009_TP != null and pd.YBCS009_TP != ''"><!-- 产品类型 -->
+            and s.YBCS009_TP = #{pd.YBCS009_TP}
+        </if>
+    </select>
+
+    <!-- 后台放贷当月总数量,当月总放贷金额 -->
+    <select id="getChartLendMonthSum" parameterType="pd" resultType="pd" useCache="false">
+        select
+        IFNULL(count(*),0) as sumMonthNum, <!--放贷数量-->
+        IFNULL(sum(m.ybcma030),0) as sumLendMonth <!--放贷金额-->
+        from ybc_sign s,ybc c, ybc_match m
+        WHERE c.ybc001 = s.ybc001
+        AND s.ybcs001 = m.YBCS001
+        AND m.ybcma030 is not null <!--放贷金额不为空 -->
+        AND DATE_FORMAT( m.YBCMA029_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        AND m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+        <!-- 2018-5-7 新增需求 过滤产品类型数据-->
+        <if test="YBCS009_TP != null and YBCS009_TP != ''"><!-- 产品类型 -->
+            and s.YBCS009_TP = #{YBCS009_TP}
+        </if>
+    </select>
+    <!-- 后台过件总汇总 -->
+    <select id="getChartLendAllSum" parameterType="pd" resultType="pd" useCache="false">
+        select
+        IFNULL(count(*),0) as sumAllNum, <!--放贷数量-->
+        IFNULL(sum(m.ybcma030),0) as sumAllLend <!--放贷金额-->
+        from ybc_sign s,ybc c, ybc_match m
+        WHERE c.ybc001 = s.ybc001
+        AND s.ybcs001 = m.YBCS001
+        AND m.ybcma030 is not null <!--放贷金额不为空 -->
+        AND m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+        <!-- 2018-5-7 新增需求 过滤产品类型数据-->
+        <if test="YBCS009_TP != null and YBCS009_TP != ''"><!-- 产品类型 -->
+            and s.YBCS009_TP = #{YBCS009_TP}
+        </if>
+    </select>
+
+    <!--////////////////////////////////////////财务统计数据/////////////////////////-->
+    <!-- 财务收款明细表 -->
+    <select id="getPageChartReceivables" parameterType="page" resultType="pd" useCache="false">
+        select
+        m.YBCMA025_TM, <!-- 结账时间 -->
+        c.YBC002, <!-- 客户姓名 -->
+        c.YBC029, <!-- 客户经理 -->
+        m.YBCMA041,<!-- 做单人员 -->
+        m.YBCMA030,<!-- 放贷金额 -->
+        m.YBCMA020,<!-- 后台成本 -->
+        m.YBCMA022,<!-- 前台利润 -->
+        m.YBCMA012<!-- 实收金额=收款金额 -->
+        from ybc_sign s,ybc c, ybc_match m
+        WHERE c.ybc001 = s.ybc001
+        AND s.ybcs001 = m.YBCS001
+        AND s.YBCS009_TP in ('b1251ef4b74c4046966dc2125e6513ee','bb6718447a5a4db596417d5f8b621046') <!--贷款类型 房贷+信贷 -->
+        AND m.YBCMA022 is not null <!-- 前台利润不为空则表明可以读取-->
+        <if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+            and m.YBCMA025_TM <![CDATA[>=]]> #{pd.startTime}
+        </if>
+        <if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+            and m.YBCMA025_TM <![CDATA[<=]]> #{pd.endTime}
+        </if>
+    </select>
+    <!-- 财务网贷收款明细表 -->
+    <select id="getPageChartNetReceivables" parameterType="page" resultType="pd" useCache="false">
+        select
+        m.YBCMA025_TM, <!-- 结账时间 -->
+        c.YBC002, <!-- 客户姓名 -->
+        c.YBC029, <!-- 客户经理 -->
+        m.YBCMA041,<!-- 做单人员 -->
+        m.YBCMA030,<!-- 放贷金额 -->
+        m.YBCMA020,<!-- 后台成本 -->
+        m.YBCMA022,<!-- 前台利润 -->
+        m.YBCMA012<!-- 实收金额=收款金额 -->
+        from ybc_sign s,ybc c, ybc_match m
+        WHERE c.ybc001 = s.ybc001
+        AND s.ybcs001 = m.YBCS001
+        AND s.YBCS009_TP ='15d5af3b1ffd4e7e8f23968bd6280e3b' <!--贷款类型 网贷 -->
+        AND m.YBCMA022 is not null <!-- 前台利润不为空则表明可以读取-->
+        <if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+            and m.YBCMA025_TM <![CDATA[>=]]> #{pd.startTime}
+        </if>
+        <if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+            and m.YBCMA025_TM <![CDATA[<=]]> #{pd.endTime}
+        </if>
+    </select>
+    <!-- 财务渠道收款明细表 -->
+    <select id="getPageChartChannelReceivables" parameterType="page" resultType="pd" useCache="false">
+        select
+        m.YBCMA025_TM, <!-- 结账时间 -->
+        c.YBC002, <!-- 客户姓名 -->
+        c.YBC029, <!-- 客户经理 -->
+        m.YBCMA041,<!-- 做单人员 -->
+        m.YBCMA030,<!-- 放贷金额 -->
+        m.YBCMA020,<!-- 后台成本 -->
+        m.YBCMA022,<!-- 前台利润 -->
+        m.YBCMA012<!-- 实收金额=收款金额 -->
+        from ybc_sign s,ybc c, ybc_match m
+        WHERE c.ybc001 = s.ybc001
+        AND s.ybcs001 = m.YBCS001
+        <!--AND s.YBCS009_TP ='97770bb8f4b8486987bded34e84da31e' 贷款类型 市场部 渠道 -->
+        AND m.YBCMA022 is not null <!-- 前台利润不为空则表明可以读取-->
+        <if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+            and m.YBCMA025_TM <![CDATA[>=]]> #{pd.startTime}
+        </if>
+        <if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+            and m.YBCMA025_TM <![CDATA[<=]]> #{pd.endTime}
+        </if>
+    </select>
+    <!-- 财务已结账明细表 -->
+    <select id="getPageChartCheckoutReceivables" parameterType="page" resultType="pd" useCache="false">
+        select
+        a.YBCAC022_TM, /*结账时间*/
+        a.YBCAC002, /*客户姓名*/<!--  -->
+        a.YBCAC008, /*客户经理名称*/
+        a.YBCAC011, /*客户经理 组长*/
+        a.YBCAC012, /*客户经理 部长 不确定*/
+        a.YBCAC019, /*做单人员*/
+        a.YBCAC020, /*做单人员 组长*/
+        a.YBCAC021, /*做单人员 部长*/
+        a.YBCAC013, /*放贷金额*/
+        a.YBCAC006, /*实收金额 有争议*/
+        a.YBCAC016, /*后台成本*/
+        a.YBCAC003, /*财务编号*/
+        a.YBCAC018, /*费用明细*/
+        a.YBCAC007 /*前台利润*/
+        /*应收金额*/
+        from ybc_account a
+        where 1 = 1
+        <if test="pd.startTime != null and pd.startTime != ''"><!-- 结账时间 -->
+            and a.YBCAC022_TM <![CDATA[>=]]> #{pd.startTime}
+        </if>
+        <if test="pd.endTime != null and pd.endTime != ''"><!-- 结账时间 -->
+            and a.YBCAC022_TM <![CDATA[<=]]> #{pd.endTime}
+        </if>
+        ORDER BY a.YBCAC022_TM DESC
+    </select>
+
+    <!--修改          end-->
+
+    <!--后台用户上传数据来源-汇总信息 s.YBCS016_TM 财务确认时间不能为 null-->
+    <select id="getUploadTheSourceSum" parameterType="page" resultType="pd">
+
+        SELECT
+        <!--客户:来源汇总-->
+        (SELECT COUNT(0) FROM ybc c WHERE c.YBC042_TP = #{YBC042_TP}) AS total,
+        <!--客户-意向:来源汇总-->
+        (SELECT COUNT(0) FROM ybc c WHERE YBC008_TP = 1
+        AND c.YBC042_TP = #{YBC042_TP}) AS intentionSum,
+        <!--客户-签单:来源汇总-->
+        (SELECT COUNT(0)
+
+        FROM(
+        SELECT COUNT(0)
+        FROM ybc c JOIN ybc_sign s ON c.YBC001 = s.YBC001
+        WHERE c.YBC042_TP = #{YBC042_TP} AND s.YBCS016_TM IS NOT NULL
+        GROUP BY s.YBC001) AS temp) AS signSUM,
+        <!-- 原来(SELECT COUNT(0) FROM ybc c WHERE YBC008_TP = 3-->
+        <!--  AND c.YBC042_TP = #{YBC042_TP}) AS signSUM, -->
+        <!--客户-已放贷:来源汇总-->
+        (SELECT COUNT(0) FROM
+        (SELECT c.ybc001 FROM ybc c, ybc_match m
+        WHERE c.YBC001 = m.YBC001
+        AND m.YBCMA030 IS NOT NULL<!--放贷金额不为空-->
+        AND c.YBC042_TP = #{YBC042_TP}
+        GROUP BY m.YBC001) AS temp) AS lendingSum,
+        <!--客户-已结账:来源汇总 2018-09-26 更新 -->
+        (SELECT COUNT(0) FROM(
+        SELECT COUNT(0) FROM ybc_sign s,ybc c
+        WHERE c.YBC001 = s.YBC001
+        AND S.YBCS056_TP != 0 <!-- 不等于0已结账-->
+        AND c.YBC042_TP = #{YBC042_TP}
+        GROUP BY s.YBC001 )AS temp) AS closedAccountSum
+        <!--客户-已结账:来源汇总 2018-09-26 原来-->
+        <!--(SELECT COUNT(0) FROM-->
+        <!--(SELECT c.ybc001-->
+        <!--FROM-->
+        <!--ybc c,-->
+        <!--ybc_match m-->
+        <!--WHERE c.ybc001 = m.ybc001-->
+        <!--AND m.YBCMA025_TM is not null &lt;!&ndash;客户-财务确认结账时间不为空&ndash;&gt;-->
+        <!--AND c.YBC042_TP = #{YBC042_TP}-->
+        <!--GROUP BY c.ybc001) AS temp) AS closedAccountSum-->
+
+
+    </select>
+
+    <!--所有\签单\意向 后台用户上传数据来源-汇总信息 2018.06.15-->
+    <select id="getPageUploadTheSourceListByYBC008TP" resultType="com.dbsun.entity.system.PageData"
+            parameterType="page">
+
+        SELECT
+        c.YBC001,
+        c.YBC002,
+        c.YBC003,
+        c.YBC028, <!-- 最近跟进人姓名 -->
+        c.YBC022_TM <!-- 最近跟进时间 -->
+        FROM ybc c
+
+        <choose>
+            <when test=' pd.STATE!=null and pd.STATE=="1" '>
+                WHERE c.YBC042_TP = #{pd.YBC042_TP} AND c.YBC008_TP = '1' <!--意向 STATE = 1-->
+            </when>
+            <when test='pd.STATE!=null and pd.STATE=="2" '>
+                JOIN ybc_sign s ON s.YBC001= c.YBC001
+                WHERE s.YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+                AND c.YBC042_TP = #{pd.YBC042_TP}   <!--签单 STATE = 2-->
+                GROUP BY s.YBC001
+            </when>
+            <otherwise>
+                WHERE AND c.YBC042_TP = #{pd.YBC042_TP}<!--所有 STATE = 0-->
+            </otherwise>
+        </choose>
+
+    </select>
+    <!--已放贷 STATE=4	  后台用户上传数据来源-汇总信息 2018.06.15-->
+    <select id="getPageUploadTheSourceListBySign" resultType="com.dbsun.entity.system.PageData">
+        SELECT
+        c.YBC001,
+        c.YBC002,
+        c.YBC003,
+        c.YBC028, <!-- 最近跟进人姓名 -->
+        c.YBC022_TM<!-- 最近跟进时间 -->
+        FROM ybc c, ybc_match m
+        WHERE c.YBC001 = m.YBC001
+        AND m.YBCMA030 IS NOT NULL
+        AND c.YBC042_TP = #{pd.YBC042_TP}
+        GROUP BY m.YBC001
+    </select>
+    <!--新更新 已结账 STATE=5     后台用户上传数据来源-汇总信息 2018.09.26-->
+    <select id="getPageUploadTheSourceListByLending" resultType="com.dbsun.entity.system.PageData">
+        SELECT
+        c.YBC001,
+        c.YBC002,
+        c.YBC003,
+        c.YBC028, <!-- 最近跟进人姓名 -->
+        c.YBC022_TM <!-- 最近跟进时间 -->
+        FROM
+        ybc c,
+        ybc_sign s
+        WHERE c.ybc001 = s.ybc001
+        AND s.YBCS056_TP != 0 <!--  不等于0已结账 -->
+        AND c.YBC042_TP = #{pd.YBC042_TP}
+        GROUP BY s.YBC001
+    </select>
+    <!--原来瑞信 已结账 STATE=5     后台用户上传数据来源-汇总信息 2018.06.15-->
+    <!--<select id="getPageUploadTheSourceListByLending" resultType="com.dbsun.entity.system.PageData">-->
+    <!--SELECT-->
+    <!--c.YBC001,-->
+    <!--c.YBC002,-->
+    <!--c.YBC003,-->
+    <!--c.YBC028, &lt;!&ndash; 最近跟进人姓名 &ndash;&gt;-->
+    <!--c.YBC022_TM &lt;!&ndash; 最近跟进时间 &ndash;&gt;-->
+    <!--FROM-->
+    <!--ybc c,-->
+    <!--ybc_match m-->
+    <!--WHERE c.ybc001 = m.ybc001-->
+    <!--AND m.YBCMA025_TM IS NOT NULL-->
+    <!--AND c.YBC042_TP = #{pd.YBC042_TP}-->
+    <!--GROUP BY c.ybc001-->
+    <!--</select>-->
+
+
+    <!--后台用户 签单汇总-所有 1-->
+    <select id="getChartSignByNormalSumAll" resultType="pd" parameterType="pd">
+        SELECT COUNT(0) sumAll FROM ybc_sign s
+        JOIN ybc c ON c.YBC001 =s.YBC001
+        WHERE
+        s.YBCS009_TP =#{YBCS009_TP}
+        AND s.YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+        AND s.DEPT_LAYERORDER LIKE concat(#{DEPT_LAYERORDER},'%')
+        <if test="YBC002 != null and YBC002 != ''">
+            and c.YBC002 like concat(#{YBC002}, "%")
+        </if>
+        <if test="YBC003 != null and YBC003 != ''">
+            and c.YBC003 like concat(#{YBC003}, "%")
+        </if>
+        <!--时间搜素 财务编号时间-->
+        <if test='  dateStart != "" and dateStart != null   '>
+            AND s.YBCS049_TM <![CDATA[>=]]> DATE(#{dateStart})
+        </if>
+        <if test='  dateEnd != "" and dateEnd != null   '>
+            AND s.YBCS049_TM <![CDATA[<=]]> DATE(#{dateEnd})
+        </if>
+        <if test="USER_ID_Sea != null and USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+            and c.USER_ID = #{USER_ID_Sea}
+        </if>
+        <if test="DEPT_LAYERORDER_Sea != null and DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and s.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER_Sea}, "%")
+        </if>
+
+    </select>
+
+    <!--后台用户 签单汇总-异常单2 (*后台不能做单)-->
+    <select id="getChartSignByNormalSumByFlag" resultType="com.dbsun.entity.system.PageData" parameterType="pd">
+        SELECT
+        COUNT(0) isFlag
+        FROM
+        (
+        <!-- 查询订单表 后台确认不能做单的-->
+        SELECT s.YBCS001 FROM ybc_sign s
+        JOIN ybc c ON c.YBC001 =s.YBC001
+        WHERE s.YBCS014_TP=2
+        AND s.YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+        AND s.YBCS009_TP =#{YBCS009_TP} <!--贷款类型-->
+        AND s.DEPT_LAYERORDER LIKE concat(#{DEPT_LAYERORDER},'%')
+
+        <if test="YBC002 != null and YBC002 != ''">
+            and c.YBC002 like concat(#{YBC002}, "%")
+        </if>
+        <if test="YBC003 != null and YBC003 != ''">
+            and c.YBC003 like concat(#{YBC003}, "%")
+        </if>
+        <!--时间搜素  -->
+        <if test='  dateStart != "" and dateStart != null   '>
+            AND s.YBCS049_TM <![CDATA[>=]]> DATE(#{dateStart})
+        </if>
+        <if test='  dateEnd != "" and dateEnd != null   '>
+            AND s.YBCS049_TM <![CDATA[<=]]> DATE(#{dateEnd})
+        </if>
+        <if test="USER_ID_Sea != null and USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+            and c.USER_ID = #{USER_ID_Sea}
+        </if>
+        <if test="DEPT_LAYERORDER_Sea != null and DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and s.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER_Sea}, "%")
+        </if>
+        UNION
+        <!-- 查询做单表 不能做单的, 门拒,不要的-->
+        SELECT s.YBCS001 FROM ybc_match m
+        JOIN ybc_sign s ON s.YBCS001=m.YBCS001
+        JOIN ybc c ON c.YBC001 =s.YBC001
+        AND s.DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER}, '%')
+        WHERE (m.YBCMA005_TP = 12 OR m.YBCMA038_TP =2 OR m.YBCMA038_TP =3 )
+        <if test="YBC002 != null and YBC002 != ''">
+            and c.YBC002 like concat(#{YBC002}, "%")
+        </if>
+        <if test="YBC003 != null and YBC003 != ''">
+            and c.YBC003 like concat(#{YBC003}, "%")
+        </if>
+        <!--时间搜素  -->
+        <if test='  dateStart != "" and dateStart != null   '>
+            AND s.YBCS049_TM <![CDATA[>=]]> DATE(#{dateStart})
+        </if>
+        <if test='  dateEnd != "" and dateEnd != null   '>
+            AND s.YBCS049_TM <![CDATA[<=]]> DATE(#{dateEnd})
+        </if>
+        <if test="USER_ID_Sea != null and USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+            and c.USER_ID = #{USER_ID_Sea}
+        </if>
+        <if test="DEPT_LAYERORDER_Sea != null and DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and s.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER_Sea}, "%")
+        </if>
+        AND s.YBCS009_TP =#{YBCS009_TP} <!--贷款类型-->
+        )AS TEMP
+
+    </select>
+    <!--后台用户 签单汇总-已放贷3-->
+    <select id="getChartSignByNormalSumByLending" resultType="com.dbsun.entity.system.PageData" parameterType="pd">
+
+        SELECT COUNT(0) true_lendingSum
+        FROM
+        (
+        SELECT COUNT(0)
+        FROM ybc_match m
+        JOIN ybc_sign s ON s.YBCS001=m.YBCS001
+        JOIN ybc c ON c.YBC001 =s.YBC001
+        WHERE m.YBCMA030 IS NOT NULL
+        AND s.YBCS009_TP =#{YBCS009_TP} <!--贷款类型-->
+        AND s.DEPT_LAYERORDER LIKE concat(#{DEPT_LAYERORDER},'%')
+        <if test="YBC002 != null and YBC002 != ''">
+            and c.YBC002 like concat(#{YBC002}, "%")
+        </if>
+        <if test="YBC003 != null and YBC003 != ''">
+            and c.YBC003 like concat(#{YBC003}, "%")
+        </if>
+        <!--时间搜素  -->
+
+        <if test='  dateStart != "" and dateStart != null   '>
+            AND s.YBCS049_TM <![CDATA[>=]]> DATE(#{dateStart})
+        </if>
+        <if test='  dateEnd != "" and dateEnd != null   '>
+            AND s.YBCS049_TM <![CDATA[<=]]> DATE(#{dateEnd})
+        </if>
+        <if test="USER_ID_Sea != null and USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+            and c.USER_ID = #{USER_ID_Sea}
+        </if>
+        <if test="DEPT_LAYERORDER_Sea != null and DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and s.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER_Sea}, "%")
+        </if>
+        GROUP BY s.YBCS001
+        )as TEMP
+
+    </select>
+    <!--后台用户 签单汇总-已结账4-->
+    <select id="getChartSignByNormalSumByClosedAccount" resultType="com.dbsun.entity.system.PageData"
+            parameterType="pd">
+
+        <!--新更新 2018-09-26-->
+        SELECT
+        COUNT(0) AS true_closedAccountSum
+        FROM ybc c
+        JOIN ybc_sign s ON c.YBC001 =s.YBC001
+        WHERE s.YBCS056_TP != 0 <!--已结账-->
+        AND s.YBCS009_TP =#{YBCS009_TP} <!--贷款类型-->
+        AND s.DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')
+        <!--原瑞信-->
+        <!--SELECT COUNT(0) AS true_closedAccountSum FROM ybc_match m-->
+        <!--JOIN ybc_sign s ON s.YBCS001=m.YBCS001-->
+        <!--JOIN ybc c ON c.YBC001 =s.YBC001-->
+        <!--WHERE 1=1-->
+        <!--AND YBCMA025_TM IS NOT NULL-->
+        <!--AND s.YBCS009_TP =#{YBCS009_TP} &lt;!&ndash;贷款类型&ndash;&gt;-->
+        <!--AND s.DEPT_LAYERORDER LIKE concat(#{DEPT_LAYERORDER},'%')-->
+
+        <if test="YBC002 != null and YBC002 != ''">
+            and c.YBC002 like concat(#{YBC002}, "%")
+        </if>
+        <if test="YBC003 != null and YBC003 != ''">
+            and c.YBC003 like concat(#{YBC003}, "%")
+        </if>
+        <!--时间搜素  -->
+
+        <if test='  dateStart != "" and dateStart != null   '>
+            AND s.YBCS049_TM <![CDATA[>=]]> DATE(#{dateStart})
+        </if>
+        <if test='  dateEnd != "" and dateEnd != null   '>
+            AND s.YBCS049_TM <![CDATA[<=]]> DATE(#{dateEnd})
+        </if>
+        <if test="USER_ID_Sea != null and USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+            and c.USER_ID = #{USER_ID_Sea}
+        </if>
+        <if test="DEPT_LAYERORDER_Sea != null and DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and s.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER_Sea}, "%")
+        </if>
+
+    </select>
+
+    <!--后台用户 签单  明细列表   有效单(已放贷 ) 2018.09.26 删除已结账-->
+    <select id="getPageChartSignByNormal" resultType="com.dbsun.entity.system.PageData">
+
+        SELECT
+        c.YBC001,
+        c.YBC002, <!-- 客户姓名 -->
+        c.YBC003, <!-- 客户电话 -->
+        if(c.YBC004_TP,'男','女')AS sex,
+        (CASE C.YBC018_TP
+        WHEN 1 THEN 'A'
+        WHEN 2 THEN 'B'
+        WHEN 3 THEN 'C'
+        WHEN 4 THEN 'D' END )AS level,
+        c.YBC028, <!-- 客户经理  最近跟进人-->
+        c.YBC022_TM, <!--  最近跟进人时间-->
+        s.YBCS049_TM,  <!-- 签单时间 -->
+        (SELECT DEPT_NAME FROM sys_dept WHERE DEPT_LAYERORDER = s.DEPT_LAYERORDER )as DEPT_NAME <!--部门机构代码-->
+        FROM ybc c
+        JOIN ybc_sign s ON c.YBC001=s.YBC001
+        JOIN ybc_match m ON s.YBCS001=m.YBCS001
+
+        WHERE s.DEPT_LAYERORDER LIKE concat(#{pd.DEPT_LAYERORDER},'%')
+        <!--STATU  1.有效单 2.无效单  有效单:3.已放贷 4已结账    -->
+
+
+        <!--新更新-->
+        <if test=" pd.STATU==3 and pd.STATU!=null ">
+            <!--已放贷 放贷金额 is not null-->
+            AND m.YBCMA030 is not null
+        </if>
+        <!--原瑞信-->
+        <!--<choose>-->
+        <!--<when test=' pd.STATU==3 and pd.STATU!=null  '>-->
+        <!--&lt;!&ndash;已放贷 放贷金额 is not null&ndash;&gt;-->
+        <!--AND m.YBCMA030 is not null-->
+        <!--</when>-->
+        <!--<when test=' pd.STATU==4 and pd.STATU!=null  '>-->
+        <!--&lt;!&ndash;已结账 财务收款时间 is not null&ndash;&gt;-->
+        <!--AND m.YBCMA025_TM is not null-->
+        <!--</when>-->
+        <!--</choose>-->
+
+        <!-- 搜索 start -->
+        <!--贷款类型 -->
+        <if test=" pd.YBCS009_TP!=null and pd.YBCS009_TP!='' ">
+            AND s.YBCS009_TP=#{pd.YBCS009_TP}
+        </if>
+
+        <if test="pd.YBC002 != null and pd.YBC002 != ''">
+            and c.YBC002 like concat(#{pd.YBC002}, "%")
+        </if>
+        <if test="pd.YBC003 != null and pd.YBC003 != ''">
+            and c.YBC003 like concat(#{pd.YBC003}, "%")
+        </if>
+        <if test="pd.YBC008_TP != null and pd.YBC008_TP != ''">
+            and c.YBC008_TP = #{pd.YBC008_TP}
+        </if>
+
+        <if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+            and c.USER_ID = #{pd.USER_ID_Sea}
+        </if>
+        <if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+        </if>
+
+        <!--时间搜素  时间-->
+
+        <if test='  pd.dateStart != "" and pd.dateStart != null   '>
+            AND s.YBCS049_TM <![CDATA[>=]]> DATE(#{pd.dateStart})
+        </if>
+        <if test='  pd.dateEnd != "" and pd.dateEnd != null   '>
+            AND s.YBCS049_TM <![CDATA[<=]]> DATE(#{pd.dateEnd})
+        </if>
+        GROUP BY s.YBCS001
+        ORDER BY S.YBCS049_TM DESC
+
+    </select>
+
+    <!--后台用户 签单  明细列表   有效单(已结账 ) 2018.09.26-->
+    <select id="getPageChartSignByNormalIsClosedAccount" parameterType="page" resultType="pd">
+
+        SELECT
+        c.YBC001,
+        c.YBC002, <!-- 客户姓名 -->
+        c.YBC003, <!-- 客户电话 -->
+        if(c.YBC004_TP,'男','女')AS sex,
+        (CASE C.YBC018_TP
+        WHEN 1 THEN 'A'
+        WHEN 2 THEN 'B'
+        WHEN 3 THEN 'C'
+        WHEN 4 THEN 'D' END )AS level,
+        c.YBC028, <!-- 客户经理  最近跟进人-->
+        c.YBC022_TM, <!--  最近跟进人时间-->
+        s.YBCS049_TM,  <!-- 签单时间 -->
+        (SELECT DEPT_NAME FROM sys_dept WHERE DEPT_LAYERORDER = s.DEPT_LAYERORDER )as DEPT_NAME <!--部门机构代码-->
+        FROM ybc c
+        JOIN ybc_sign s ON c.YBC001=s.YBC001
+        WHERE s.DEPT_LAYERORDER LIKE concat(#{pd.DEPT_LAYERORDER},'%')
+        <!--STATU  1.有效单 2.无效单  有效单:3.已放贷 4已结账    -->
+        <!--已结账 -->
+        <if test=" pd.STATU==4 and pd.STATU!=null ">
+            AND s.YBCS056_TP != 0
+        </if>
+
+        <!-- 搜索 start -->
+        <!--贷款类型 -->
+        <if test=" pd.YBCS009_TP!=null and pd.YBCS009_TP!='' ">
+            AND s.YBCS009_TP=#{pd.YBCS009_TP}
+        </if>
+
+        <if test="pd.YBC002 != null and pd.YBC002 != ''">
+            and c.YBC002 like concat(#{pd.YBC002}, "%")
+        </if>
+        <if test="pd.YBC003 != null and pd.YBC003 != ''">
+            and c.YBC003 like concat(#{pd.YBC003}, "%")
+        </if>
+        <if test="pd.YBC008_TP != null and pd.YBC008_TP != ''">
+            and c.YBC008_TP = #{pd.YBC008_TP}
+        </if>
+
+        <if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+            and c.USER_ID = #{pd.USER_ID_Sea}
+        </if>
+        <if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+        </if>
+
+        <!--时间搜素  时间-->
+
+        <if test='  pd.dateStart != "" and pd.dateStart != null   '>
+            AND s.YBCS049_TM <![CDATA[>=]]> DATE(#{pd.dateStart})
+        </if>
+        <if test='  pd.dateEnd != "" and pd.dateEnd != null   '>
+            AND s.YBCS049_TM <![CDATA[<=]]> DATE(#{pd.dateEnd})
+        </if>
+
+        ORDER BY s.YBCS049_TM DESC
+
+    </select>
+
+
+    <!--后台用户 签单明细列表 -  有效单 无效单  2018.05.11-->
+    <select id="getPageChartSignByNormalBySingle" resultType="com.dbsun.entity.system.PageData">
+
+        SELECT
+        c.YBC001,
+        c.YBC002, <!-- 客户姓名 -->
+        c.YBC003, <!-- 客户电话 -->
+        if(c.YBC004_TP,'男','女')AS sex,
+        (CASE C.YBC018_TP
+        WHEN 1 THEN 'A'
+        WHEN 2 THEN 'B'
+        WHEN 3 THEN 'C'
+        WHEN 4 THEN 'D' END )AS level,
+        c.YBC028, <!--   最近跟进人-->
+        c.YBC022_TM, <!--  最近跟进人时间-->
+        s.YBCS049_TM,  <!-- 签单时间 -->
+        (SELECT DEPT_NAME FROM sys_dept WHERE DEPT_LAYERORDER = s.DEPT_LAYERORDER )as DEPT_NAME <!--部门机构代码 -->
+        FROM ybc c
+        JOIN ybc_sign s ON c.YBC001=s.YBC001
+        WHERE s.DEPT_LAYERORDER LIKE concat(#{pd.DEPT_LAYERORDER},'%')
+        AND s.YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+
+        <!-- 搜索 start -->
+        <!--贷款类型 -->
+        <if test=" pd.YBCS009_TP!=null and pd.YBCS009_TP!='' ">
+            AND s.YBCS009_TP=#{pd.YBCS009_TP}
+        </if>
+
+
+        <!--STATU  1.有效单 2.无效单  有效单:3.已放贷 4已结账    -->
+        <choose>
+            <when test=' pd.STATU==1 and pd.STATU!=null  '>
+
+                AND NOT EXISTS(
+                SELECT
+                YBCS001
+                FROM
+                (
+                <!--查询订单表 后台确认不能做单的 -->
+                SELECT s.YBCS001 FROM ybc_sign s
+                JOIN ybc c ON c.YBC001 =s.YBC001
+                WHERE s.YBCS014_TP=2
+                AND s.DEPT_LAYERORDER LIKE concat(#{pd.DEPT_LAYERORDER},'%')
+                AND s.YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+                UNION
+                <!--查询做单表 不能做单的, 门拒,不要的-->
+                SELECT s2.YBCS001 FROM ybc_match m
+                JOIN ybc_sign s2 ON s2.YBCS001=m.YBCS001
+                JOIN ybc c ON c.YBC001 =s2.YBC001
+                WHERE (m.YBCMA005_TP = 12 OR m.YBCMA038_TP =2 OR m.YBCMA038_TP =3 )
+                AND s2.DEPT_LAYERORDER LIKE concat(#{pd.DEPT_LAYERORDER},'%')
+                )AS father WHERE father.YBCS001 = s.YBCS001
+                )
+            </when>
+
+            <when test=" pd.STATU==2 and pd.STATU!=null  ">
+                AND s.YBCS001 IN (
+                SELECT
+                YBCS001
+                FROM
+                (
+                <!--查询订单表 后台确认不能做单的 -->
+                SELECT s.YBCS001 FROM ybc_sign s
+                JOIN ybc c ON c.YBC001 =s.YBC001
+                WHERE s.YBCS014_TP=2
+                AND s.DEPT_LAYERORDER LIKE concat(#{pd.DEPT_LAYERORDER},'%')
+                AND s.YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+                UNION
+                <!--查询做单表 不能做单的, 门拒,不要的-->
+                SELECT s.YBCS001 FROM ybc_match m
+                JOIN ybc_sign s ON s.YBCS001=m.YBCS001
+                JOIN ybc c ON c.YBC001 =s.YBC001
+                WHERE (m.YBCMA005_TP = 12 OR m.YBCMA038_TP =2 OR m.YBCMA038_TP =3 )
+                AND s.DEPT_LAYERORDER LIKE concat(#{pd.DEPT_LAYERORDER},'%')
+                )AS father
+                )
+
+            </when>
+        </choose>
+
+
+        <if test="pd.YBC002 != null and pd.YBC002 != ''">
+            and c.YBC002 like concat(#{pd.YBC002}, "%")
+        </if>
+        <if test="pd.YBC003 != null and pd.YBC003 != ''">
+            and c.YBC003 like concat(#{pd.YBC003}, "%")
+        </if>
+        <if test="pd.YBC008_TP != null and pd.YBC008_TP != ''">
+            and c.YBC008_TP = #{pd.YBC008_TP}
+        </if>
+
+        <if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+            and c.USER_ID = #{pd.USER_ID_Sea}
+        </if>
+        <if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+        </if>
+
+        <if test='  pd.dateStart != "" and pd.dateStart != null   '>
+            AND s.YBCS049_TM <![CDATA[>=]]> DATE(#{pd.dateStart})
+        </if>
+        <if test='  pd.dateEnd != "" and pd.dateEnd != null   '>
+            AND s.YBCS049_TM <![CDATA[<=]]> DATE(#{pd.dateEnd})
+        </if>
+
+        order by s.YBCS049_TM desc
+
+    </select>
+    <!--营销X中心 日数据报表  2018/6/28-->
+    <select id="marketingCenterStatisticReport" resultType="com.dbsun.entity.system.PageData">
+        SELECT
+        u.NAME ,
+        ( CASE u.LEV WHEN 1 THEN '初级经理' WHEN 2 THEN '中级经理' WHEN 3 THEN '高级经理' ELSE '实习经理' END)AS LEV ,
+        ( SELECT DEPT_NAME FROM sys_dept d WHERE d.DEPT_ID =u.DEPT_ID )AS DEPT_NAME, <!--部门名称  -->
+        ( SELECT DEPT_PID FROM sys_dept d WHERE d.DEPT_ID =u.DEPT_ID )AS DEPT_PID,   <!--DEPT_PID -->
+        ( SELECT DEPT_NAME FROM sys_dept d WHERE d.DEPT_ID =( SELECT DEPT_PID FROM sys_dept d WHERE d.DEPT_ID
+        =u.DEPT_ID) )AS CENTERNAME, <!--父id部门名称 -->
+        u.DEPT_ID,
+        u.DEPT_LAYERORDER,
+        IFNULL(YBCF0012_SUM,'0')YBCF0012_SUM,          <!--日通话时长 -->
+        IFNULL(today_intention,'0')today_intention,    <!-- 日意向-->
+        IFNULL(month_interested,'0')month_interested,  <!-- 月意向客户量-->
+        IFNULL(today_door,'0')today_door,              <!-- 日上门-->
+        IFNULL(month_door,'0')month_door,                <!-- 月上门-->
+        IFNULL(today_house_loan,'0')today_house_loan,  <!-- 日房贷-->
+        IFNULL(today_the_credit,'0')today_the_credit,  <!-- 日信贷-->
+        IFNULL(month_house_loan,'0')month_house_loan,  <!-- 月房贷-->
+        IFNULL(month_credit_loan,'0')month_credit_loan,<!-- 月信贷-->
+        IFNULL(month_door_shut,'0')month_door_shut,  <!-- 月门拒-->
+        IFNULL(month_customers_dont,'0')month_customers_dont ,<!-- 未展示月客户不要-->
+        IFNULL(month_waste,'0')month_waste,            <!-- 月废单-->
+        IFNULL(month_chargeback,'0')month_chargeback,  <!-- 月退单-->
+        IFNULL(signAll-IFNULL(month_door_shut,'0')-IFNULL(month_waste,'0')-IFNULL(month_chargeback,'0')-IFNULL(month_customers_dont,'0'),'0')isTrue<!-- 正常单  -->
+        FROM sys_user u
+        <!-- 日通话时长-->
+        LEFT JOIN
+        (SELECT
+        u.USER_ID ,
+        SUM(f.YBCF0012)AS YBCF0012_SUM  <!-- 日通话时长-->
+        FROM sys_user u
+        RIGHT JOIN ybc_follow f ON f.USER_ID = u.USER_ID  <!-- 通话表-->
+        WHERE
+        u.DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+
+        <if test=' startTime == null and endTime == null '>
+            AND TO_DAYS(f.YBCF002_TM)=TO_DAYS(CURDATE()) <!-- 查询当天的通话时间-->
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND f.YBCF002_TM <![CDATA[>=]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 最后更新时间 -->
+            AND f.YBCF002_TM <![CDATA[<=]]> #{endTime}
+        </if>
+
+
+        AND f.YBCF007_TP = '2'
+        GROUP BY u.USER_ID )AS t1 ON t1.USER_ID = u.USER_ID
+        <!-- 日意向客户-->
+        LEFT JOIN
+        ( SELECT USER_ID,COUNT(0)AS today_intention FROM YBC
+        WHERE YBC035_TM IS NOT NULL
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        <if test=' startTime == null and endTime == null '>
+            AND TO_DAYS(YBC035_TM)=TO_DAYS(CURDATE())
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND YBC035_TM <![CDATA[>=]]> #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 最后更新时间 -->
+            AND YBC035_TM <![CDATA[<=]]> #{endTime}
+        </if>
+        GROUP BY USER_ID
+        )AS t2 ON t2.USER_ID = u.USER_ID
+        <!-- 月意向用户-->
+        LEFT JOIN
+        (SELECT USER_ID,COUNT(0)AS month_interested FROM YBC
+        WHERE YBC035_TM IS NOT NULL
+        <if test=' startTime == null and endTime == null '>
+            AND DATE_FORMAT( YBC035_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND YBC035_TM <![CDATA[>=]]> DATE_FORMAT(#{startTime},'%Y-%m-01 00:00:00' )
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 最后更新时间 -->
+            AND YBC035_TM <![CDATA[<=]]> DATE_FORMAT(#{endTime},'%Y-%m-31 00:00:00' )
+        </if>
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        GROUP BY USER_ID
+        )AS t3 ON t3.USER_ID = u.USER_ID
+        <!-- 日上门-->
+        LEFT JOIN
+        (SELECT USER_ID ,COUNT(YBC001)AS today_door
+        FROM ybc_door Y
+        WHERE 1=1
+        <if test=' startTime == null and endTime == null '>
+            AND DATE_FORMAT( Y.YBCD002_TM, '%Y-%m-%d' ) = DATE_FORMAT( now( ) , '%Y-%m-%d' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND Y.YBCD002_TM <![CDATA[>=]]> DATE_FORMAT(#{startTime},'%Y-%m-%d')
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 最后更新时间 -->
+            AND Y.YBCD002_TM <![CDATA[<=]]> DATE_FORMAT(#{endTime},'%Y-%m-%d')
+        </if>
+        AND Y.DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        GROUP BY USER_ID )AS t4 ON t4.USER_ID = u.USER_ID
+        <!-- 月上门-->
+        LEFT JOIN
+        (SELECT USER_ID ,COUNT(YBC001)AS month_door
+        FROM ybc_door Y
+        WHERE 1=1
+        <if test=' startTime == null and endTime == null '>
+            AND DATE_FORMAT( Y.YBCD002_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND Y.YBCD002_TM <![CDATA[>=]]> DATE_FORMAT(#{startTime},'%Y-%m-01' )
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 最后更新时间 -->
+            AND Y.YBCD002_TM <![CDATA[<=]]> DATE_FORMAT(#{endTime},'%Y-%m-31' )
+        </if>
+
+        AND Y.DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        GROUP BY USER_ID )AS t5 ON t5.USER_ID = u.USER_ID
+
+        <!--**********************************************  日签单数 房贷/信贷 **********************************************-->
+
+
+        <!-- 今日房贷签单-->
+        LEFT JOIN
+        (SELECT
+        USER_ID,
+        COUNT(YBC001) AS today_house_loan
+        FROM ybc_sign
+        WHERE
+        YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+
+        <if test=' startTime == null and endTime == null '>
+            AND TO_DAYS(YBCS049_TM)=TO_DAYS(CURDATE())              <!-- 日签单-->
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND YBCS049_TM <![CDATA[>=]]> DATE_FORMAT(#{startTime},'%Y-%m-%d' )
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 最后更新时间 -->
+            AND YBCS049_TM <![CDATA[<=]]> DATE_FORMAT(#{endTime},'%Y-%m-%d' )
+        </if>
+        AND YBCS009_TP='b1251ef4b74c4046966dc2125e6513ee'
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        GROUP BY USER_ID )AS t6 ON t6.USER_ID = u.USER_ID
+        <!-- 日信贷签单-->
+        LEFT JOIN
+        (SELECT
+        USER_ID,
+        COUNT(YBC001)AS today_the_credit
+        FROM ybc_sign
+        WHERE
+        YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+        <if test=' startTime == null and endTime == null '>
+            AND TO_DAYS(YBCS049_TM)=TO_DAYS(CURDATE())              <!-- 日签单-->
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND YBCS049_TM <![CDATA[>=]]> DATE_FORMAT(#{startTime},'%Y-%m-%d' )
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 最后更新时间 -->
+            AND YBCS049_TM <![CDATA[<=]]> DATE_FORMAT(#{endTime},'%Y-%m-%d' )
+        </if>
+
+        AND YBCS009_TP='bb6718447a5a4db596417d5f8b621046'
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        GROUP BY USER_ID
+        )AS t7 ON t7.USER_ID = u.USER_ID
+
+        <!--**********************************************  本月累积签单数 **********************************************-->
+
+
+        <!-- 月房贷签单-->
+        LEFT JOIN
+        (SELECT
+        USER_ID,
+        COUNT(YBC001) AS month_house_loan
+        FROM ybc_sign
+        WHERE YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+        <if test=' startTime == null and endTime == null '>
+            AND DATE_FORMAT( YBCS049_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND YBCS049_TM <![CDATA[>=]]> DATE_FORMAT(#{startTime},'%Y-%m-01' )
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 最后更新时间 -->
+            AND YBCS049_TM <![CDATA[<=]]> DATE_FORMAT(#{endTime},'%Y-%m-31' )
+        </if>
+
+        AND YBCS009_TP='b1251ef4b74c4046966dc2125e6513ee'
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        GROUP BY USER_ID )AS t8 ON t8.USER_ID = u.USER_ID
+        <!-- 月信贷签单-->
+        LEFT JOIN
+        (SELECT
+        USER_ID,
+        COUNT(YBC001)AS month_credit_loan
+        FROM ybc_sign
+        WHERE YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+        <if test=' startTime == null and endTime == null '>
+            AND DATE_FORMAT( YBCS049_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND YBCS049_TM <![CDATA[>=]]> DATE_FORMAT(#{startTime},'%Y-%m-01' )
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 最后更新时间 -->
+            AND YBCS049_TM <![CDATA[<=]]> DATE_FORMAT(#{endTime},'%Y-%m-31' )
+        </if>
+        AND YBCS009_TP='bb6718447a5a4db596417d5f8b621046'
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        GROUP BY USER_ID )AS t9 ON t9.USER_ID = u.USER_ID
+        <!--月门拒-->
+        LEFT JOIN
+        (SELECT
+        m.USER_ID2,
+        COUNT(0)AS month_door_shut
+        FROM ybc_match m
+        WHERE m.YBCMA038_TP='2' AND m.YBCMA005_TP != '12'
+        <if test=' startTime == null and endTime == null '>
+            AND DATE_FORMAT(m.YBCMA039_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND m.YBCMA039_TM <![CDATA[>=]]> DATE_FORMAT(#{startTime},'%Y-%m-01' )
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 最后更新时间 -->
+            AND m.YBCMA039_TM <![CDATA[<=]]> DATE_FORMAT(#{endTime},'%Y-%m-31' )
+        </if>
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        GROUP BY m.USER_ID2
+        )AS t10 ON t10.USER_ID2 = u.USER_ID
+
+        <!-- 客户不要 未展示-->
+        LEFT JOIN
+        (SELECT
+        m.USER_ID2,
+        COUNT(0)AS month_customers_dont
+        FROM ybc_match m
+        WHERE m.YBCMA038_TP='3' AND m.YBCMA005_TP != '12'
+        <if test=' startTime == null and endTime == null '>
+            AND DATE_FORMAT(m.YBCMA039_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND m.YBCMA039_TM <![CDATA[>=]]> DATE_FORMAT(#{startTime},'%Y-%m-01' )
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 最后更新时间 -->
+            AND m.YBCMA039_TM <![CDATA[<=]]> DATE_FORMAT(#{endTime},'%Y-%m-31' )
+        </if>
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        GROUP BY m.USER_ID2
+        )AS t10_2 ON t10_2.USER_ID2 = u.USER_ID
+
+        <!--********************************************** 已签单状态,本月签单状态 **********************************************-->
+
+
+        <!-- 月废单量 后台确认不能做单-->
+        LEFT JOIN
+        (SELECT
+        USER_ID,
+        COUNT(YBC001)AS month_waste
+        FROM ybc_sign
+        WHERE YBCS014_TP='2' AND YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        <if test=' startTime == null and endTime == null '>
+            AND DATE_FORMAT( YBCS049_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND YBCS049_TM <![CDATA[>=]]> DATE_FORMAT(#{startTime},'%Y-%m-01' )
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 最后更新时间 -->
+            AND YBCS049_TM <![CDATA[<=]]> DATE_FORMAT(#{endTime},'%Y-%m-31' )
+        </if>
+
+        GROUP BY USER_ID )AS t11 ON t11.USER_ID = u.USER_ID
+        <!--月退单量-->
+        LEFT JOIN
+        (SELECT
+        m.USER_ID2,
+        IFNULL(COUNT(0),0) AS month_chargeback
+        FROM ybc_match m
+        WHERE m.YBCMA005_TP = '12'
+        <if test=' startTime == null and endTime == null '>
+            AND DATE_FORMAT( m.YBCMA035_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND m.YBCMA035_TM <![CDATA[>=]]> DATE_FORMAT(#{startTime},'%Y-%m-01 00:00:00' )
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 最后更新时间 -->
+            AND m.YBCMA035_TM <![CDATA[<=]]> DATE_FORMAT(#{endTime},'%Y-%m-31 00:00:00' )
+        </if>
+        AND m.DEPT_LAYERORDER2 LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!--部门中心-->
+        GROUP BY m.USER_ID2
+        )AS t12 ON t12.USER_ID2 = u.USER_ID
+        <!--正常单    计算公式: 所有订单-异常单= 正常单 -->
+        LEFT JOIN
+        (SELECT
+        s.USER_ID,
+        COUNT(S.YBCS001)AS signAll
+        FROM ybc_sign s
+        WHERE s.DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')
+        AND s.YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+        <if test=' startTime == null and endTime == null '>
+            AND DATE_FORMAT( s.YBCS049_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND s.YBCS049_TM <![CDATA[>=]]> DATE_FORMAT(#{startTime},'%Y-%m-%d' )
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 最后更新时间 -->
+            AND s.YBCS049_TM <![CDATA[<=]]> DATE_FORMAT(#{endTime},'%Y-%m-%d' )
+        </if>
+        GROUP BY s.USER_ID )AS t13 ON t13.USER_ID = u.USER_ID
+
+
+        <!-- 主表-->
+        <where>
+            <if test="USER_ID_Sea !=null"><!-- 客户经理 -->
+                AND u.USER_ID = #{USER_ID_Sea}
+            </if>
+            <choose>
+                <when test=' DEPT_LAYERORDER_Sea != null  '>
+                    AND u.DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER_Sea},'%')  <!--部门中心 -->
+                </when>
+                <when test=' DEPT_LAYERORDER_Sea == null  '>                    <!--默认当前用户 -->
+                    AND u.DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')
+                </when>
+            </choose>
+
+            <!-- 只看营销三个中心的数据-->
+            AND u.STATUS='0' <!-- 在职人员 -->
+            AND u.DEPT_LAYERORDER LIKE '1-199fd6aec841421aaff996d8654c95fd%'
+        </where>
+        GROUP BY u.USER_ID HAVING DEPT_PID != '1'
+        ORDER BY DEPT_LAYERORDER <!--部门排序-->
+
+    </select>
+    <!--营销X中心 周数据报表  2018/6/28-->
+    <select id="weeklyReportOfMarketingCenter" resultType="com.dbsun.entity.system.PageData">
+        SELECT
+        u.USER_ID,
+        ( SELECT DEPT_NAME FROM sys_dept d WHERE d.DEPT_ID =u.DEPT_ID )AS DEPT_NAME ,    <!--部门名称-->
+        ( SELECT DEPT_NAME FROM sys_dept d WHERE d.DEPT_ID =( SELECT DEPT_PID FROM sys_dept d WHERE d.DEPT_ID
+        =u.DEPT_ID) )AS CENTERNAME, <!--父id部门名称 -->
+        ( SELECT DEPT_PID FROM sys_dept d WHERE d.DEPT_ID =u.DEPT_ID )AS DEPT_PID,       <!--DEPT_PID -->
+        u.DEPT_ID,
+        COUNT(u.USER_ID)number, <!--部门人数-->
+        IFNULL(YBCF0012_SUM,'0')YBCF0012_SUM ,         <!--本周通话时长-->
+        IFNULL(ROUND(YBCF0012_SUM/COUNT(u.USER_ID)),'0')YBCF0012_AVG ,  <!--本周人均通话时长-->
+        IFNULL(Tweek_intention,'0')tweek_intention ,   <!--本周意向客户-->
+        IFNULL(all_interested,'0')all_interested ,    <!--所有意向用户-->
+        IFNULL(week_house_loan,'0')week_house_loan,    <!--今周房贷签单-->
+        IFNULL(week_the_credit,'0')week_the_credit,    <!--今周信贷签单-->
+        IFNULL(month_door_shut,'0')month_door_shut,    <!--月门拒-->
+        IFNULL(month_customers_dont,'0')month_customers_dont ,<!-- 未展示月客户不要-->
+        IFNULL(month_waste,'0')month_waste,            <!--月废单-->
+        IFNULL(month_chargeback,'0')month_chargeback,  <!--月退单-->
+        IFNULL(signAll-IFNULL(month_door_shut,'0')-IFNULL(month_waste,'0')-IFNULL(month_chargeback,'0')-IFNULL(month_customers_dont,'0'),'0')isTrue
+        ,<!-- 正常单  -->
+        IFNULL(week_door,'0')week_door ,               <!--周上门-->
+        IFNULL(month_door,'0')month_door               <!--月上门-->
+        FROM sys_user u
+        <!--本周通话时长-->
+        LEFT JOIN(SELECT
+        u.DEPT_LAYERORDER,
+        SUM(f.YBCF0012)AS YBCF0012_SUM   <!--通话时长-->
+        FROM sys_user u
+        RIGHT JOIN ybc_follow f ON f.USER_ID = u.USER_ID  <!--通话表-->
+        WHERE f.YBCF007_TP = '2'
+        AND u.DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!--部门中心-->
+        <if test=' startTime == null '> <!--查询本周-->
+            AND f.YBCF002_TM <![CDATA[>=]]>  SUBDATE(CURDATE(),DATE_FORMAT(CURDATE(),'%w')-1)
+            AND f.YBCF002_TM <![CDATA[<=]]>  SUBDATE(CURDATE(),DATE_FORMAT(CURDATE(),'%w')-7)
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间-周  -->
+            AND f.YBCF002_TM <![CDATA[>=]]>  DATE_FORMAT(#{startTime},'%Y-%m-%d')
+            AND f.YBCF002_TM <![CDATA[<=]]>  DATE_ADD(DATE_FORMAT(#{startTime},'%Y-%m-%d'), INTERVAL 6 DAY)
+        </if>
+
+        GROUP BY u.DEPT_LAYERORDER <!--基于部门1-1小组-->
+        )AS t1 ON t1.DEPT_LAYERORDER = u.DEPT_LAYERORDER
+        <!--本周意向客户-->
+        LEFT JOIN
+        (SELECT DEPT_LAYERORDER,COUNT(0)AS tweek_intention FROM YBC
+        WHERE YBC035_TM IS NOT NULL
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!--部门中心-->
+        <if test=' startTime == null '> <!--查询本周-->
+            AND YBC035_TM <![CDATA[>=]]>  SUBDATE(CURDATE(),DATE_FORMAT(CURDATE(),'%w')-1)
+            AND YBC035_TM <![CDATA[<=]]>  SUBDATE(CURDATE(),DATE_FORMAT(CURDATE(),'%w')-7)
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间-周  -->
+            AND YBC035_TM <![CDATA[>=]]>  DATE_FORMAT(#{startTime},'%Y-%m-%d')
+            AND YBC035_TM <![CDATA[<=]]>  DATE_ADD(DATE_FORMAT(#{startTime},'%Y-%m-%d'), INTERVAL 6 DAY)
+        </if>
+        GROUP BY DEPT_LAYERORDER
+        )AS t2 ON t2.DEPT_LAYERORDER = u.DEPT_LAYERORDER
+        <!--所有意向用户-->
+        LEFT JOIN
+        (SELECT DEPT_LAYERORDER,COUNT(0)AS all_interested FROM YBC
+        WHERE YBC035_TM IS NOT NULL
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!--部门中心-->
+        GROUP BY DEPT_LAYERORDER
+        )AS t3 ON t3.DEPT_LAYERORDER = u.DEPT_LAYERORDER
+        <!--********************************************** 本周实际签单数 **********************************************-->
+        <!--今周房贷签单-->
+        LEFT JOIN
+        (SELECT
+        DEPT_LAYERORDER,
+        COUNT(YBC001) AS week_house_loan
+        FROM ybc_sign
+        WHERE YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+        <if test=' startTime == null '> <!--查询本周-->
+            AND YBCS049_TM <![CDATA[>=]]>  SUBDATE(CURDATE(),DATE_FORMAT(CURDATE(),'%w')-1)
+            AND YBCS049_TM <![CDATA[<=]]>  SUBDATE(CURDATE(),DATE_FORMAT(CURDATE(),'%w')-7)
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间-周  -->
+            AND YBCS049_TM <![CDATA[>=]]>  DATE_FORMAT(#{startTime},'%Y-%m-%d')
+            AND YBCS049_TM <![CDATA[<=]]>  DATE_ADD(DATE_FORMAT(#{startTime},'%Y-%m-%d'), INTERVAL 6 DAY)
+        </if>
+
+        AND YBCS009_TP='b1251ef4b74c4046966dc2125e6513ee'
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!--部门中心-->
+
+        GROUP BY DEPT_LAYERORDER )AS t6 ON t6.DEPT_LAYERORDER = u.DEPT_LAYERORDER
+        <!--今周信贷签单-->
+        LEFT JOIN
+        (SELECT
+        DEPT_LAYERORDER,
+        COUNT(YBC001)AS week_the_credit
+        FROM ybc_sign
+        WHERE
+        YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+        <if test=' startTime == null '> <!--查询本周-->
+            AND YBCS049_TM <![CDATA[>=]]>  SUBDATE(CURDATE(),DATE_FORMAT(CURDATE(),'%w')-1)
+            AND YBCS049_TM <![CDATA[<=]]>  SUBDATE(CURDATE(),DATE_FORMAT(CURDATE(),'%w')-7)
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间-周  -->
+            AND YBCS049_TM <![CDATA[>=]]>  DATE_FORMAT(#{startTime},'%Y-%m-%d')
+            AND YBCS049_TM <![CDATA[<=]]>  DATE_ADD(DATE_FORMAT(#{startTime},'%Y-%m-%d'), INTERVAL 6 DAY)
+        </if>
+
+
+        AND YBCS009_TP='bb6718447a5a4db596417d5f8b621046'
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!--部门中心-->
+        GROUP BY DEPT_LAYERORDER
+        )AS t7 ON t7.DEPT_LAYERORDER = u.DEPT_LAYERORDER
+        <!--********************************************** 本月签单状态 **********************************************-->
+        <!--月门拒-->
+        LEFT JOIN
+        (SELECT
+        m.DEPT_LAYERORDER2,
+        COUNT(0)AS month_door_shut
+        FROM ybc_match m
+        WHERE m.YBCMA038_TP='2' AND m.YBCMA005_TP != '12'
+        <if test=' startTime == null   '>
+            AND DATE_FORMAT(m.YBCMA039_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND DATE_FORMAT(m.YBCMA039_TM, '%Y%m' ) = DATE_FORMAT( #{startTime} , '%Y%m' )
+        </if>
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        GROUP BY m.DEPT_LAYERORDER2
+        )AS t10 ON t10.DEPT_LAYERORDER2 = u.DEPT_LAYERORDER
+
+        <!-- 客户不要 未展示-->
+        LEFT JOIN
+        (SELECT
+        m.DEPT_LAYERORDER2,
+        COUNT(0)AS month_customers_dont
+        FROM ybc_match m
+        WHERE m.YBCMA038_TP='3' AND m.YBCMA005_TP != '12'
+        <if test=' startTime == null   '>
+            AND DATE_FORMAT(m.YBCMA039_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND DATE_FORMAT(m.YBCMA039_TM, '%Y%m' ) = DATE_FORMAT( #{startTime} , '%Y%m' )
+        </if>
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        GROUP BY m.DEPT_LAYERORDER2
+        )AS t10_2 ON t10_2.DEPT_LAYERORDER2 = u.DEPT_LAYERORDER
+
+        <!--月废单量-->
+        LEFT JOIN
+        (SELECT
+        DEPT_LAYERORDER,
+        COUNT(YBC001)AS month_waste
+        FROM ybc_sign
+        WHERE YBCS014_TP='2'
+        AND YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+        AND DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!--部门中心-->
+        <if test=' startTime == null   '>
+            AND DATE_FORMAT( YBCS049_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND DATE_FORMAT(YBCS049_TM, '%Y%m' ) = DATE_FORMAT( #{startTime} , '%Y%m' )
+        </if>
+        GROUP BY DEPT_LAYERORDER )AS t11 ON t11.DEPT_LAYERORDER = u.DEPT_LAYERORDER
+        <!--月退单量-->
+        LEFT JOIN
+        (SELECT
+        m.DEPT_LAYERORDER2,
+        IFNULL(COUNT(0),0) AS month_chargeback
+        FROM ybc_match m
+        WHERE m.YBCMA005_TP = '12'
+        <if test=' startTime == null '>
+            AND DATE_FORMAT( m.YBCMA035_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND DATE_FORMAT(m.YBCMA035_TM, '%Y%m' ) = DATE_FORMAT( #{startTime} , '%Y%m' )
+        </if>
+        AND m.DEPT_LAYERORDER2 LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!--部门中心-->
+        GROUP BY m.DEPT_LAYERORDER2
+        )AS t12 ON t12.DEPT_LAYERORDER2 = u.DEPT_LAYERORDER
+        <!-- 月正常单-->
+        <!--正常单    计算公式: 所有订单-异常单= 正常单 -->
+        LEFT JOIN
+        (SELECT
+        s.DEPT_LAYERORDER,
+        COUNT(S.YBC001)AS signAll
+        FROM ybc_sign s
+        WHERE s.DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')
+        AND s.YBCS016_TM IS NOT NULL <!-- 财务确认签单 -->
+        <if test=' startTime == null   '>
+            AND DATE_FORMAT( s.YBCS049_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND DATE_FORMAT(s.YBCS049_TM, '%Y%m' ) = DATE_FORMAT( #{startTime} , '%Y%m' )
+        </if>
+        GROUP BY s.DEPT_LAYERORDER )AS t13 ON t13.DEPT_LAYERORDER = u.DEPT_LAYERORDER
+
+        <!-- 周上门-->
+        LEFT JOIN
+        (SELECT DEPT_LAYERORDER ,COUNT(YBC001)AS week_door
+        FROM ybc_door Y
+        WHERE 1=1
+        <if test=' startTime == null '> <!--查询本周-->
+            AND Y.YBCD002_TM <![CDATA[>=]]>  SUBDATE(CURDATE(),DATE_FORMAT(CURDATE(),'%w')-1)
+            AND Y.YBCD002_TM <![CDATA[<=]]>  SUBDATE(CURDATE(),DATE_FORMAT(CURDATE(),'%w')-7)
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间-周  -->
+            AND Y.YBCD002_TM <![CDATA[>=]]>  DATE_FORMAT(#{startTime},'%Y-%m-%d')
+            AND Y.YBCD002_TM <![CDATA[<=]]>  DATE_ADD(DATE_FORMAT(#{startTime},'%Y-%m-%d'), INTERVAL 6 DAY)
+        </if>
+
+        AND Y.DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        GROUP BY DEPT_LAYERORDER )AS t14 ON t14.DEPT_LAYERORDER = u.DEPT_LAYERORDER
+        <!-- 月上门-->
+        LEFT JOIN
+        (SELECT DEPT_LAYERORDER ,COUNT(YBC001)AS month_door
+        FROM ybc_door Y
+        WHERE 1=1
+        <if test=' startTime == null   '>
+            AND DATE_FORMAT( Y.YBCD002_TM, '%Y%m' ) = DATE_FORMAT( CURDATE() , '%Y%m' ) <!--月-->
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 最后更新时间 -->
+            AND DATE_FORMAT( Y.YBCD002_TM, '%Y%m' ) = DATE_FORMAT( #{startTime} , '%Y%m' )
+        </if>
+
+
+        AND Y.DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')  <!-- 部门中心-->
+        GROUP BY DEPT_LAYERORDER )AS t15 ON t15.DEPT_LAYERORDER = u.DEPT_LAYERORDER
+
+        <!--主表-->
+        <where>
+            <choose>
+                <when test=' DEPT_LAYERORDER_Sea != null  '>
+                    AND u.DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER_Sea},'%')  <!--部门中心 -->
+                </when>
+                <when test=' DEPT_LAYERORDER_Sea == null  '>                    <!--默认当前用户 -->
+                    AND u.DEPT_LAYERORDER LIKE CONCAT(#{DEPT_LAYERORDER},'%')
+                </when>
+            </choose>
+
+            <!-- 只看营销三个中心的数据  -->
+            AND u.STATUS='0' <!-- 在职人员 -->
+            AND u.DEPT_LAYERORDER LIKE '1-199fd6aec841421aaff996d8654c95fd%'
+        </where>
+        GROUP BY u.DEPT_LAYERORDER HAVING DEPT_PID != '1'
+        ORDER BY u.DEPT_LAYERORDER <!--部门排序-->
+    </select>
+
+
+</mapper>

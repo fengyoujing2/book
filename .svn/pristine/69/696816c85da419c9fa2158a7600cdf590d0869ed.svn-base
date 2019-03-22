@@ -1,0 +1,28 @@
+package com.dbsun.mapper;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+/**
+ * 产品
+ * @author DongZai
+ *
+ */
+public interface YwProductMapper {
+	
+	/**产品列表数据*/
+	public List<PageData> getPageYwProductLst(Page page);
+	
+	/**通过YWPRODUCT001获取产品*/
+	public PageData getYwProductByYwProduct001(PageData pd);
+	
+	/**新增产品*/
+	public int addYwProduct(PageData pd);
+	
+	/**更新产品*/
+	public int updateYwProduct(PageData pd);
+	
+	
+}

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+
+    <title>外呼工作台</title>
+
+    <link rel="shortcut icon" href="favicon.ico"> 
+    <link href="static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="static/css/animate.css" rel="stylesheet">
+    <link href="static/css/style.css?v=4.1.0" rel="stylesheet">
+    
+    <link rel="stylesheet" href="static/element-ui/lib/theme-chalk/index.css">
+    
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0]; 
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+    
+    <script src="static/js/echarts.js"></script>
+    <script src="static/js/vue.js"></script>
+    <script src="static/element-ui/lib/index.js"></script>
+    <script src="static/js/jquery.min.js"></script>
+
+    <style>
+        body{
+            min-height: 900px !important;
+            min-width: 1600px !important;
+            overflow: auto;
+        }
+        a{
+            text-decoration: none;
+            color: #fff;
+        }
+        .demo-table-expand {
+            font-size: 0;
+        }
+        .cusMTable .el-table tr{
+            background-color: #54DE9E;
+            color:#fff;
+        }
+        .cusMTable2 .el-table tr{
+            background-color: #4AA5FB;
+            color:#fff;
+        }
+        .el-table .evrow {
+            background: #ffffff !important;
+            color:#000 !important;
+        }
+        .el-table .evrow2 {
+            background-color: #F1F7FE !important;
+            color:#000 !important;
+        }
+        .tips{
+            display: inline-block;
+            padding: .5rem 2rem .5rem 1rem;
+            background-color: #4AA5FB;
+            color: #fff;
+            font-size: 16px;
+            border-bottom-right-radius: 2rem;
+            border-top-right-radius: 2rem;
+        }
+        .userTag{
+            margin:.5rem;
+            color:#fff;
+            background-color:#4aa5fb;
+            font-size:12px;
+        }
+        .userTag i{
+            display: none;
+        }
+        .userTag:hover{
+            background-color:#FD8B12;
+            border: 1px solid #FD8B12;
+        }
+        .userTag:hover i{
+            display: inline-block;
+            color: #fff !important;
+        }
+        .callL div{
+            margin: 20px 0;
+        }
+        .callLtop{
+            background-color: #54DE9E;
+            padding:10px;
+            border-radius: 6px;
+        }
+        .callBtn button{
+            margin-left: 40px !important;
+        }
+        .callLNum{
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between; 
+        }
+        .callLNum img{
+            width: 30px;
+            height: 30px;
+        }
+        .callLNumCon1{
+            color: #6CE3AC;
+        }
+        .callLNumCon2{
+            color: #4AA5FB;
+        }
+        .callLNumCon3{
+            color: #4AA5FB;
+        }
+        .callLBot{
+            margin-top: 30px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            color:#4AA5FB;
+            border: 2px solid #4AA5FB;
+            border-radius: 40px;
+        }
+    </style>
+</head>
+
+<body style="background-color:#F1F7FE;margin:0;">
+    <div id="callWorkbApp" style="display:flex;">
+        <div style="width:400px;background-color:#fff;padding:10px;">
+            <div style="padding:0 30px;" class="callL">
+                <div class="callLtop">
+                    <i class="fa fa-bars" style="color:#fff;" @click=""></i>
+                </div>
+                <div>
+                    <el-input></el-input>
+                </div>
+                <div>
+                    <div style="text-align:center;">呼叫中</div>
+                </div>
+                <div class="callBtn">
+                    <el-button icon="fa fa-phone"
+                          style="color:#fff;padding:6px 15px;background-color:#BFBFBF;border-color:#BFBFBF;font-size:20px;"
+                          @click=""></el-button>
+                    <el-button icon="fa fa-pause"
+                          style="color:#fff;padding:6px 15px;background-color:#4AA5FB;border-color:#4AA5FB;font-size:20px;"
+                          @click=""></el-button>
+                    <el-button icon="fa fa-phone"
+                          style="color:#fff;padding:6px 15px;background-color:#FC5C7E;border-color:#FC5C7E;font-size:20px;"
+                          @click=""></el-button>
+                </div>
+                <div>
+                    <table style="border:1px solid #ccc;border-radius:2px;margin:0 auto;">
+                        <tr style="border-bottom:1px solid #ccc;">
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;"><a href="javascript:" class="keysetA"  style="text-decoration: none;font-size: 20px;color:#000;">1</a></td>                
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;border-left:1px solid #ccc;border-right:1px solid #ccc;"><a href="javascript:" class="keysetA" style="text-decoration: none;font-size: 20px;color:#000;">2</a></td>
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;"><a href="javascript:" class="keysetA"  style="text-decoration: none;font-size: 20px;color:#000;">3</a></td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #ccc;">
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;"><a href="javascript:"  class="keysetA" style="text-decoration: none;font-size: 20px;color:#000;">4</a></td>                
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;border-left:1px solid #ccc;border-right:1px solid #ccc;"><a href="javascript:" class="keysetA" style="text-decoration: none;font-size: 20px;color:#000;">5</a></td>
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;"><a href="javascript:" class="keysetA"  style="text-decoration: none;font-size: 20px;color:#000;">6</a></td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #ccc;">
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;"><a href="javascript:"  class="keysetA" style="text-decoration: none;font-size: 20px;color:#000;">7</a></td>                
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;border-left:1px solid #ccc;border-right:1px solid #ccc;"><a href="javascript:" class="keysetA"  style="text-decoration: none;font-size: 20px;color:#000;">8</a></td>
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;"><a href="javascript:"  class="keysetA" style="text-decoration: none;font-size: 20px;color:#000;">9</a></td>
+                        </tr>
+                        <tr>
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;"><a href="javascript:"  class="keysetA" style="text-decoration: none;font-size: 20px;color:#000;">*</a></td>                
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;border-left:1px solid #ccc;border-right:1px solid #ccc;"><a href="javascript:" class="keysetA"  style="text-decoration: none;font-size: 20px;color:#000;">0</a></td>
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;"><a href="javascript:"  class="keysetA" style="text-decoration: none;font-size: 20px;color:#000;">#</a></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="callLNum">
+                <div class="callLNumCon">
+                    <div><img src="static/img/callOut.png"></div>
+                    <div>外呼</div>
+                    <div>10个</div>
+                </div>
+                <div class="callLNumCon">
+                    <div><img src="static/img/cusFollow.png"></div>
+                    <div>客户池</div>
+                    <div>100个</div>
+                </div>
+                <div class="callLNumCon">
+                    <div><img src="static/img/cuss.png"></div>
+                    <div>待跟进</div>
+                    <div>20个</div>
+                </div>
+            </div>
+            <div style="padding:0 15px;">
+                <div class="callLBot">
+                    累计通话：120分钟
+                </div>
+            </div>
+        </div>
+        <div style="flex-grow:1;">
+            <div class="cusMTable">
+                <el-table
+                :data="callPlan"
+                :row-class-name="tableRowClassName"
+                :row-key="getRowKeys"
+                :expand-row-keys="expands">
+                    <el-table-column type="expand">
+                        <template slot-scope="props">
+                            <el-row style="display:flex;">
+                                <el-col :span="18" style="text-align:right;">
+                                    <el-input type="textarea" :rows="3" v-model="props.row.followRecord" placeholder="请输入客户跟进记录，不超过1000个字~"></el-input>
+                                    <el-button style="background-color:#4AA5FB;border-color:#4AA5FB;color:#fff;padding:10px 25px;margin-top:10px;" @click="getFolRd(props.$index,props.row)">保存</el-button>
+                                </el-col>
+                                <el-col :span="6" style="padding:0 10px;">
+                                    <span v-if="customerTags.length=='0'" style="color:#000;">客户标签:</span>
+                                    <el-tag
+                                      :key="tag"
+                                      v-for="tag in customerTags"
+                                      closable
+                                      size="small"
+                                      :disable-transitions="false"
+                                      @close="handleClose(tag)"
+                                      class="userTag">
+                                        {{tag}}
+                                    </el-tag>
+                                    <div v-if="addCusTag">
+                                        <el-select  v-model="newTags" multiple placeholder="请选择客户标签">
+                                            <el-option-group
+                                              v-for="group in TagOptions"
+                                              :key="group.label"
+                                              :label="group.label">
+                                              <el-option
+                                                v-for="item in group.options"
+                                                :key="item.value"
+                                                :label="item.label"
+                                                :value="item.label">
+                                              </el-option>
+                                            </el-option-group>
+                                        </el-select>
+                                        <el-button @click="sureAddTag">确认</el-button>
+                                    </div>
+                                    <div v-else style="text-align:center;">
+                                        <el-button class="button-new-tag fa fa-plus" style="color:#fff;background-color:#e5e5e5;border:0;boder-radius:.6rem;padding:6px 20px;margin-left:.5rem;" size="small" @click="showInput"></el-button>
+                                    </div>
+                                </el-col>
+                            </el-row>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                      type="index"
+                      label="序号"
+                      width="50">
+                    </el-table-column>
+                    <el-table-column
+                      label="客户姓名"
+                      prop="name">
+                    </el-table-column>
+                    <el-table-column
+                      label="性别"
+                      prop="sex">
+                    </el-table-column>
+                    <el-table-column
+                      label="电话号码"
+                      prop="phone">
+                    </el-table-column>
+                    <el-table-column
+                      label="拨打状态"
+                      prop="callState">
+                    </el-table-column>
+                    <el-table-column label="客户状态">
+                        <template v-if="scope.$index=='0'" slot-scope="scope">
+                        <el-button
+                          size="mini"
+                          style="background-color:#54DE9E;border-color:#54DE9E;color:#fff;"
+                          @click="changeCus0(scope.$index, scope.row)">转为意向</el-button>
+                          <el-button
+                          style="background-color:#BFBFBF;border-color:#BFBFBF;color:#fff;"
+                          size="mini"
+                          @click="empty(scope.$index, scope.row)">空号</el-button>
+                      </template>
+                    </el-table-column>
+                </el-table>
+            </div>
+            <div style="margin:20px 0;">
+                <span class="tips">通话记录</span>
+            </div>
+            <div class="cusMTable2">
+                <el-table
+                :data="callRecords"
+                :row-class-name="headerClassName"
+                style="width: 100%">
+                    <el-table-column
+                      type="index"
+                      label="序号"
+                      width="50">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBC002"
+                      label="客户姓名">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBC003"
+                      label="联系电话">
+                    </el-table-column>
+                    <el-table-column
+                      prop="callState"
+                      label="拨打状态">
+                    </el-table-column>
+                    <el-table-column
+                      prop="callTime"
+                      label="拨打时间">
+                    </el-table-column>
+                    <el-table-column
+                      prop="state"
+                      label="客户状态">
+                    </el-table-column>
+                    <el-table-column label="回拨">
+                      <template slot-scope="scope">
+                        <el-button
+                          icon="fa fa-phone"
+                          style="color:#fff;padding:4px 10px;background-color:#54DE9E;border-color:#54DE9E;font-size:20px;"
+                          @click="callBack(scope.$index, scope.row)"></el-button>
+                      </template>
+                    </el-table-column>
+                </el-table>
+                <div style="text-align:right;">
+                    <el-pagination
+                      @current-change="handleCurrentChange"
+                      :current-page="pageInit.currentPage"
+                      :page-size="10"
+                      layout="total, prev, pager, next, jumper"
+                      :total="pageInit.totalResult">
+                    </el-pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script  th:inline="javascript">
+    
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+    
+    var callWorkb=new Vue({
+        el:"#callWorkbApp",
+        data(){
+            return {
+                callPlan:[{
+                    id:"1",
+                    name:"张三",
+                    sex:"男",
+                    phone:"12345678910",
+                    callState:"接通"
+                },{
+                    id:"2",
+                    name:"张三",
+                    sex:"男",
+                    phone:"12345678910",
+                    callState:"未拨打"
+                },{
+                    id:"3",
+                    name:"张三",
+                    sex:"男",
+                    phone:"12345678910",
+                    callState:"未拨打"
+                },{
+                    id:"4",
+                    name:"张三",
+                    sex:"男",
+                    phone:"12345678910",
+                    callState:"未拨打"
+                },{
+                    id:"5",
+                    name:"张三",
+                    sex:"男",
+                    phone:"12345678910",
+                    callState:"未拨打"
+                }],
+    //            返回每一行的id
+                getRowKeys(row){
+                    return row.id
+                },
+                expands:[],
+//                客户标签
+                customerTags:[],
+//                添加客户标签
+                addCusTag:false,
+//                可选标签
+                TagOptions:[],
+//                添加的新标签
+                newTags:[],
+//                通话记录
+                callRecords:[{
+                    YBC002:"张三",
+                    YBC003:"12345678910",
+                    callState:"未接",
+                    callTime:"00:03:15",
+                    state:"临时"
+                },{
+                    YBC002:"张三",
+                    YBC003:"12345678910",
+                    callState:"未接",
+                    callTime:"00:03:15",
+                    state:"临时"
+                },{
+                    YBC002:"张三",
+                    YBC003:"12345678910",
+                    callState:"未接",
+                    callTime:"00:03:15",
+                    state:"临时"
+                },{
+                    YBC002:"张三",
+                    YBC003:"12345678910",
+                    callState:"未接",
+                    callTime:"00:03:15",
+                    state:"临时"
+                },{
+                    YBC002:"张三",
+                    YBC003:"12345678910",
+                    callState:"未接",
+                    callTime:"00:03:15",
+                    state:"临时"
+                }],
+//                页码
+                pageInit:{currentPage:1,totalResult:11}
+            }
+        },
+        mounted(){
+            this.getExpands();
+            this.getUserTabs();
+        },
+        methods:{
+            //            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                return 'evrow';
+            },
+            headerClassName({row,rowIndex}){
+                return 'evrow2'  
+            },
+//            默认展开第一行
+            getExpands(){
+                this.expands=[];
+                this.expands.push(this.callPlan[0].id);
+            },
+//            获取客户标签可选项
+            getUserTabs(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pubSys/getLabelLst`,
+                    data:"",
+                    success:function(data){
+                        console.log(data)
+                        if(data.msg=="200"){
+                            that.TagOptions=data.result;
+                        }
+                    }
+                })
+            },
+//            删除客户标签
+            handleClose(tag) {
+                let cusTags=this.customerTags;
+                cusTags.splice(cusTags.indexOf(tag), 1);
+                let str='';
+                for(let i=0;i<cusTags.length;i++){
+                    str+=cusTags[i] + ","
+                }
+                let YBC001=this.customerInfo.YBC001;
+                let cusTTag={
+                    YBC001:YBC001,
+                    YBC023:str
+                }
+                let that =this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_/updateCusForLabel`,
+                    data:cusTTag,
+                    success:function(data){
+                        console.log(data)
+                        if(data.msg=="200"){
+                            that.$message({
+                              message: '标签删除成功',
+                              type: 'success'
+                            });
+                            that.customerTags=cusTags;
+                            that.addCusTag = false;
+                            that.newTags=[];
+                        }else{
+                            that.$message({
+                              message: '删除失败！',
+                              type: 'warning'
+                            });
+                        }
+                    }
+                })
+            },
+//            显示添加标签输入框
+            showInput() {
+                this.addCusTag = true;
+            },
+//            确定添加的客户标签
+            sureAddTag() {
+                let cusTags=this.customerTags;
+                if(!cusTags){
+                    cusTags=[];
+                }
+                let newTags=this.newTags;
+                function tab(arr1,arr2){
+                    var arr = arr1.concat(arr2);
+                    var lastArr = [];
+                    for(var i = 0;i<arr.length;i++){
+                        if(! unique(arr[i],lastArr)){
+                            lastArr.push(arr[i]);
+                        }
+                    }
+                    return lastArr;
+                }
+                function unique(n,arr){
+                    for(var i=0;i<arr.length;i++){
+                        if(n==arr[i]){
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                cusTags=tab(cusTags,newTags);
+                let str='';
+                for(let i=0;i<cusTags.length;i++){
+                    str+=cusTags[i] + ","
+                }
+                
+                let YBC001=this.customerInfo.YBC001;
+                let cusTTag={
+                    YBC001:YBC001,
+                    YBC023:str
+                }
+                console.log(cusTTag);
+                let that =this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_/updateCusForLabel`,
+                    data:cusTTag,
+                    success:function(data){
+                        console.log(data);
+                        if(data.msg=="200"){
+                            that.$message({
+                              message: '标签添加成功',
+                              type: 'success'
+                            });
+                            that.customerTags=cusTags;
+                            that.addCusTag = false;
+                            that.newTags=[];
+                        }else{
+                            that.$message({
+                              message: '添加失败！',
+                              type: 'warning'
+                            });
+                        }
+                    }
+                })
+            },
+            changeCus0(index,row){
+                
+            },
+            empty(index,row){
+                
+            },
+            getFolRd(index,row){
+                console.log(index,row);
+                let YBC001=row.YBC001;
+                let cusText=row.followRecord;
+                let newFollowInfo={
+                    YBC001:YBC001,
+                    YBCF007_TP:3,
+                    YBCF006:cusText
+                }
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_follow/addFollow`,
+                    data:newFollowInfo,
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.getFollow();
+                            that.$message({
+                              message: '您已成功添加跟进消息',
+                              type: 'success'
+                            });
+                            that.callPlan[index].followRecord = "";
+                        }else{
+                            that.$message({
+                              message: '添加跟进消息失败！',
+                              type: 'warning'
+                            });
+                        }
+                    }
+                })
+            },
+            callBack(index,row){
+                console.log(index,row);
+            },
+//            翻页
+            handleCurrentChange(val){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_/getPageCusLst`,
+                    data:val,
+                    success:function(data){
+                        console.log(data);
+                        that.callRecords=data.rows;
+                    }
+                })              
+            }
+        }
+    })
+    
+</script>
+</html>

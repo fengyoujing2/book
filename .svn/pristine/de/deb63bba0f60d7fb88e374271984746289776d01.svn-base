@@ -1,0 +1,18 @@
+package com.dbsun.mapper;
+
+import com.dbsun.entity.system.PageData;
+
+/**
+ * 个人资料历史
+ * @author DongZai
+ *
+ */
+public interface YwDataBindMapper {
+	
+	/**通过YWDATA_BIND001获取个人资料历史*/
+	public PageData getYwDataBindByYwData001(PageData pd);
+	
+	/**新增个人资料历史*/
+	public int addYwDataBind(PageData pd);
+	
+}

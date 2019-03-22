@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的</title>
+    <style>
+        a:hover{
+            text-decoration: none;
+        }
+
+        a:visited{
+            text-decoration: none;
+        }
+
+        a:active{
+            text-decoration: none;
+        }
+
+        #tanchuang{
+            display: none;
+        }
+
+        #wanshan{
+            display: none;
+        }
+    </style>
+
+</head>
+<body style="background: #ffffff">
+<div class="container-fluid jianju"  id="contain" >
+    <div class="page-body">
+
+        <div class="row text-center" style="background:url('../static/img/back08_02.jpg')">
+            <div class="input-group col-xs-6 col-xs-offset-3" style="padding: 32px;">
+                <a th:href="@{/wx_ywData/goBacMsg}" class="btn  btn-md btn-block" style="border-radius: 20px;margin-bottom: 10px;border: 1px solid white;background: transparent;color: #ffffff;">完善资料</a>
+                <span style="color: white">资料完整度</span>
+                <br/>
+                <span style="font-size: 16px;color: white" th:text="${pd.HINFO +'%'}"></span>
+            </div>
+        </div>
+		
+	   <a th:href="@{/wx_mine/goApplyRec}">
+            <div class="row" style="border-bottom: 1px solid rgb(245,245,245);background: white">
+                <div class="col-xs-10  text-left  " style="padding: 15px">
+                    <div style="display: inline-block;width: 20px;height: 20px;vertical-align: middle;background:url('../static/img/shenqingjilu_03.png');background-size: 100%;background-position-y: -3px;"></div> <span style="color: #626161;vertical-align: middle">申请记录</span>
+                </div>
+                <div class="col-xs-2  text-right" style="padding: 15px">
+                    <span> <span class="glyphicon glyphicon-chevron-right" style="color: #C9C6C6;top:3px;"></span></span>
+                </div>
+            </div>
+        </a>
+
+
+        <a th:href="@{/wx_mine/goDKJD}">
+            <div class="row" style="border-bottom: 1px solid rgb(245,245,245);background: white">
+                <div class="col-xs-10  text-left  " style="padding: 15px">
+                    <div style="display: inline-block;width: 20px;height: 20px;vertical-align: middle;background:url('../static/img/icon_03.png');background-size: 100%"></div> <span style="color: #626161;vertical-align: middle">贷款进度</span>
+                </div>
+                <div class="col-xs-2  text-right" style="padding: 15px">
+                    <span> <span class="glyphicon glyphicon-chevron-right" style="color: #C9C6C6;top:3px;"></span></span>
+                </div>
+            </div>
+        </a>
+
+
+        <!-- <a th:href="@{/wx_mine/goHKCX}">
+            <div class="row" style="border-bottom: 1px solid rgb(245,245,245);background: white">
+                <div class="col-xs-10  text-left  " style="padding: 15px">
+                    <div style="display: inline-block;width: 20px;height: 20px;vertical-align: middle;background:url('../static/img/icon_03.png');background-size: 100%;background-position-y: -39px"></div> <span style="color: #626161;vertical-align: middle">还款查询</span>
+                </div>
+                <div class="col-xs-2  text-right" style="padding: 15px">
+                    <span> <span class="glyphicon glyphicon-chevron-right" style="color: #C9C6C6;top:3px;"></span></span>
+                </div>
+            </div>
+        </a> -->
+
+        <a th:href="@{/wx_ywBank/goSeeMyBank}">
+            <div class="row" style="border-bottom: 1px solid rgb(245,245,245);background: white;">
+                <div class="col-xs-10  text-left  " style="padding: 15px">
+                    <div style="display: inline-block;width: 20px;height: 20px;vertical-align: middle;background:url('../static/img/icon_03.png');background-size: 100%;background-position-y: -77px"></div> 
+                    <span style="color: #626161;vertical-align: middle">我的银行卡</span>
+                </div>
+                <div class="col-xs-2  text-right" style="padding: 15px">
+                    <span> <span class="glyphicon glyphicon-chevron-right" style="color: #C9C6C6;top:3px;"></span></span>
+                </div>
+            </div>
+        </a>
+
+        <a th:href="@{/wx_ywReward/goMyYQ}">
+	        <div class="row" style="border-bottom: 1px solid rgb(245,245,245);background: white;">
+	            <div class="col-xs-6  text-left" style="padding: 15px">
+	                <div style="display: inline-block;width: 20px;height: 20px;vertical-align: middle;background:url('../static/img/icon_03.png');background-size: 100%;background-position-y: -117px"></div> <span style="color: #626161;vertical-align: middle">我的奖励</span>
+	            </div>
+	            <div class="col-xs-6  text-right" style="padding: 15px">
+	                <span style="vertical-align: middle;color: #FC8B4D" th:text="${pd == null ? '' : pd.get('JF')}"></span><span style="vertical-align: middle;color: #FC8B4D">分</span><span class="glyphicon glyphicon-chevron-right" style="color: #C9C6C6;top:0px;vertical-align: middle"></span>
+	            </div>
+	        </div>
+        </a>
+
+        <a th:href="@{/wx_ywReward/goMyFriPg}" >
+            <div class="row" style="border-bottom: 1px solid rgb(245,245,245);background: white">
+                <div class="col-xs-10  text-left  " style="padding: 15px">
+                    <div style="display: inline-block;width: 20px;height: 20px;vertical-align: middle;background:url('../static/img/icon_03.png');background-size: 100%;background-position-y: -157px"></div> <span style="color: #626161;vertical-align: middle">邀请好友</span>
+                </div>
+                <div class="col-xs-2  text-right" style="padding: 15px">
+                    <span> <span class="glyphicon glyphicon-chevron-right" style="color: #C9C6C6;top:3px;"></span></span>
+                </div>
+            </div>
+        </a>
+
+		<div th:switch="${pd.YWU007_TP}">
+			<!-- 未绑定 -->
+			<div th:case="2">
+				<a th:href="@{/wx_ywu/goBindTel}" id="bind">
+		            <div class="row" style="background: white">
+		                <div class="col-xs-6  text-left  " style="padding: 15px">
+		                    <div style="display: inline-block;width: 20px;height: 20px;vertical-align: middle;background:url('../static/img/icon_03.png');background-size: 100%;background-position-y: -195px"></div> <span style="color: #626161;vertical-align: middle">绑定手机</span>
+		                </div>
+		                <div class="col-xs-6  text-right" style="padding: 15px">
+		                    <span style="color: #FC8B4D" id="bindOrUnBind" >去绑定</span>
+		                    <span class="glyphicon glyphicon-chevron-right" style="color: #C9C6C6;top:2px;"></span>
+		                </div>
+		            </div>
+				</a>
+			</div>
+			<!-- 已解绑 -->
+			<div th:case="3">
+				<a th:href="@{/wx_ywu/goBindTel}" id="bind">
+		            <div class="row" style="background: white">
+		                <div class="col-xs-6  text-left  " style="padding: 15px">
+		                    <div style="display: inline-block;width: 20px;height: 20px;vertical-align: middle;background:url('../static/img/icon_03.png');background-size: 100%;background-position-y: -195px"></div> <span style="color: #626161;vertical-align: middle">绑定手机</span>
+		                </div>
+		                <div class="col-xs-6  text-right" style="padding: 15px">
+		                    <span style="color: #FC8B4D" id="bindOrUnBind" >去绑定</span>
+		                    <span class="glyphicon glyphicon-chevron-right" style="color: #C9C6C6;top:2px;"></span>
+		                </div>
+		            </div>
+				</a>
+			</div>
+			<!-- 去解绑 -->
+			<div th:case="1">
+	            <div class="row" style="background: white" onclick="unbind();">
+	                <div class="col-xs-6  text-left  " style="padding: 15px">
+	                    <div style="display: inline-block;width: 20px;height: 20px;vertical-align: middle;background:url('../static/img/icon_03.png');background-size: 100%;background-position-y: -195px"></div> <span style="color: #626161;vertical-align: middle">绑定手机</span>
+	                </div>
+	                <div class="col-xs-6  text-right" style="padding: 15px">
+	                    <span style="color: #FC8B4D" id="bindOrUnBind">去解绑</span> 
+	                    <span class="glyphicon glyphicon-chevron-right" style="color: #C9C6C6;top:2px;"></span>
+	                </div>
+	            </div>
+			</div>
+		</div>
+        
+
+        <div class="row" style="border-bottom: 1px solid transparent; background: transparent">
+            <div class="col-xs-12  text-left  " style="padding: 16px">
+                <a href="#" style="color: transparent">热门问题</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- <div th:include="html/wechat/public/foot :: copy"></div> -->
+
+<!-- 底部导航栏 -->
+<div class="container-fluid" style="position: fixed;bottom: 0;right: 0;width: 100%;z-index: 20000;background:#ffffff;border-top: 1px solid rgb(245,245,245);">
+    <div class="row" >
+        <a th:href="@{/wx_index/goIndex}">
+            <div class="  text-center  " style="padding: 5px;width: 33.3333%;float: left" id="women">
+                <span class="	glyphicon glyphicon-home" style="color:#C9C6C6"></span>
+                <br>
+                <span style="vertical-align: middle;color: rgb(166,166,166)">首页</span>
+            </div>
+        </a>
+
+        <a th:href="@{/wx_mine/goMinePg}">
+            <div class="  text-center  " style="padding: 5px;width: 33.3333%;float: left" >
+                <span class="	glyphicon glyphicon-user" style="color:#FC8B4D"></span>
+                <br>
+                <span style="vertical-align: middle;color:#FC8B4D">我的</span>
+            </div>
+        </a>
+
+         <a th:href="@{/wx_more/goMore}">
+            <div class="  text-center  " style="padding: 5px;width: 33.3333%;float: left;" id="feedback">
+                <span class="glyphicon glyphicon-th-large" style="color: #C9C6C6"></span>
+                <br>
+                <span style="vertical-align: middle;color:#C9C6C6">更多</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- 解绑手机的引导页 -->
+<div style="width: 100%; height: 100%; color: rgb(0, 0, 0); position: fixed; top: 0px; left: 0px; z-index: 55500; background: url('../static/img/back2.png'); " id="wanshan">
+    <div style="opacity: 1">
+        <div style="position: absolute;width: 250px;height:182px;top: 50%;left: 50%;margin: -91px 0 0 -125px;border: 1px solid transparent;color: #ffffff;border-radius: 10px;background: #ffffff;color: #000000;text-align: center">
+            <div style="width: 100%;font-size: 16px;border-top-right-radius: 10px;border-top-left-radius: 10px;padding: 23px 0;overflow: hidden">
+                <div>
+                    	提示
+                </div>
+                <div style="font-size: 14px;padding: 15px">解除绑定手机号码您将收不到还款和活动提醒，确认解绑手机吗？</div>
+                <div style="text-align: center;margin-top: 10px;">
+                    <div style="width: 50%;float: left;text-align: center;padding: 0 15px">
+                        <button type="button" onclick="yes();" class="btn btn-primary btn-sm btn-block" style="border-radius: 20px;background:#E5E5E5;;border: 1px solid transparent;font-size: 13px;color: black" id="queding">确定</button>
+                    </div>
+                    <div style="width: 50%;float: left;text-align: center;padding: 0 15px">
+                        <button type="button" class="btn btn-primary btn-sm btn-block" style="border-radius: 20px;background:#FC8B4D;;border: 1px solid transparent;font-size: 13px" id="quxiao">取消</button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div th:include="html/page/contentpublic :: html"></div>
+
+<script th:inline="javascript">
+    $(document).ready(function(){
+
+        $("#shaohouzaishuo").click(function(){
+            $("#tanchuang").hide();
+        });
+
+        $("#xuanzechanpin").click(function(){
+            window.location.href="index.html";
+        });
+
+        $("#quxiao").click(function(){
+            $("#wanshan").hide();
+        });
+
+        $("#queding").click(function(){
+            $("#wanshan").hide();
+        });
+
+    });
+    
+    //弹出解绑页面
+    function unbind(){
+    	$("#wanshan").show();
+    }
+    
+    //确定解绑
+    function yes(){
+    	
+    	var basePath = "/"+getContextPath();
+    	
+    	$.ajax({
+	        type: "POST",
+	        url: basePath+"/wx_ywu/cancelBind",
+	        success: function (data)
+	        {
+	        	if(data == "success"){
+	        		//操作成功返回我的页面
+	        		window.location.href=basePath+"/wx_mine/goMinePg";
+	        	}else{
+	        		tip("服务器开小差了，请稍后再试(*^▽^*)");
+	        	}
+	        }
+	     });
+    }
+    
+</script>
+
+
+</body>
+</html>

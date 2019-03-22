@@ -1,0 +1,59 @@
+package com.dbsun.controller.phonesys;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.phonesys.PhoSeatStateService;
+import com.dbsun.util.SentReqUtil;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+/**
+ * 坐席状态
+ *
+ * @author DongZai
+ */
+@Controller
+@RequestMapping("/pho_seatState")
+public class PhoSeatStateController extends BaseController {
+    @Autowired
+    private PhoSeatStateService phoSeatStateService;
+
+    /**
+     * 呼叫-坐席状态
+     *
+     * @return
+     */
+    @RequestMapping("/goSeatState")
+    public String goSeatState(ModelMap model) {
+//		//获取当前用户的坐席组ID   2018/07/09修改  注注释
+//		PageData pddata = getUserPd();
+//		JSONArray jar = phoSeatStateService.getybcSpeedLst(pddata);
+//		System.out.println(jar);
+//		model.addAttribute("SeatLst",jar);//分页数据
+        return "html/system/phonesys/seatState";
+    }
+
+    /**
+     * 坐席-呼叫实时记录列表
+     * 获得坐席部门列表,访问坐席电话数据接口,根据坐席号进行匹配客服
+     * 解析Jjson 重新组装
+     *
+     * @Author: zhao yi
+     * @Date : 2018/5/25 20:31
+     * @Param : []
+     * @return: net.sf.json.JSONArray
+     */
+    @ResponseBody
+    @RequestMapping("/callLst")
+    public JSONObject callLst() {
+        String url = "http://171.221.217.40:29003/api/ola/agents/";
+        String rs = SentReqUtil.sendGet(url, null);
+        PageData pd = this.getPageData();
+        return getSucJson(phoSeatStateService.callLstBystate(rs, this.putUserPd(pd)));
+    }
+
+}

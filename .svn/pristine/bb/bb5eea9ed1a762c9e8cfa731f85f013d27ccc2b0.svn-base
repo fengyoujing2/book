@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.homepage.HmPCusMapper">
+	<!-- 首页数据 -->
+	
+	<!-- 客户首页待跟进统计 -->
+	<select id="getCusDb" parameterType="pd" resultType="pd" useCache="false">
+		select
+			count(c.YBC001) as poolSize, <!-- 属于我的客户或者主管部门下的数据 -->
+			count(if(DATE(c.YBC014_TM) = curdate(),true,null)) as newCusLimitTdNum, <!-- 当天新增 -->
+			(
+				count(
+			
+					IF (
+						DATE(c.YBC014_TM) = curdate(), 
+						TRUE,
+						NULL
+					)	<!-- 今天新增客户 -->
+				) - count(
+			
+					IF (
+						DATE(c.YBC014_TM) = curdate()	<!-- 今天新增 -->
+						AND 
+						DATE(c.YBC034_TM) = curdate(),	<!-- 并且今天新增的客户在今天已跟进 -->
+						TRUE,
+						NULL
+					)
+				)
+			) AS wtFlwNum <!-- 当天的待跟进数量 当前新增减去今天跟进了的-->
+		from ybc c 
+		where 1 = 1 
+		<!-- 客户废弃、电话废弃、放弃之后都只属于部门 -->
+		and c.YBC026_TP != 1 
+		and c.YBC024 != 1
+		and c.YBC031_TP != 1 <!-- 电话废弃 -->
+		<!-- 判断登陆者当前身份 -->
+		<if test="POSITION == 1"><!-- 主管：计算所有他能看到的数据 -->
+			and c.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+		</if>
+		<if test="POSITION == 2"><!-- 非主管：查看属于自己的数据 -->
+			and c.USER_ID = #{USER_ID}
+		</if>
+	</select>
+	
+	<!-- 这个月的统计数据 -->
+	<select id="getCtForMonth" parameterType="pd" resultType="pd" useCache="false">
+		select
+			<!-- <![CDATA[ if(count(if(now()>t.YBT005, true, null)) >  0, 1, 0) as hasTsk,]]> 未过期的任务 -->
+			t.YBT012,
+			(select DEPT_NAME from sys_dept where DEPT_LAYERORDER = t.DEPT_LAYERORDER) as deptName,
+			(
+				case t.YBT003_TP
+					when 1 then "签单任务"
+					when 2 then "利润任务"
+				end
+			) as taskType,
+			(
+				case t.YBT009_TP
+					when 1 then "部门任务"
+					when 2 then "个人任务"
+				end
+			) as orderType,
+			t.YBT003_TP,
+			t.YBT009_TP,
+			(
+				select left (COUNT(s.YBCS001) / t.YBT012 *100,5)
+				from ybc_sign s
+				where 1 = 1
+				and s.user_id = t.user_id
+			 	AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 任务开始时间 -->
+				AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005 <!-- 任务结束时间 -->
+			) as doSTotal, <!-- 签单率 -->
+			(
+				select count(s.YBCS001)
+				from ybc_sign s
+				where 1 = 1
+				and s.user_id = t.user_id
+				AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM
+				AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005
+			) as doSTotalNum, <!-- 签单数 -->
+			(
+				select
+					left (IFNULL(sum(m.YBCMA022), 0) / t.YBT012 *100,5) as 完成率
+				from ybc_match m
+				where 1 = 1
+				and m.user_id2 = t.user_id
+				and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+				and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+			 ) as doIncomeTol, <!-- 利润率 -->
+			 (
+				select
+					IFNULL(sum(m.YBCMA022), 0) as 完成额
+				from ybc_match m
+				where 1 = 1
+				and m.user_id2 = t.user_id
+				and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+				and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+			 ) as doIncomeTolNum,<!-- 利润额 -->
+			 <!-- 个人 end -->
+			 <!-- 部门 start -->
+			(
+				select 	left (count(s.YBCS001) / t.YBT012 *100,5) as 部门签单完成率
+				from ybc_sign s
+				where 1 = 1
+				and s.DEPT_LAYERORDER like concat(t.DEPT_LAYERORDER, '%')
+				AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM
+				AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005
+			) as doSTotaldept, <!-- 部门签单率 -->
+			(
+				select count(s.YBCS001)
+				from ybc_sign s
+				where 1 = 1
+				and s.DEPT_LAYERORDER like concat(t.DEPT_LAYERORDER, '%')
+				AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM
+				AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005
+			) as doSTotalNumdept, <!-- 部门签单量 -->
+			(
+				select
+					left (IFNULL(sum(m.YBCMA022), 0) / t.YBT012 *100,5) as 完成率
+				from ybc_match m
+				where 1 = 1
+				and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+				and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+				and m.DEPT_LAYERORDER2 like concat(t.DEPT_LAYERORDER, '%')
+			 ) as doIncomeToldept, <!-- 部门利润完成率 -->
+			 (
+				select
+					IFNULL(sum(m.YBCMA022), 0) as 完成利润额
+				from ybc_match m
+				where 1 = 1
+				and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+				and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+				and m.DEPT_LAYERORDER2 like concat(t.DEPT_LAYERORDER, '%')
+			 ) as doIncomeTolNumdept<!-- 部门利润完成利润额 -->
+			 <!-- 部门 end -->
+		from ybt t
+		where 1 = 1
+		and now() <![CDATA[ <= ]]> t.YBT005<!-- 过期 -->
+		<!-- 判断登陆者当前身份 -->
+		<if test="POSITION == 1"><!-- 主管：部门下的任务 -->
+			and t.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+		</if>
+		<if test="POSITION == 2"><!-- 非主管：属于自己的任务 -->
+			and t.USER_ID = #{USER_ID}
+		</if>
+		order by t.YBT008_TM
+	</select>
+	
+</mapper>

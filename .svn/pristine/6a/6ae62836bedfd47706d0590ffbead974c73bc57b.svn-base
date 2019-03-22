@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+    <title>财务-已结账客户</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0];
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+
+    <style>
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        [v-cloak]{
+            display: none;
+        }
+
+        .cusMTable{
+            margin-top: 20px;
+        }
+        .cusMTable .el-table tr{
+            background-color: #4aa5fb;
+            color:#fff;
+        }
+        .cusMTable0 .el-table tr{
+            background-color: #7EC0EE;
+            color:#fff;
+        }
+        .cusMTable0 .el-table td, .cusMTable0 .el-table th{
+            padding: 2px 0;
+        }
+        .el-table .odd-row {
+            background: #f1f7fe !important;
+            color:#878787 !important;
+        }
+        .el-table .even-row {
+            background: #ffffff !important;
+            color:#878787 !important;
+        }
+        .el-input-group__append{
+            color: #4aa5fb !important;
+        }
+        .top_divR{
+            margin-right: 6px;
+        }
+/*        // 去掉input[type=number]默认的加减号*/
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .el-table td{
+            padding: 4px 0 !important;
+        }
+        .el-message-box {
+            margin-top: -300px;
+        }
+        .dlogDiv{
+            display: flex;
+            justify-content:space-around;
+            align-items: center;
+            overflow-x: auto;
+        }
+        .dlogDiv .el-form-item--mini.el-form-item, .el-form-item--small.el-form-item{
+            width: 310px;
+            margin-bottom: 15px;
+        }
+        .el-dialog__body{
+            padding: 15px 20px !important;
+        }
+        .prevForm{
+            width: 310px;
+            margin-left: 20px;
+            padding: 10px;
+            box-sizing: content-box;
+            border: 1px dashed #ccc;
+        }
+        .preDIV{
+            width: 800px;
+            border: 1px dashed #ccc;
+            text-align: center;
+            padding: 20px 0;
+        }
+        .preDivTitle{
+            margin-bottom: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 5px;
+        }
+        .preview{
+            width: 735px;
+            display: flex;
+            justify-content: space-between;
+            margin: auto;
+            border: 1px solid #000;
+        }
+        .previewDiv{
+            width: 360px;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid #000;
+          }
+        .previewDiv div:first-child{
+            width: 90px;
+            font-size: 14px;
+            border-right: 1px solid #000;
+        }
+        .previewDiv div:last-child{
+            font-size: 14px;
+        }
+        .lbdDiv div{
+            width: 90px !important;
+        }
+        .lbdDiv div:nth-child(3){
+            border-left: 1px solid #000;
+            border-right: 1px solid #000;
+        }
+        .prevDivFoot{
+            width: 735px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: auto;
+        }
+        .preDivwrap{
+            width: 270px;
+            border-left: 1px solid #000;
+            word-wrap:break-word;
+            white-space: pre-wrap;
+        }
+        .refDiv0{
+            width: 760px;
+            border: 1px solid #000;
+            margin: 10px auto;
+        }
+        .refDiv{
+            width: 760px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #000;
+            text-align: left;
+        }
+        .refDiv1{
+            width: 760px;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #000;
+        }
+        .refDiv1 div:last-child{
+            width: 175px;
+            margin-right: 10px;
+        }
+        .refDiv1 .el-checkbox__label{
+            padding-left: 5px !important;
+        }
+        .refDiv1 .el-checkbox+.el-checkbox{
+            margin-left: 10px !important;
+        }
+        .refDiv div:first-child{
+            width: 380px;
+            padding: 4px 0;
+        }
+        .refDiv div:nth-child(2){
+            width: 379px;
+            padding: 4px 0;
+            border-left: 1px solid #000;
+        }
+        .mtableTitle{
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:10px;">
+    <div id="receiptReqApp" v-cloak>
+        <div>
+            <el-input size="mini" placeholder="客户姓名" v-model="soMoreUserIpt.YBC002" style="width:120px;"  class="top_divR"></el-input>
+                <el-input size="mini" type="number" placeholder="联系电话" v-model="soMoreUserIpt.YBC003" style="width:120px;"  class="top_divR"></el-input>
+                <el-input size="mini" placeholder="合同编号" v-model="soMoreUserIpt.YBCS007" style="width:120px;"  class="top_divR"></el-input>
+                    <el-cascader size="mini" v-model="selParment"
+                        :options="moreAlloatArr1"
+                                 placeholder="请选择部门"
+                        change-on-select
+                        @change="handleChangeMore" class="top_divR">
+                    </el-cascader>
+                    <el-cascader
+                        :options="moreAlloatArr2" size="mini"
+                                 placeholder="请选择人员"
+                        v-model="selMana"  class="top_divR">
+                    </el-cascader>
+
+                    <el-select v-model="soMoreUserIpt.YBCS056_TP" placeholder="结账状态" size="mini" class="top_divR" style="width:120px;">
+                        <el-option label="未完全结账" value="1"></el-option>
+                        <el-option label="完全结账" value="2"></el-option>
+                    </el-select>
+            <el-button size="mini" type="warning" style="background-color:#fd8c12;margin-left:6px;" class="top_divR" @click="checkUser">查询</el-button>
+            <el-button size="mini" type="primary" class="top_divR btnBGC" @click="clearCheck">清空</el-button>
+        </div>
+        <div class="cusMTable" v-loading="loading">
+            <el-table :data="cusTableLstInit" style="width: 100%;" :row-class-name="tableRowClassName" :row-key="getRowKeys" :expand-row-keys="expands" @row-click="clickRow">
+                <el-table-column type="expand">
+                  <template slot-scope="props">
+                      <div  class="cusMTable0">
+                          <div class="mtableTitle">【{{cusName}}】的结账单明细表</div>
+                          <el-table :data="tableList" :row-class-name="tableRowClassName" style="width: 85%;margin-left: calc(15% - 140px);">
+                              <el-table-column
+                                prop="YBCAC006"
+                                label="付款金额">
+                              </el-table-column>
+                              <el-table-column
+                                prop="YBCAC007"
+                                label="前台利润">
+                              </el-table-column>
+                              <el-table-column
+                                prop="YBCAC013"
+                                label="贷款金额">
+                              </el-table-column>
+                              <el-table-column
+                                prop="YBCAC016"
+                                label="运营成本">
+                              </el-table-column>
+                              <el-table-column
+                                prop="YBCAC024"
+                                label="操作人姓名">
+                              </el-table-column>
+                              <el-table-column
+                                prop="YBCAC022_TM"
+                                label="结账日期">
+                              </el-table-column>
+                              <el-table-column label="明细表操作" fixed="right" width="120">
+                                <template slot-scope="scope">
+                                  <el-button size="mini" @click="editBill(scope.$index, scope.row)">编辑结账单</el-button>
+                                </template>
+                              </el-table-column>
+                          </el-table>
+                          <div class="mtableTitle">【{{cusName}}】的退款申请表</div>
+                          <el-table :data="tableRList" :row-class-name="tableRowClassName" style="width: 85%;margin-left: calc(15% - 140px);">
+                              <el-table-column
+                                prop="YBCR003"
+                                label="退款类型">
+                              </el-table-column>
+                              <el-table-column
+                                prop="YBCR004"
+                                label="退款金额">
+                              </el-table-column>
+                              <el-table-column
+                                prop="YBCR006"
+                                label="退款账户">
+                              </el-table-column>
+                              <el-table-column
+                                prop="YBCR010"
+                                label="申请人">
+                              </el-table-column>
+                              <el-table-column
+                                prop="YBCR013"
+                                label="操作人">
+                              </el-table-column>
+                              <el-table-column
+                                prop="YBCR011_TM"
+                                label="申请时间">
+                              </el-table-column>
+                              <el-table-column label="退款表操作" fixed="right" width="120">
+                                <template slot-scope="scope">
+                                  <el-button size="mini" @click="editRfund(scope.$index, scope.row)">编辑退款表</el-button>
+                                </template>
+                              </el-table-column>
+                          </el-table>
+                      </div>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  prop="YBC002"
+                  label="客户姓名" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBC003"
+                  label="联系电话" min-width="120">
+                </el-table-column>
+                <el-table-column
+                  prop="DEPT_NAME"
+                  label="所属部门" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCS038"
+                  label="客户经理" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCS007"
+                  label="合同编号" min-width="120">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCT002"
+                  label="签单类型" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCMA030_SUM"
+                  label="放贷总额(元)" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCS056_TP"
+                  label="结账状态" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCAC006_SUM"
+                  label="收款总额(元)" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCR004_SUM"
+                  label="退款总额(元)" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="REMAINING_SUM"
+                  label="实际收款(元)" min-width="100">
+                </el-table-column>
+                <el-table-column label="操作" fixed="right" width="140">
+                  <template slot-scope="scope">
+                    <el-button
+                      size="mini"
+                      type="text"
+                      @click="addCheckOut(scope.$index, scope.row)">新增结账</el-button>
+                    <el-button
+                      size="mini"
+                      type="text"
+                      @click="addRefund(scope.$index, scope.row)" style="color:red;">新增退款</el-button>
+                  </template>
+                </el-table-column>
+            </el-table>
+            <div style="text-align:right;">
+                <el-pagination
+                  @current-change="handleCurrentChange"
+                  :current-page="pageInit.currentPage"
+                  :page-size="10"
+                  layout="total, prev, pager, next, jumper"
+                  :total="pageInit.totalResult">
+                </el-pagination>
+            </div>
+        </div>
+        <el-dialog :title="diogTitle" :visible.sync="dialogVisible" width="90%" :before-close="handleClose" top="2vh">
+            <div class="dlogDiv">
+              <div class="preDIV">
+                  <div class="preDivTitle">业务结账确认单</div>
+                  <div class="preview">
+                    <div style="border-right: 1px solid #000;">
+                        <div style="font-size:12px;">前台填写</div>
+                        <div class="previewDiv">
+                            <div>客户名称:</div>
+                            <div>{{signForm.YBCAC002}}</div>
+                        </div>
+                        <div class="previewDiv lbdDiv">
+                            <div>合同编号:</div>
+                            <div>{{signForm.YBCAC003}}</div>
+                            <div>合同类型:</div>
+                            <div>{{signForm.YBCAC004}}</div>
+                        </div>
+                        <div class="previewDiv">
+                            <div>付款方式:</div>
+                            <div>{{signForm.YBCAC005}}</div>
+                        </div>
+                        <div class="previewDiv">
+                            <div>付款金额:</div>
+                            <div><span v-for="(item,index) in payment">{{item.money}}<span v-if="index != payment.length-1">+</span></span><span v-if="payment.length!=1">={{signForm.YBCAC006}}</span></div>
+                        </div>
+                        <div class="previewDiv">
+                            <div>前台利润:</div>
+                            <div>{{profit}}</div>
+                        </div>
+                        <div class="previewDiv">
+                            <div>客户经理:</div>
+                            <div>{{signForm.YBCAC008}}</div>
+                        </div>
+                        <div class="previewDiv lbdDiv">
+                            <div>团队经理:</div>
+                            <div>{{signForm.YBCAC011}}</div>
+                            <div>总监:</div>
+                            <div>{{signForm.YBCAC012}}</div>
+                        </div>
+                    </div>
+                    <div style="border-left: 1px solid #000;">
+                        <div style="font-size:12px;">后台填写</div>
+                        <div class="previewDiv">
+                            <div>贷款金额:</div>
+                            <div>{{signForm.YBCAC013}}</div>
+                        </div>
+                        <div class="previewDiv">
+                            <div>贷款渠道:</div>
+                            <div class="preDivwrap">{{signForm.YBCAC014}}</div>
+                        </div>
+                        <div class="previewDiv">
+                            <div>运营成本:</div>
+                            <div>{{signForm.YBCAC016}}</div>
+                        </div>
+                        <div class="previewDiv">
+                            <div>提现手续费:</div>
+                            <div>{{signForm.YBCAC017}}</div>
+                        </div>
+                        <div class="previewDiv">
+                            <div>其他费用:</div>
+                            <div class="preDivwrap"><span v-for="(item,index) in Detailed"><span v-if="item.name!=''">{{item.name}}={{item.money}}</span><i v-if="index!=Detailed.length-1">,</i></span></div>
+                        </div>
+                        <div class="previewDiv">
+                            <div>后台做单:</div>
+                            <div>{{signForm.YBCAC019}}</div>
+                        </div>
+                        <div class="previewDiv lbdDiv">
+                            <div>后台组长:</div>
+                            <div>{{signForm.YBCAC020}}</div>
+                            <div>部长:</div>
+                            <div>{{signForm.YBCAC021}}</div>
+                        </div>
+                    </div>
+                  </div>
+                  <div class="prevDivFoot">
+                      <div>注:合同类型填写信贷、房贷、会员、网贷、信用卡</div>
+                      <div>结账时间:{{date}}</div>
+                  </div>
+              </div>
+              <el-form label-position="right" label-width="90px" :model="signForm" size="mini" :rules="rules" ref="signForm" class="demo-ruleForm prevForm">
+                  <el-form-item label="结账类型" prop="YBCAC026_TP">
+                      <el-radio-group v-model="signForm.YBCAC026_TP">
+                          <el-radio-button label="1">正常结账</el-radio-button>
+                          <el-radio-button label="2">违约金</el-radio-button>
+                      </el-radio-group>
+                  </el-form-item>
+                  <el-form-item label="付款方式">
+                      <div v-for="(item,index) in payment">
+                          <el-select v-model="item.type" placeholder="付款方式" style="width:100px;" @change="getYBCMA022">
+                              <el-option :label="t.label" :value="t.value" :key="t.value" v-for="t in payTypeList"></el-option>
+                          </el-select>
+                          <el-input type="number" v-model="item.money" placeholder="付款金额" style="width:80px;" @change="getYBCMA022"></el-input>
+                          <el-button icon="el-icon-delete" type="text" @click="delPayment(index)"></el-button>
+                      </div>
+                      <el-button type="text" size="mini" @click="addPayment" style="margin-left:80px;">新增付款</el-button>
+                  </el-form-item>
+                  <el-form-item label="贷款金额" prop="YBCAC013">
+                      <el-input v-model="signForm.YBCAC013" type="number" placeholder="请输入贷款金额"><template slot="append">元</template></el-input>
+                  </el-form-item>
+                  <el-form-item label="贷款渠道">
+                      <el-select v-model="channel" multiple placeholder="请选择渠道" style="width:100%;" @change="channelChange">
+                          <el-option :label="item.YBTL003" :value="item.YBTL003" v-for="(item,index) in channelList"></el-option>
+                      </el-select>
+                  </el-form-item>
+                  <el-form-item label="运营成本" prop="YBCAC016">
+                      <el-input v-model="signForm.YBCAC016" type="number" @change="getYBCMA022" placeholder="请输入运营成本"><template slot="append">元</template></el-input>
+                  </el-form-item>
+                  <el-form-item label="提现手续费">
+                      <el-input v-model="signForm.YBCAC017" type="number" @change="getYBCMA022" placeholder="请输入提现手续费"><template slot="append">元</template></el-input>
+                  </el-form-item>
+                  <el-form-item label="其他费用">
+                      <div v-for="(item,index) in Detailed">
+                          <el-input v-model="item.name" placeholder="明细名称" style="width:90px;"></el-input>
+                          <el-input type="number" v-model="item.money" placeholder="明细费用" style="width:90px;" @change="getYBCMA022"></el-input>
+                          <el-button icon="el-icon-delete" type="text" @click="del21(index)"></el-button>
+                      </div>
+                      <el-button type="text" size="mini" @click="addDetailed" style="margin-left:80px;">新增明细</el-button>
+                  </el-form-item>
+                  <el-form-item label="结账时间" prop="YBCAC022_TM">
+                      <el-date-picker v-model="signForm.YBCAC022_TM" type="date" value-format="yyyy-MM-dd" placeholder="选择结账日期" style="width:100%;" @change="dateChange"></el-date-picker>
+                  </el-form-item>
+                  <el-form-item label="结账状态" prop="YBCS056_TP">
+                      <el-radio-group v-model="signForm.YBCS056_TP">
+                          <el-radio-button label="2">完全结账</el-radio-button>
+                          <el-radio-button label="1">未完全结账</el-radio-button>
+                      </el-radio-group>
+                  </el-form-item>
+                  <div style="text-align:center;">
+                      <el-button  type="primary" round size="mini" @click="submitForm('signForm')">提交结账</el-button>
+                  </div>
+              </el-form>
+            </div>
+        </el-dialog>
+
+        <el-dialog :title="diogRTitle" :visible.sync="dialogVisible1" width="90%" :before-close="handleClose1" top="5vh">
+            <div class="dlogDiv">
+                <div class="preDIV">
+                    <div class="preDivTitle">客户退/付款申请表</div>
+                    <div class="refDiv0">
+                        <div class="refDiv">
+                            <div>申请时间：{{rdate}}</div>
+                            <div>客户姓名：{{refundForm.YBCR002}}</div>
+                        </div>
+                        <div class="refDiv">
+                            <div>贷款类型：{{refundForm.YBCR005}}</div>
+                            <div>退款金额：{{rfndMoney}}（{{refundForm.YBCR004}}）</div>
+                        </div>
+                        <div class="refDiv1">
+                            <div>退款原因：{{refundForm.YBCR015}}</div>
+                            <div>
+                                <el-checkbox-group v-model="rCheckSel" :min="1" :max="1">
+                                    <el-checkbox label="1" disabled>退款</el-checkbox>
+                                    <el-checkbox label="2" disabled>套现</el-checkbox>
+                                    <el-checkbox label="3" disabled>转介绍</el-checkbox>
+                                </el-checkbox-group>
+                        </div>
+                        </div>
+                        <div class="refDiv">
+                            <div>退款账户：{{refundForm.YBCR006}}</div>
+                        </div>
+
+                        <div class="refDiv">
+                            <div>销售总监：{{refundForm.YBCR007}}</div>
+                            <div>后台做单：{{refundForm.YBCR008}}</div>
+                        </div>
+                        <div class="refDiv">
+                            <div>申请人：{{refundForm.YBCR010}}</div>
+                            <div>总经理签字：</div>
+                        </div>
+                    </div>
+                </div>
+
+                <el-form label-position="right" label-width="90px" :model="refundForm" size="mini" :rules="refundRules" ref="refundForm" class="demo-ruleForm prevForm">
+                    <el-form-item label="申请时间" prop="YBCR011_TM">
+                        <el-date-picker v-model="refundForm.YBCR011_TM" type="date" value-format="yyyy-MM-dd" placeholder="选择申请日期" style="width:100%;" @change="dateRChange"></el-date-picker>
+                    </el-form-item>
+                    <el-form-item label="退款金额" prop="YBCR004">
+                        <el-input v-model="refundForm.YBCR004" type="number" @change="rMoneyChange(refundForm.YBCR004)" placeholder="请输入退款金额"><template slot="append">元</template></el-input>
+                    </el-form-item>
+                    <el-form-item label="退款类型">
+                        <el-radio-group v-model="refundForm.YBCR003_TP" @change="rcheckChange">
+                            <el-radio-button label="1">退款</el-radio-button>
+                            <el-radio-button label="2">套现</el-radio-button>
+                            <el-radio-button label="3">转介绍</el-radio-button>
+                        </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="退款原因" prop="YBCR015">
+                        <el-input v-model="refundForm.YBCR015" type="textarea" :rows="2" placeholder="请输入退款原因"></el-input>
+                    </el-form-item>
+                    <el-form-item label="退款账户" prop="YBCR006">
+                        <el-input v-model="refundForm.YBCR006" placeholder="请输入退款账户"></el-input>
+                    </el-form-item>
+                    <el-form-item label="申请人" prop="YBCR010">
+                        <el-input v-model="refundForm.YBCR010" placeholder="请输入申请人"></el-input>
+                    </el-form-item>
+                    <div style="text-align:center;">
+                        <el-button  type="primary" round size="mini" @click="submitRForm('refundForm')">提交申请</el-button>
+                    </div>
+                </el-form>
+            </div>
+        </el-dialog>
+    </div>
+</body>
+<script th:inline="javascript">
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+
+    new Vue({
+        el:"#receiptReqApp",
+        data(){
+            return {
+//                从后台模板里面获取
+                pageInit:{currentPage:1,totalResult:1},
+                cusTableLstInit:[],//主表
+                tableList:[],//账单明细
+                tableRList:[],//退款申请表
+//                弹出窗标题宽度
+                formLabelWidth:"100px",
+//                搜索客户条件
+                soMoreUserIpt:{},
+//                搜索时间范围
+                time:[],
+                moreAlloatArr1:[],
+                moreAlloatArr2:[],
+                selParment:[],
+                selMana:[],
+                loading:false,
+                dialogVisible:false,
+                dialogVisible1:false,
+                signForm:{},
+                rules:{
+                    YBCAC006:[{ required: true, message: '请输入付款金额', trigger: 'blur' }],
+                    YBCAC013:[{ required: true, message: '请输入贷款金额', trigger: 'blur' }],
+                    YBCAC016:[{ required: true, message: '请输入运营成本', trigger: 'blur' }],
+                    YBCAC022_TM:[{ required: true, message: '请选择日期', trigger: 'change' }],
+                    YBCAC026_TP:[{ required: true, message: '请选择结账类型', trigger: 'change' }],
+                    YBCS056_TP:[{ required: true, message: '请选择是否完全结账', trigger: 'change' }]
+                },
+                refundForm:{},
+                refundRules:{
+                    YBCR011_TM:[{ required: true, message: '请选择申请日期', trigger: 'change' }],
+                    YBCR004:[{ required: true, message: '请输入退款金额', trigger: 'blur' }],
+                    YBCR003_TP:[{ required: true, message: '请选择退款类型', trigger: 'change' }],
+                    YBCR015:[{ required: true, message: '请输入退款原因', trigger: 'blur' }],
+                    YBCR006:[{ required: true, message: '请输入退款账户', trigger: 'blur' }],
+                    YBCR010:[{ required: true, message: '请输入申请人', trigger: 'blur' }]
+                },
+                payment:[],
+                channel:[],
+                Detailed:[],
+                profit:'',//前台利润
+                payTypeList:[{label:'微信',value:'微信'},{label:'支付宝',value:'支付宝'},{label:'现金',value:'现金'},{label:'银行卡',value:'银行卡'},{label:'对公账户',value:'对公账户'},{label:'POS机',value:'POS机'}],
+                channelList:[],//客户贷款渠道
+                date:'2000年00月00日',
+                diogTitle:"新增业务结账单",
+                diogRTitle:"新增客户退/付款申请表",
+
+    //            返回每一行的id
+                getRowKeys(row){
+                    return row.YBCS001;
+                },
+                expands:[],
+                rdate:"",//转换后的申请日期
+                rfndMoney:'',//转换后的退款金额大写
+                rCheckSel:[],//退款原因
+                cusName:''//选中的客户姓名
+            }
+        },
+//        DOM渲染前执行
+        mounted(){
+            this.handleCurrentChange(1);
+            this.getDepartment();
+        },
+        methods:{
+
+            clickRow(row,event,column){
+                this.cusName=row.YBC002;
+                this.expands=[];
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/settle_accounts/getPageSettledStatement`,
+                    data:{YBCS001:row.YBCS001},
+                    success:function(data){
+                        console.log(data);
+                        that.tableList=data.rows;
+                        that.expands.push(row.YBCS001);
+                    }
+                })
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/settle_accounts/getPageRefundListByYBCS001`,
+                    data:{YBCS001:row.YBCS001},
+                    success:function(data){
+                        console.log(data);
+                        that.tableRList=data.rows;
+                    }
+                })
+
+            },
+
+            //            获取部门列表
+            getDepartment(){
+//                DEPT_ID   获取部门
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/searchDeptAndMeAllLst`,
+                    data:"",
+                    success:function(data){
+                        console.log(data);
+                        if(data.msg=="200"){
+                            that.moreAlloatArr1=data.result;
+                        }
+                    }
+                })
+            },
+//            改变部门选择人员
+            handleChangeMore(value){
+                this.soMoreUserIpt.DEPT_LAYERORDER_Sea=(value[value.length-1]).DEPT_LAYERORDER;
+                let DEPT_ID=(value[value.length-1]).DEPT_ID;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/deptAndUserLst`,
+                    data:{DEPT_ID:DEPT_ID},
+                    success:function(data){
+                        that.moreAlloatArr2=data.result;
+                    }
+                })
+            },
+//            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                if(rowIndex==1){
+
+                }else if (rowIndex%2 == 0) {
+                    return 'odd-row';
+                }
+                return 'even-row';
+            },
+//            查询搜索客户
+            checkUser(){
+                if(this.selMana !=""){
+                    this.soMoreUserIpt.USER_ID_Sea=this.selMana.toString();
+                }
+                this.handleCurrentChange(1);
+            },
+//            清空搜索条件，并回到初始状态
+            clearCheck(){
+                this.selParment=[];
+                this.selMana=[];
+                this.soMoreUserIpt={};
+                this.time=[];
+                this.handleCurrentChange(1);
+            },
+//            当前页翻页
+            handleCurrentChange(val){
+                this.loading=true;
+                this.soMoreUserIpt.currentPage=val;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/settle_accounts/getPageAccountListIsHasTheInvoicing`,
+                    data:that.soMoreUserIpt,
+                    success:function(data){
+                        if(data.msg="200"){
+                            that.cusTableLstInit=data.rows;
+                            that.pageInit.totalResult=data.total;
+                            that.pageInit.currentPage=val;
+                            that.loading=false;
+                        }
+                    }
+                })
+            },
+            handleClose(done){
+              this.$confirm('确认是否关闭？')
+              .then(_ => {
+                  done();
+              })
+              .catch(_ => {});
+            },
+            handleClose1(done){
+              this.$confirm('确认是否关闭？')
+              .then(_ => {
+                  done();
+              })
+              .catch(_ => {});
+            },
+            //新增付款
+            addPayment(){
+                let arr21=this.payment;
+                console.log(arr21);
+                let arrFlag=true;
+                if(arr21.length>0){
+                    for(let item of arr21){
+                        if(item.type =="" || item.money ==""){
+                            arrFlag=false;
+                            console.log(arrFlag);
+                            break;
+                        }
+                    }
+                }
+                if(arrFlag){
+                    this.payment.push({type:'现金',money:0});
+                }else{
+                    this.$message.error('请将已新增的付款方式及金额填写完整后，再新增付款');
+                }
+            },
+              //  删除付款
+            delPayment(index){
+                this.payment.splice(index,1);
+                this.getYBCMA022();
+            },
+//            新增明细
+            addDetailed(){
+                let arr21=this.Detailed;
+                console.log(arr21);
+                let arrFlag=true;
+                if(arr21.length>0){
+                    for(let item of arr21){
+                        if(item.name =="" || item.money ==""){
+                            arrFlag=false;
+                            console.log(arrFlag);
+                            break;
+                        }
+                    }
+                }
+                if(arrFlag){
+                    this.Detailed.push({name:'费用',money:0});
+                }else{
+                    this.$message.error('请将已新增的费用明细填写完整后，再新增明细');
+                }
+            },
+//            删除明细
+            del21(index){
+                this.Detailed.splice(index,1);
+                this.getYBCMA022();
+            },
+//            计算得到利润
+            getYBCMA022(){
+                let num=0;
+                let arr0=this.payment;
+                for(let i=0;i<arr0.length;i++){
+                    if(arr0[i].type !="" && arr0[i].money !=""){
+                        console.log(arr0[i].money);
+                        num += Number(arr0[i].money);
+                    }else{
+                        (this.payment)[i].type='现金';
+                        (this.payment)[i].money=0;
+                    }
+                }
+                let arr=this.Detailed;
+                for(let i=0;i<arr.length;i++){
+                    if(arr[i].name !="" && arr[i].money !=""){
+                        console.log(arr[i].money);
+                        num -= Number(arr[i].money);
+                    }else{
+                        (this.Detailed)[i].type='其他费用';
+                        (this.Detailed)[i].money=0;
+                    }
+                }
+                if(this.signForm.YBCAC016){
+                    num-=Number(this.signForm.YBCAC016)
+                }
+                if(this.signForm.YBCAC017){
+                    num-=Number(this.signForm.YBCAC017)
+                }
+                this.profit=num.toFixed(2);
+                this.paymentChange();
+                this.costChange();
+            },
+            //选择渠道改变值
+            channelChange(){
+                let arr=this.channel;
+                this.signForm.YBCAC014="";
+                for(let i=0;i<arr.length;i++){
+                    for(let j=0;j<this.channelList.length;j++){
+                        if(arr[i]==this.channelList[j].YBTL003){
+                            this.signForm.YBCAC014+=this.channelList[j].YBTL003;
+                            if(i != arr.length-1){
+                                this.signForm.YBCAC014+=","
+                            }
+                        }
+                    }
+                }
+            },
+            //选择付款方式
+            paymentChange(){
+                console.log(this.payment)
+                this.signForm.YBCAC005="";
+                this.signForm.YBCAC006=0;
+                this.signForm.YBCAC027='';
+                let arr=this.payment;
+                if(arr.length>0){
+                    for(let i=0;i<arr.length;i++){
+                        if(arr[i].type !="" || arr[i].money !=""){
+                            this.signForm.YBCAC006+=Number(arr[i].money);
+                            this.signForm.YBCAC027+=arr[i].money;
+                            this.signForm.YBCAC005+=arr[i].type;
+                            if(i!=arr.length-1){
+                                this.signForm.YBCAC005+=',';
+                                this.signForm.YBCAC027+=',';
+                            }
+                        }
+                    }
+                }
+            },
+            //改变费用明细
+            costChange(){
+                console.log(this.Detailed)
+                this.signForm.YBCAC018="";
+                let arr=this.Detailed;
+                if(arr.length>0){
+                    for(let i=0;i<arr.length;i++){
+                        if(arr[i].name !="" || arr[i].money !=""){
+                            this.signForm.YBCAC018+=arr[i].name+'='+arr[i].money;
+                            if(i!=arr.length-1){
+                                this.signForm.YBCAC018+=',';
+                            }
+                        }
+                    }
+                }
+            },
+            //结账日期改变
+            dateChange(){
+                let str=this.signForm.YBCAC022_TM;
+                this.date=str.substring(0,4)+'月'+str.substring(5,7)+'月'+str.substring(8,10)+'日';
+            },
+            //申请日期改变
+            dateRChange(){
+                let str=this.refundForm.YBCR011_TM;
+                this.rdate=str.substring(0,4)+'月'+str.substring(5,7)+'月'+str.substring(8,10)+'日';
+            },
+//            添加结账
+            addCheckOut(index,row){
+                this.diogTitle="新增业务结账单";
+                this.expands=[];
+                this.profit="";
+                this.channel=[];
+                this.Detailed=[{name:'费用',money:0}];
+                this.payment=[{type:"现金",money:0}];
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/settle_accounts/getAllchannels`,
+                    data:{YBCS001:row.YBCS001},
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.channelList=data.result;
+                            console.log(that.channelList);
+                            that.dialogVisible=true;
+                        }
+                    }
+                })
+
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/settle_accounts/getAddCheckoutInitialization`,
+                    data:{YBCS001:row.YBCS001},
+                    success:function(data){
+                        if(data.msg=="200"){
+                            data.result.YBCAC026_TP="1";
+                            data.result.YBCS056_TP="2";
+                            that.signForm=data.result;
+                            console.log("新增签单的数据")
+                            console.log(that.signForm);
+                        }
+                    }
+                })
+            },
+            editBill(index,row){
+                console.log('带过来的数据');
+                console.log(row);
+                this.diogTitle="编辑业务结账单";
+                this.signForm=row;
+
+                let str=row.YBCAC022_TM;
+                this.date=str.substring(0,4)+'月'+str.substring(5,7)+'月'+str.substring(8,10)+'日';
+
+                this.signForm.YBCAC026_TP=row.YBCAC026_TP.toString();
+                this.signForm.YBCS056_TP=row.YBCS056_TP.toString();
+                this.profit=row.YBCAC007;
+                if(row.YBCAC014 && row.YBCAC014!= ''){
+                    this.channel=(row.YBCAC014).split(',');
+                }else{
+                    this.channel=[];
+                }
+                let payType=[];
+                if(row.YBCAC005 && row.YBCAC005 != ''){
+                    payType=(row.YBCAC005).split(',');
+                }
+                let payMoney=[];
+                if(row.YBCAC027 && row.YBCAC027 != ''){
+                    payMoney=(row.YBCAC027).split(',');
+                }
+                let costList=[];
+                if(row.YBCAC018 && row.YBCAC018 != ''){
+                    costList=(row.YBCAC018).split(',');
+                }
+
+                this.payment=[];
+                this.Detailed=[];
+
+                for(let i=0;i<payMoney.length;i++){
+                    this.payment.push({type:payType[i],money:payMoney[i]})
+                }
+                for(let i=0;i<costList.length;i++){
+                    let ss=costList[i].split('=');
+                    this.Detailed.push({name:ss[0],money:ss[1]})
+                }
+
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/settle_accounts/getAllchannels`,
+                    data:{YBCS001:row.YBCS001},
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.channelList=data.result;
+                            console.log(that.channelList);
+
+                            that.dialogVisible=true;
+                        }
+                    }
+                })
+            },
+            //提交
+            submitForm(formName) {
+                let that=this;
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        that.signForm.YBCAC007=that.profit;
+                        if(that.diogTitle=='新增业务结账单'){
+                            console.log(that.signForm);
+                            $.ajax({
+                                type:"GET",
+                                url:`${basePath}/settle_accounts/addAccount`,
+                                data:that.signForm,
+                                success:function(data){
+                                    console.log(data);
+                                    if(data.msg=="200"){
+                                        that.$message({
+                                            message: '成功添加结账',
+                                            type: 'success'
+                                        });
+                                        that.dialogVisible=false;
+                                        that.handleCurrentChange(1);
+                                    }else{
+                                        that.$message({
+                                            type: 'warning',
+                                            message: '添加结账失败'
+                                        });
+                                    }
+                                }
+                            })
+                        }else{
+                            console.log("————————————————编辑后的结账单————————————————")
+                            console.log(that.signForm);
+
+                            $.ajax({
+                                type:"GET",
+                                url:`${basePath}/settle_accounts/updAccount`,
+                                data:that.signForm,
+                                success:function(data){
+                                    console.log(data);
+                                    if(data.msg=="200"){
+                                        that.$message({
+                                            message: '成功修改结账单',
+                                            type: 'success'
+                                        });
+                                        that.dialogVisible=false;
+                                        that.handleCurrentChange(1);
+                                    }else{
+                                        that.$message({
+                                            type: 'warning',
+                                            message: '修改结账单失败'
+                                        });
+                                    }
+                                }
+                            })
+                        }
+
+                    } else {
+                        that.$message({
+                            type: 'warning',
+                            message: '请将结账信息填写完整'
+                        });
+                      return false;
+                    }
+                });
+            },
+            //新增退款
+            addRefund(index,row){
+                let that=this;
+                this.diogRTitle="新增客户退/付款申请表";
+                this.rCheckSel=['1'];
+                this.rdate="";
+                this.rfndMoney="";
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/settle_accounts/getRefundInitializationByYBCS001`,
+                    data:{YBCS001:row.YBCS001},
+                    success:function(data){
+                        if(data.msg=="200"){
+                            data.result.YBCR003_TP="1";
+                            that.refundForm=data.result;
+                            console.log("新增退款的数据")
+                            console.log(that.refundForm);
+                            that.dialogVisible1=true;
+                        }
+                    }
+                })
+            },
+            //编辑退款表信息
+            editRfund(index,row){
+                this.diogRTitle="编辑客户退/付款申请表";
+                let str=row.YBCR011_TM;
+                this.rdate=str.substring(0,4)+'月'+str.substring(5,7)+'月'+str.substring(8,10)+'日';
+                this.rCheckSel=[row.YBCR003_TP.toString()];
+                this.rMoneyChange(row.YBCR004);
+                this.refundForm=row;
+                this.dialogVisible1=true;
+            },
+            rcheckChange(){
+                this.rCheckSel=[];
+                this.rCheckSel.push(this.refundForm.YBCR003_TP);
+            },
+            //退款金额转换大写
+            rMoneyChange(num){
+                let n=Number(num);
+                let fraction = ['角', '分'];
+                let digit = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
+                let unit = [ ['元', '万', '亿'], ['', '拾', '佰', '仟']  ];
+                let head = n < 0? '欠': '';
+                n = Math.abs(n);
+
+                var s = '';
+
+                for (var i = 0; i < fraction.length; i++)
+                {
+                    s += (digit[Math.floor(n * 10 * Math.pow(10, i)) % 10] + fraction[i]).replace(/零./, '');
+                }
+                s = s || '整';
+                n = Math.floor(n);
+
+                for (var i = 0; i < unit[0].length && n > 0; i++)
+                {
+                    var p = '';
+                    for (var j = 0; j < unit[1].length && n > 0; j++)
+                    {
+                        p = digit[n % 10] + unit[1][j] + p;
+                        n = Math.floor(n / 10);
+                    }
+                    s = p.replace(/(零.)*零$/, '').replace(/^$/, '零')  + unit[0][i] + s;
+                }
+                this.rfndMoney = head + s.replace(/(零.)*零元/, '元').replace(/(零.)+/g, '零').replace(/^整$/, '零元整');
+            },
+            submitRForm(formName){
+                let that=this;
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        if(that.diogRTitle=='新增客户退/付款申请表'){
+                            console.log(that.refundForm);
+                            $.ajax({
+                                type:"GET",
+                                url:`${basePath}/settle_accounts/addRefund`,
+                                data:that.refundForm,
+                                success:function(data){
+                                    console.log(data);
+                                    if(data.msg=="200"){
+                                        that.$message({
+                                            message: '成功添加退款',
+                                            type: 'success'
+                                        });
+                                        that.dialogVisible1=false;
+                                        that.handleCurrentChange(1);
+                                    }else{
+                                        that.$message({
+                                            type: 'warning',
+                                            message: '添加退款失败'
+                                        });
+                                    }
+                                }
+                            })
+                        }else{
+                            console.log("————————————————编辑后的结账单————————————————")
+                            console.log(that.refundForm);
+
+                            $.ajax({
+                                type:"GET",
+                                url:`${basePath}/settle_accounts/updRefund`,
+                                data:that.refundForm,
+                                success:function(data){
+                                    console.log(data);
+                                    if(data.msg=="200"){
+                                        that.$message({
+                                            message: '成功修改退款表',
+                                            type: 'success'
+                                        });
+                                        that.dialogVisible1=false;
+                                        that.handleCurrentChange(1);
+                                    }else{
+                                        that.$message({
+                                            type: 'warning',
+                                            message: '修改退款表失败'
+                                        });
+                                    }
+                                }
+                            })
+                        }
+
+                    } else {
+                        that.$message({
+                            type: 'warning',
+                            message: '请将退款信息填写完整'
+                        });
+                      return false;
+                    }
+                });
+            }
+        }
+    })
+
+</script>
+</html>

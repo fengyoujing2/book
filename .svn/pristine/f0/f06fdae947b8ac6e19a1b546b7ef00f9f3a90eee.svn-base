@@ -1,0 +1,27 @@
+package com.dbsun.service.homepage;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.homepage.HmPBacMapper;
+
+@Service
+public class HmPBacService {
+
+	@Autowired
+	private HmPBacMapper hmPBacMapper;
+	
+	public PageData getTotalSingle(PageData pd){
+		return hmPBacMapper.getTotalSingle(pd);
+	}
+	
+	public PageData getAddSgle(PageData pd){
+		return hmPBacMapper.getAddSgle(pd);
+	}
+	
+	public PageData getNewDbForLeador(PageData pd){
+		return hmPBacMapper.getNewDbForLeador(pd);
+	}
+	
+}

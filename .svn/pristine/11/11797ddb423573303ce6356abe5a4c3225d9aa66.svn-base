@@ -1,0 +1,25 @@
+package com.dbsun.mapper;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+/**
+ * 用户账号
+ * @author DongZai
+ *
+ */
+public interface WbYbcMapper {
+	
+	public int addWbYbc(PageData pd);
+	
+	public List<PageData> getPageWbYbcLst(Page page);
+	
+	public List<PageData> getWbYbcByOpenId(PageData pd);
+	
+	public int updateWY(PageData pd);
+	
+	public int addWXUser(PageData pd);
+	
+}

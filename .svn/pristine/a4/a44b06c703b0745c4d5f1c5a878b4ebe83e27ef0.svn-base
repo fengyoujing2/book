@@ -1,0 +1,26 @@
+package com.dbsun.service.cusothermsg;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.cusothermsg.CorHouseProMapper;
+import com.dbsun.service.BaseService;
+
+@Service
+public class CorHouseProService extends BaseService {
+
+	@Autowired
+	private CorHouseProMapper corHouseProMapper;
+	
+	public int addHousePro(PageData pd){
+		return corHouseProMapper.addHousePro(pd);
+	}
+	
+	public List<PageData> getHosProsByCusId(PageData pd){
+		return corHouseProMapper.getHosProsByCusId(pd);
+	}
+	
+}

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.finance.FinPayBillEdMapper">
+	<!-- 已结账 -->
+
+	<select id="getPagePayEdLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			s.*,
+			m.YBCMA001, 
+			c.YBC002, 
+			c.YBC003, 
+			(select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName, <!-- 产品类型名称 -->
+			(
+				case s.YBCS050_TP 
+					when 1 then '按比例付款'
+					when 2 then '包干制'
+				end
+			) as payment<!-- 付款方式 --> 
+			
+		from ybc_match m, ybc_sign s, ybc c
+		where m.ybcs001 = s.ybcs001 
+		and s.ybc001 = c.ybc001
+		and m.YBCMA025_TM is not null<!-- 财务已结账 -->
+	<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+			and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+		</if>
+		<if test="pd.YBC003 != null and pd.YBC003 != ''">
+			and c.YBC003 like concat_ws(#{pd.YBC003}, "%", "%")
+		</if>
+		<if test="pd.YBCS017 != null and pd.YBCS017 != ''"><!-- 合同编号 -->
+			and s.YBCS017 like concat_ws(#{pd.YBCS017}, "%", "%")
+		</if>
+		<if test="pd.YBCS038 != null and pd.YBCS038 != ''"><!-- 签单客户经理 -->
+			and s.YBCS038 like concat_ws(#{pd.YBCS038}, "%", "%")
+		</if>
+		<if test="pd.signTmStart != null and pd.signTmStart != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[>=]]> #{pd.signTmStart} 
+		</if>
+		<if test="pd.signTmEnd != null and pd.signTmEnd != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[<=]]> #{pd.signTmEnd} 
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and 
+				(
+					s.USER_ID = #{pd.USER_ID_Sea} 
+					or
+					m.USER_ID = #{pd.USER_ID_Sea} 
+			)
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and 
+				(
+					s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+					or
+					m.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+				)
+		</if>
+	<!-- 搜索 end -->
+		order by m.YBCMA025_TM desc<!-- 按财务结账时间排序 -->
+	</select>
+	
+	<!-- 通过做单ID获取结账信息 -->
+	<select id="getBilBySglId" parameterType="pd" resultType="pd" useCache="false">
+		select
+			m.*, 
+			s.YBCS007, <!-- 财务编号（签单编号） -->
+			s.YBCS017, <!-- 合同编号 -->
+			c.YBC002, <!-- 客户姓名 -->
+			(
+				case s.YBCS050_TP 
+					when 1 then m.YBCMA030*m.YBCMA033*s.YBCS006/1000+m.YBCMA030*s.YBCS003/100
+					when 2 then s.YBCS051
+				end
+			) as receivable, <!-- 应收金额 -->
+			(
+				case m.YBCMA034_TP 
+					when 1 then "等额本金"
+					when 2 then "等额本息"
+					when 3 then "等额等息"
+					when 4 then "先息后本"
+				end
+			) as payBackMtd, <!-- 还款方式 -->
+			(
+				case m.YBCMA042_TP
+					when 1 then '微信'
+					when 2 then '支付宝'
+					when 3 then '现金'
+					when 4 then '银行卡'
+					when 5 then '对公账户'
+				end
+			) as accoType, <!-- 账户类型 -->
+			s.YBCS038, <!-- 前台经理姓名 -->
+			(select YBTL002 from YBT_LIST where YBTL001 = m.YBTL001) as proName, <!-- 产品名称 -->
+			(select NAME from sys_user where DEPT_LAYERORDER = s.DEPT_LAYERORDER and POSITION = 1) as frontHeadman, <!-- 前台小组长 -->
+			(select NAME from sys_user where DEPT_LAYERORDER = substring_index(s.DEPT_LAYERORDER, '-', length(s.DEPT_LAYERORDER)-length(replace(s.DEPT_LAYERORDER,'-',''))) and POSITION = 1) as frontLeador, <!-- 前台主管 -->
+			(select NAME from sys_user where DEPT_LAYERORDER = m.DEPT_LAYERORDER and POSITION = 1) as behiHeadman, <!-- 后台小组长 -->
+			(select NAME from sys_user where DEPT_LAYERORDER = substring_index(m.DEPT_LAYERORDER, '-', length(m.DEPT_LAYERORDER)-length(replace(m.DEPT_LAYERORDER,'-',''))) and POSITION = 1) as behiLeador <!-- 后台主管 -->
+			
+		from ybc_sign s, ybc_match m, ybc c 
+		where 1 = 1
+		and s.ybcs001 = m.ybcs001 
+		and s.ybc001 = c.ybc001  
+		and m.YBCMA001 = #{YBCMA001}
+	</select>
+	
+	
+</mapper>

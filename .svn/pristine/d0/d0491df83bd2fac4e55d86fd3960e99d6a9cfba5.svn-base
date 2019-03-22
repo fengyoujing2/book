@@ -1,0 +1,61 @@
+package com.dbsun.controller.customer;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.customer.CusAptitudeService;
+/**
+ * 资质
+ * @author DongZai
+ *
+ */
+@Controller
+@RequestMapping("/cus_aptitude")
+public class CusAptitudeController extends BaseController {
+	
+	@Autowired
+	private CusAptitudeService aptitudeService;
+	
+	/**
+	 * 添加资质
+	 */
+	@RequestMapping("/addAptitude")
+	@ResponseBody
+	public JSONObject addAptitude(@RequestParam("file") MultipartFile file){
+		PageData pd = this.getPageData();
+		JSONObject json = this.uploadPhoto(file);
+		//文件不能为空
+		if(json.get("msg").equals(500))return this.getFalJson();
+		return getAddOrUpdJson(aptitudeService.addAptitudePlu(this.putUserIdPd(pd), this.getUserPd(), json));
+	}
+	
+	@RequestMapping("/getAptitudesByYBC001")
+	@ResponseBody
+	public JSONObject getAptitudesByYBC001(){
+		PageData pd = this.getPageData();
+		return this.getSucJson(aptitudeService.getAptitudesByYBC001(pd));
+	}
+	
+	@RequestMapping("/getAptitudeById")
+	@ResponseBody
+	public JSONObject getAptitudeById(){
+		PageData pd = this.getPageData();
+		return this.getSucJson(aptitudeService.getAptitudeById(pd));
+	}
+	
+	@RequestMapping("/updateAptitude")
+	@ResponseBody
+	public JSONObject updateAptitude(){
+		PageData pd = this.getPageData();
+		return this.getAddOrUpdJson(aptitudeService.updateAptitude(pd));
+	}
+	
+}

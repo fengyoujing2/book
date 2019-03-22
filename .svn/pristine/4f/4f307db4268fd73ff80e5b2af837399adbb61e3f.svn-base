@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.customer.CusGetMoneyMapper">
+	<!-- 客户待收款 -->
+
+	<!-- 财务发起收款的待确认收款列表数据 -->
+	<select id="getPageWtEntGetMyLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			s.*, 
+			m.YBCMA001, 
+			(select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName, 
+			c.YBC002, 
+			c.YBC003, 
+			(
+				case s.YBCS050_TP 
+					when 1 then '按比例付款'
+					when 2 then '包干制'
+				end
+			) as payment, <!-- 付款方式 --> 
+			(
+				case s.YBCS050_TP 
+					when 1 then m.YBCMA030*m.YBCMA033*s.YBCS006/1000+m.YBCMA030*s.YBCS003/100
+					when 2 then s.YBCS051
+				end
+			) as receivable,<!-- 应收金额 -->
+			m.YBCMA008_TM<!-- 财务发起收款时间 -->
+			
+		from ybc_match m, ybc_sign s, ybc c
+		where m.ybcs001 = s.ybcs001 
+		and s.ybc001 = c.ybc001 
+		and m.YBCMA008_TM is not null <!-- 财务已经发起过收款 -->
+		and m.YBCMA011_TM is null <!-- 前台还未录入实收 --> 
+		and (
+				m.DEPT_LAYERORDER2 like concat(#{pd.DEPT_LAYERORDER}, "%") <!-- 签单的客户经理的DEPT_LAYERORDER2 -->
+				and 
+				m.POSITION2 = #{pd.POSITION}<!-- 签单的客户经理的POSITION2 -->
+			) <!-- 上级，并且为主管 -->
+	<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+			and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+		</if>
+		<if test="pd.YBC003 != null and pd.YBC003 != ''">
+			and c.YBC003 like concat_ws(#{pd.YBC003}, "%", "%")
+		</if>
+		<if test="pd.YBCS017 != null and pd.YBCS017 != ''"><!-- 合同编号 -->
+			and s.YBCS017 like concat_ws(#{pd.YBCS017}, "%", "%")
+		</if>
+		<if test="pd.YBCS038 != null and pd.YBCS038 != ''"><!-- 签单客户经理 -->
+			and s.YBCS038 like concat_ws(#{pd.YBCS038}, "%", "%")
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and 
+				(
+					s.USER_ID = #{pd.USER_ID_Sea} 
+					or
+					m.USER_ID = #{pd.USER_ID_Sea} 
+			)
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and 
+				(
+					s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+					or
+					m.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+				)
+		</if>
+	<!-- 搜索 end -->
+		order by m.YBCMA008_TM desc
+	</select>	
+	
+	<update id="updateForEntGetMoney" parameterType="pd" flushCache="false">
+		update 
+			ybc_match 
+				<set>
+					YBCMA009			= #{USER_ID}, 
+					YBCMA010			= (select name from sys_user where user_id = #{USER_ID}), 
+					YBCMA011_TM			= now(), 
+					YBCMA012			= #{YBCMA012}, 
+					YBCMA013			= #{YBCMA013}, 
+					YBCMA042_TP			= #{YBCMA042_TP}, <!-- 前台录入账户类型 -->
+					YBCMA043			= #{YBCMA043} <!-- 账户补充信息 -->
+				</set>
+			where	
+					YBCMA001			= #{YBCMA001}
+	</update>
+	
+</mapper>

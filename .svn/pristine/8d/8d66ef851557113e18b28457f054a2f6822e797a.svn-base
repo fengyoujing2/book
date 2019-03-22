@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.customer.CusRecoveryMapper">
+	<!-- 客户回收池 -->
+
+	<select id="getPageRecoveryLst" parameterType="page" resultType="pd" useCache="false">
+		select 
+			c.YBC001,  
+			c.YBC002, 
+			c.YBC003, 
+			c.YBC028, 
+			c.YBC022_TM, 
+			<!-- c.YBC027_TM, 放弃时间
+			c.YBC032_TM, 电话废弃时间  -->
+			if(c.YBC026_TP = 1, c.YBC027_TM, c.YBC032_TM) as recoveryTime, 
+			(
+				case c.YBC018_TP 
+					when 1 then 'A'
+					when 2 then 'B'
+					when 3 then 'C'
+					when 4 then 'D'
+				end 
+			) as level, 
+			(
+				case c.YBC008_TP 
+					when 0 then '临时（大类）' 
+					when 10 then '临时（小类）' 
+					when 1 then '意向'
+					when 2 then '上门'
+					when 3 then '签单'
+					when 4 then '回收'
+					when 5 then '再签单'
+				end
+			) as state, 
+			(
+				case c.YBC004_TP 
+					when 1 then '男'	
+					when 2 then '女'	
+				end
+			) as sex, 
+			(
+				case c.YBC009_TP 
+					when 1 then '未婚'
+					when 2 then '已婚' 
+				end
+			) as maritalStatus
+			
+		from ybc c 
+		where 1 = 1 
+		and	(c.YBC031_TP = 1 or c.YBC026_TP = 1) <!-- 电话废弃或者客户主动废弃 -->
+		<!-- 权限 start -->
+			and (
+					(
+						c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+						and 
+						c.POSITION	= #{pd.POSITION}
+					)<!-- 主管 -->
+					or
+					c.USER_ID = #{pd.USER_ID}<!-- 客户经理 -->
+			)
+		<!-- 权限 end -->
+		
+		<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+			and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+		</if>
+		<if test="pd.YBC003 != null and pd.YBC003 != ''">
+			and c.YBC003 like concat_ws(#{pd.YBC003}, "%", "%")
+		</if>
+		<if test="pd.YBC008_TP != null and pd.YBC008_TP != ''">
+			and c.YBC008_TP = #{pd.YBC008_TP}
+		</if>
+		<if test="pd.introName != null and pd.introName != ''"><!-- 介绍人 -->
+			and (select c2.YBC002 from ybc c2 where c2.ybc001 = c.PYBC001 limit 0, 1) like concat_ws(#{pd.introName}, "%", "%")
+		</if>
+		<if test="pd.contanName != null and pd.contanName != ''"><!-- 联系人 -->
+			and (select YBCCO002 from YBC_CONTACTS where ybc001 = c.ybc001 limit 0, 1) like concat_ws(#{pd.contanName}, "%", "%")
+		</if>
+		<if test="pd.YBC015_TMStart != null and pd.YBC015_TMStart != ''"><!-- 最后更新时间 -->
+			and c.YBC015_TM <![CDATA[>=]]> #{pd.YBC015_TMStart}
+		</if>
+		<if test="pd.YBC015_TMEnd != null and pd.YBC015_TMEnd != ''"><!-- 最后更新时间 -->
+			and c.YBC015_TM <![CDATA[<=]]> #{pd.YBC015_TMEnd}
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and c.USER_ID = #{pd.USER_ID_Sea} 
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+		</if>
+		<!-- 搜索 end -->
+		
+		order by c.YBC032_TM asc <!-- 以电话废弃时间为依据排序 -->
+	</select>
+	
+	<!-- <update id="updateReAllot" parameterType="pd" flushCache="false">
+		update 
+			ybc
+				set
+					YBC015_TM			= now(), 
+					USER_ID			 	= #{USER_ID}, 
+					YBC024				= 1, 
+					YBC026_TP			= 1, 
+					DEPT_LAYERORDER		= #{DEPT_LAYERORDER}, 
+					YBC029				= #{YBC029}
+				where 
+					YBC001 in
+						<if test="array != null">
+				  			 <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+				                  #{item}
+				             </foreach>
+			            </if>
+	</update> -->
+	
+   <!--  <update id="updateReAllotOfLimit" parameterType="pd" flushCache="false">
+    	update 
+    		YBC
+    			<set>
+    				USER_ID			= #{USER_ID}, 非当前用户，而是分配的用户
+					YBC015_TM 		= now(), 客户更新时间
+					YBC024 			= 0, 客户是否回收
+					YBC025_TM		= NULL, 初始回收时间
+					YBC026_TP 		= 0, 客户是否废弃
+					YBC027_TM		= NULL, 初始废弃时间
+					YBC031_TP 		= 0, 电话废弃状态
+					YBC032_TM		= NULL, 初始电话废弃时间
+					YBC029 			= (SELECT name from sys_user where user_id = #{USER_ID}), 客户经理姓名
+					DEPT_LAYERORDER = (SELECT DEPT_LAYERORDER from sys_user where user_id = #{USER_ID}) 客户经理所属部门机构
+    			</set>
+    		where
+    			YBC001 
+    				in
+		    			(
+		    				select
+		    					tab1.YBC001
+		    				from
+			    				(
+			    					select 
+										c.YBC001
+									from ybc c 
+									where 1 = 1 
+									and	(c.YBC031_TP = 1 or c.YBC026_TP = 1) 电话废弃或者客户主动废弃
+									order by c.YBC032_TM desc
+									limit 0, #{limitNum} 分配数量
+			    				) as tab1
+		    			)
+    </update> -->
+    
+    <!-- 回收池的重分配（按条数） -->
+    <select id="getPreReAllotLst" parameterType="pd" resultType="pd" useCache="false">
+		select 
+			GROUP_CONCAT(c.YBC001,',') as cusIdStr
+		from ybc c 
+		where 1 = 1 
+		and	(c.YBC031_TP = 1 or c.YBC026_TP = 1)
+		and (
+				(
+					c.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+					and 
+					c.POSITION	= #{POSITION}
+				)
+				or
+				c.USER_ID = #{USER_ID}<!-- 客户经理 -->
+		)
+		<if test="YBC002 != null and YBC002 != ''">
+			and c.YBC002 like concat_ws(#{YBC002}, "%", "%")
+		</if>
+		<if test="YBC003 != null and YBC003 != ''">
+			and c.YBC003 like concat_ws(#{YBC003}, "%", "%")
+		</if>
+		<if test="YBC008_TP != null and YBC008_TP != ''">
+			and c.YBC008_TP = #{YBC008_TP}
+		</if>
+		<if test="introName != null and introName != ''"><!-- 介绍人 -->
+			and (select YBC002 from ybc where ybc001 = c.PYBC001) like concat_ws(#{introName}, "%", "%")
+		</if>
+		<if test="contanName != null and contanName != ''"><!-- 联系人 -->
+			and (select YBCCO002 from YBC_CONTACTS where ybc001 = c.ybc001) like concat_ws(#{contanName}, "%", "%")
+		</if>
+		<if test="YBC015_TMStart != null and YBC015_TMStart != ''"><!-- 最后更新时间 -->
+			and c.YBC015_TM <![CDATA[>=]]> #{YBC015_TMStart}
+		</if>
+		<if test="YBC015_TMEnd != null and YBC015_TMEnd != ''"><!-- 最后更新时间 -->
+			and c.YBC015_TM <![CDATA[<=]]> #{YBC015_TMEnd}
+		</if>
+		<if test="USER_ID_Sea != null and USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and c.USER_ID = #{USER_ID_Sea} 
+		</if>
+		<if test="DEPT_LAYERORDER_Sea != null and DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and c.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER_Sea}, "%") 
+		</if>
+		GROUP BY c.YBC001
+		order by c.YBC032_TM asc
+		limit 0, #{limitNum} <!-- 选择分配的条数 -->
+	</select>
+	
+	<parameterMap type="java.util.Map" id="getCusRecAltMap">
+        <parameter property="userNum" mode="IN" jdbcType="INTEGER"/>
+        <parameter property="inUserid" mode="IN" jdbcType="VARCHAR"/>
+        <parameter property="userid" mode="IN" jdbcType="VARCHAR"/>
+        <parameter property="DEPT_LAYERORDER" mode="IN" jdbcType="VARCHAR"/>
+        <parameter property="POSITION" mode="IN" jdbcType="INTEGER"/>
+        <parameter property="state" mode="OUT" jdbcType="INTEGER"/>
+    </parameterMap>
+	
+	<select id="backUser_branch" parameterMap="getCusRecAltMap" statementType="CALLABLE">
+        CALL backUser_branch(?,?,?,?,?,?)
+    </select>
+	<!-- 2018-05-15新增需求：按部门人员输入数量进行回收池指定分配 按照作废时间倒序排序分配 -->
+	<!-- 2018-05-15新增需求：分配到个人，也就是会进入客户有效池里面，不会出现在回收池里面 -->
+	<!-- 2018-05-15新增需求：此方法表明必须执行分配到具体某个人员的操作 -->
+	<update id="updatebackUser_branchForSql" parameterType="pd" flushCache="false">
+		update ybc SET
+		USER_ID			=  #{USER_ID},  <!-- 非当前用户，而是分配的用户 -->
+		YBC014_TM 	= now(),  <!-- 客户添加时间,重新分配算新增加 -->
+		YBC015_TM 	= now(),  <!-- 客户更新时间 -->
+		YBC024 			= 0,  <!-- 客户是否回收 -->
+		YBC025_TM		= NULL,  <!-- 初始回收时间 -->
+		YBC026_TP 	= 0,  <!-- 客户是否废弃 -->
+		YBC027_TM		= NULL,  <!-- 初始废弃时间 -->
+		YBC031_TP 	= 0,  <!-- 电话废弃状态 -->
+		YBC032_TM		= NULL,  <!-- 初始电话废弃时间 -->
+		YBC029 			= (select u.name from sys_user u where u.USER_ID =  #{USER_ID}), <!-- 客户经理姓名 -->
+		YBC034_TM		= NULL,
+		DEPT_LAYERORDER = (select DEPT_LAYERORDER from sys_dept where  DEPT_ID=#{DEPT_LAYERORDER})  <!-- 客户经理所属部门机构 -->
+		where 1=1
+		and DEPT_LAYERORDER = (select DEPT_LAYERORDER from sys_dept where  DEPT_ID=#{OLD_DEPT_LAYERORDER}) <!--选择从哪个部门的回收池得到回收数据进行分配 -->
+		<if test="OLD_USER_ID != null and OLD_USER_ID != ''"><!-- 某客户经理名下的回收数据,可以不空 -->
+			and USER_ID = #{OLD_USER_ID}
+		</if>
+		and (YBC031_TP=1 or YBC026_TP=1) order by ybc.YBC032_TM asc LIMIT  #{limitNum}
+	</update>
+	<!-- 2018-05-15新增需求：转移到部门，只需要更新下部门信息，并清除人员ID -->
+	<update id="updatebackDept_branchForSql" parameterType="pd" flushCache="false">
+		update ybc SET
+		<!--USER_ID			=  null,  &lt;!&ndash; 非当前用户，而是分配的用户 &ndash;&gt;-->
+		<!--YBC014_TM 	= now(),  &lt;!&ndash; 客户添加时间,重新分配算新增加 &ndash;&gt;-->
+		<!--YBC015_TM 	= now(),  &lt;!&ndash; 客户更新时间 &ndash;&gt;-->
+		<!--YBC024 			= 0,  &lt;!&ndash; 客户是否回收 &ndash;&gt;-->
+		<!--YBC025_TM		= NULL,  &lt;!&ndash; 初始回收时间 &ndash;&gt;-->
+		<!--YBC026_TP 	= 0,  &lt;!&ndash; 客户是否废弃 &ndash;&gt;-->
+		<!--YBC027_TM		= NULL,  &lt;!&ndash; 初始废弃时间 &ndash;&gt;-->
+		<!--YBC031_TP 	= 0,  &lt;!&ndash; 电话废弃状态 &ndash;&gt;-->
+		<!--YBC032_TM		= NULL,  &lt;!&ndash; 初始电话废弃时间 &ndash;&gt;-->
+		<!--YBC029 			= (select u.name from sys_user u where u.USER_ID =  #{USER_ID}), &lt;!&ndash; 客户经理姓名 &ndash;&gt;-->
+		<!--YBC034_TM		= NULL,-->
+		DEPT_LAYERORDER = (select DEPT_LAYERORDER from sys_dept where  DEPT_ID=#{DEPT_LAYERORDER})  <!-- 客户经理所属部门机构 -->
+		where 1=1
+		and DEPT_LAYERORDER = (select DEPT_LAYERORDER from sys_dept where  DEPT_ID=#{OLD_DEPT_LAYERORDER}) <!--选择从哪个部门的回收池得到回收数据进行分配 -->
+		<if test="OLD_USER_ID != null and OLD_USER_ID != ''"><!-- 某客户经理名下的回收数据,可以不空 -->
+			and USER_ID = #{OLD_USER_ID}
+		</if>
+		and (YBC031_TP=1 or YBC026_TP=1) order by ybc.YBC032_TM asc LIMIT  #{limitNum}
+	</update>
+	<!-- 获取需要分配部门或者个人的回收数据总数 -->
+	<select id="getPreReAllotSumLst" parameterType="pd" resultType="pd" useCache="false">
+		select
+		count(0) as sumReAllotLst
+		from ybc c
+		where 1 = 1
+		<if test="OLD_USER_ID != null and OLD_USER_ID != ''"><!-- 按人员搜索 -->
+			and c.USER_ID = #{OLD_USER_ID}
+		</if>
+		<if test="OLD_DEPT_LAYERORDER != null and OLD_DEPT_LAYERORDER != ''"><!-- 按选中的部门搜索 -->
+			<!--and c.DEPT_LAYERORDER = #{OLD_DEPT_LAYERORDER}-->
+			and c.DEPT_LAYERORDER = (select DEPT_LAYERORDER from sys_dept where  DEPT_ID=#{OLD_DEPT_LAYERORDER})<!-- 由于前段导致无法获取这个值，只能获取ID，所以需要通过ID获取机构ID -->
+		</if>
+		and (YBC031_TP=1 or YBC026_TP=1) <!-- 人工作废跟系统作废-->
+		order by c.YBC032_TM asc
+	</select>
+
+</mapper>

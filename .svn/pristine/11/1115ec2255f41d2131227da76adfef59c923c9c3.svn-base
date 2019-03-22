@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.luckdraw.LucMapper">
+	<!-- 抽奖 -->
+
+	<!-- 读取可以进行第一次分配的数据 -->
+	<select id="getWtLucUsers" parameterType="pd" resultType="pd" useCache="false">
+		select
+			e.*
+		from emp_ld e
+		order by e.EMP_LD001 desc
+	</select>
+
+	<!--随机抓取中奖的员工-->
+	<select id="getUsersOfRandomByAttr" parameterType="pd" resultType="pd" useCache="false">
+		SELECT
+			e.*
+		FROM emp_ld e
+		WHERE 1 = 1
+		<if test="EMP_LD003_TP == 0"><!--传0就只有老员工可以参与-->
+			and e.EMP_LD003_TP = #{EMP_LD003_TP}
+		</if>
+		and e.EMP_LD005_TP = 0 <!--未抽奖-->
+		ORDER BY e.EMP_LD001
+	</select>
+
+	<!--标记中奖级别及是否中奖-->
+	<update id="updateUsersLdLvlAdIsLd" parameterType="Map" flushCache="false">
+		update
+			emp_ld
+				<set>
+					EMP_LD005_TP 	= 1 <!--已抽奖-->
+					,EMP_LD006_TP 	= #{pd.ldLevel} <!--所中奖项-->
+				</set>
+			where
+				EMP_LD001
+					in
+
+					<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+						#{item.EMP_LD001}
+					</foreach>
+	</update>
+
+	<select id="getPrizeOfEmps" parameterType="pd" resultType="pd" useCache="false">
+		select
+			e.*
+		from emp_ld e
+		where e.EMP_LD006_TP = #{EMP_LD006_TP}
+	</select>
+
+	<!--重置-->
+	<update id="updateForPrizeInit" parameterType="pd" flushCache="false">
+		update
+			emp_ld
+				<set>
+						EMP_LD005_TP 	= 0 <!--是否已抽奖-->
+						,EMP_LD006_TP 	= 0 <!--所中奖项-->
+				</set>
+			where
+						EMP_LD006_TP 	= #{EMP_LD006_TP}<!--所中奖项-->
+	</update>
+	
+
+</mapper>

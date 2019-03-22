@@ -1,0 +1,117 @@
+package com.dbsun.service.phonesys;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.phonesys.PhoGroupBusyMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.DateUtil;
+import com.dbsun.util.FollowUtil;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+/**
+ * 群呼服务
+ *
+ * @author zhao yi
+ * @create 2018-07-09 20:57
+ * @desc
+ **/
+@Service
+public class PhoGroupBusyService extends BaseService {
+
+
+    @Autowired
+    private PhoGroupBusyMapper phoGroupBusyMapper;
+
+    /**
+     * 添加通话记录
+     *
+     * @param pd YBCF009 流水号 YBC001
+     * @return
+     */
+    public int addFlowForCall(PageData pd) {
+        String uuid = this.get32UUID();
+        pd.put("YBCF001", uuid);//主键
+        pd.put("YBCF006", "拨打电话");//跟进信息
+        return phoGroupBusyMapper.addFollow(pd);
+    }
+
+    /***
+     * 转为意向
+     * 新增意向用户
+     * @param pd  YBC001,YBC002姓名  YBC003 手机号码 YBC009流水号 state手机号码是否存在
+     * @param userPd
+     * @return
+     * @throws Exception
+     * @Desc 新增凭证需要使用YBC001
+     */
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
+    public JSONObject toIntention(PageData pd, PageData userPd) throws Exception {
+        JSONObject json = new JSONObject();
+        //检查电话是否存在 1存在  2不存在
+        if (pd.getString("state").equals("1")) {
+            //如果存在,新增凭证 添加意向用户
+            phoGroupBusyMapper.addCallIntentYbc(pd);
+            json.put("msg", "201");
+            json.put("result", "新增群呼转意向客户 凭证成功");
+        } else { //如果不存在
+            if (pd.get("YBC003") != null && pd.get("YBCF009") != null) {
+                //1.新增意向状态客户  返回新增id  YBC001,YBC002,YBC003
+                String YBC001 = this.addCus(pd, userPd);
+                //2.通过YBC009流水号  更新ybc001 跟进内容
+                pd.put("YBCF006", "添加意向客户");
+                phoGroupBusyMapper.updateFollowByYBCF009(pd);
+                json.put("msg", "200");
+                json.put("result", "新增意向客户成功");
+            }
+        }
+        return json;
+    }
+
+    /**
+     * 添加客户 返回主键ID
+     *
+     * @Author: zhao yi
+     * @Date : 2018/7/10 14:45
+     * @Param : [pd, userPd]
+     * @return: java.lang.String
+     */
+    private String addCus(PageData pd, PageData userPd) {
+        int rs = 0;
+        String cusId = this.get32UUID();
+        pd.put("YBC001", cusId);
+        pd.put("YBC029", userPd.get("NAME"));
+        //意向
+        pd.put("YBC035_TM", DateUtil.getTime());
+        pd.put("YBC008_TP", 1);
+        //最近跟进信息
+        pd.put("YBC020", userPd.get("USER_ID"));
+        pd.put("YBC021", FollowUtil.CUS_ADD_STR);
+        pd.put("YBC022_TM", DateUtil.getTime());
+        pd.put("YBC028", userPd.get("NAME"));
+        pd.put("YBC001", cusId);
+
+        //添加客户
+        try {
+            rs = phoGroupBusyMapper.addCusReturnYBC001(pd);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return rs > 0 ? cusId : null;
+    }
+
+    /***
+     *查询 群呼系统转为意向的用户 凭证列表
+     * @param pageData
+     * @return
+     */
+    public List<PageData> getPageRedistributeCus(Page page) {
+        return phoGroupBusyMapper.getPageRedistributeCus(page);
+    }
+}

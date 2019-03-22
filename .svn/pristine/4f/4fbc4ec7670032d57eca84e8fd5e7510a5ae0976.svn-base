@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.CommandMapper">
+	
+	<!-- 匹配关键词 -->
+	<select id="findByKw" parameterType="pd" resultType="pd" useCache="false">
+		select 
+			COMMANDCODE
+		from 
+			WEIXIN_COMMAND
+		where 
+			KEYWORD = #{KEYWORD}
+		<if test="COMMAND_ID != null and COMMAND_ID != ''">
+			and COMMAND_ID != #{COMMAND_ID} 
+		</if>
+		<if test="STATUS == null or STATUS == ''">
+			and STATUS = '1' 
+		</if>
+	</select>
+	
+</mapper>

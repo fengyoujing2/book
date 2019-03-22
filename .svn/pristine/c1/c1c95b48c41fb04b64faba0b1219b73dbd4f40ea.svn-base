@@ -1,0 +1,33 @@
+package com.dbsun.service.task;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.task.TaskMapper;
+import com.dbsun.service.BaseService;
+
+@Service
+public class TaskService extends BaseService {
+
+	@Autowired
+	private TaskMapper taskMapper;
+	
+	public int addTask(PageData pd){
+		pd.put("YBT001", this.get32UUID());
+		return taskMapper.addTask(pd);
+	}
+	
+	public int addTasks(PageData pd){
+		return taskMapper.addTasks(pd);
+	}
+	
+	public PageData getTskById(PageData pd){
+		return taskMapper.getTskById(pd);
+	}
+	
+	public PageData getTskAdUserById(PageData pd){
+		return taskMapper.getTskAdUserById(pd);
+	}
+	
+}

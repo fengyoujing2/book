@@ -1,0 +1,22 @@
+package com.dbsun.controller.customer;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.service.customer.CusCarService;
+/**
+ * 客户车辆信息
+ * @author DongZai
+ *
+ */
+@Controller
+@RequestMapping("/cus_car")
+public class CusCarController extends BaseController {
+	
+	@Autowired
+	private CusCarService cusCarService;
+	
+	
+}

@@ -1,0 +1,337 @@
+package com.dbsun.service.phonesys;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.BaseService;
+import com.dbsun.service.SysUserService;
+import com.dbsun.util.SentReqUtil;
+import com.dbsun.util.Util;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+
+@Service
+public class PhoSeatStateService extends BaseService {
+    @Autowired
+    private SysUserService sysUserService;
+
+
+    /**
+     * 获取坐席状态数据
+     */
+    @Deprecated
+    public JSONArray getybcSpeedLst(PageData pd) {
+        //获取接口数据得到返回坐席状态json数据
+
+        String sendUrl = "http://171.221.217.40:81/api/v1/company/getCompanyOnlineInfo";
+//        String sendUrl = "http://192.168.1.241:81/api/v1/company/getCompanyOnlineInfo";
+        String param = "domain=rx&token=e66b1725de98469ba853c56e42136d34";//&seatGroupId=1
+        String resultStr = SentReqUtil.sendGet(sendUrl, param);
+        JSONObject jsondata = JSONObject.fromObject(JSONObject.fromObject(resultStr).get("data"));
+        JSONArray jsaryGroup = jsondata.getJSONArray("chlidren");
+        JSONArray jsonArray = new JSONArray();
+//        //获取当前用户权限下的部门结构以及人员列表
+//        //获取部门列表（包含当前部门）
+        List<PageData> pageData = sysUserService.getSeatDeptLst(pd);
+//        //组装json格式数据
+        JSONArray ja = Util.treeSeatList(pageData, jsaryGroup, pd.getString("DEPT_ID"));
+        return ja;
+    }
+
+
+    /**
+     * 呼叫坐席 记录 条件查询
+     *
+     * @Author: zhao yi
+     * @Date : 2018/7/10 20:17
+     * @Param : [rs, pd] state 1.示闲 ready  2.示忙 unready  3.通话中 busy， 4.离线
+     * @return: net.sf.json.JSONObject
+     */
+    public JSONObject callLstBystate(String rs, PageData pd) {
+        JSONObject job = callLst(rs, pd);
+        JSONArray rows = (JSONArray) job.get("rows");
+        if (pd.get("state") == null) return job; //无参数
+        final String state = pd.getString("state");
+
+        int count = 0;
+        //1.示闲 ready  2.示忙 unready  3.通话中 busy
+        if ("1".equals(state) || "2".equals(state) || "3".equals(state)) {
+            Iterator<JSONObject> iterator = rows.iterator();
+            while (iterator.hasNext()) {
+                JSONObject next = iterator.next();
+                JSONArray array = (JSONArray) next.get("seatLst");
+                Iterator arriter = array.iterator();
+                while (arriter.hasNext()) {//遍历 seatLst 删除不匹配的
+                    JSONObject json = (JSONObject) arriter.next();
+                    if (!json.getString("state").equals(state)) {
+                        arriter.remove();
+                    } else {
+                        count++;
+                    }
+
+                }
+                if (array.size() == 0) {
+                    iterator.remove();
+                }
+            }
+            job.put("onlineNumber", count);
+            return job;
+        }
+        //4.离线
+        if ("4".equals(state)) {
+            //查询离线坐席号
+            JSONArray array = sysUserService.getUserRegisteredOffLineNumber(rows, pd);
+            job.put("rows", array);//覆盖
+            for (int i = 0; i < array.size(); i++) {
+                JSONObject jb = (JSONObject) array.get(i);
+                JSONArray arr = (JSONArray) jb.get("seatLst");
+                for (int j = 0; j < arr.size(); j++) {
+                    count++;
+                }
+            }
+            job.put("onlineNumber", count);
+
+        }
+        return job;
+    }
+
+    /**
+     * 呼叫坐席 记录 sysUserService.getUserRegisteredNumber()
+     * 获得部门数据,坐席数据,进行重新排版组装 @link getUserLstByNumber(String rs)
+     *
+     * @Author: zhao yi
+     * @Date : 2018/5/25 15:45
+     * @Param : [rs = JSON数据接口]
+     * @return: java.util.HashSet<net.sf.json.JSONObject>
+     */
+    public JSONObject callLst(String rs, PageData pd) {
+        //1获得部门 数据
+        List<PageData> deptLs = sysUserService.getDeptDeptLstBySalesman();
+        //2.获得页面 数据 {"deptId":"123","name":"张三","state":"1"}
+        HashSet<JSONObject> userSet = getUserLstByNumber(rs, pd);
+        //3.放数据 根据DEPT_ID
+        int count = 0;
+        for (PageData dept : deptLs) {
+            Iterator<JSONObject> userIterator = userSet.iterator();
+            HashSet<JSONObject> seatLst = new HashSet<>();//临时变量获得 user
+            while (userIterator.hasNext()) {
+                JSONObject user = userIterator.next();
+                //根据坐席号匹配 ,标记删除法
+                if (user.get("deptId") != null && dept.getString("DEPT_ID").equals(user.getString("deptId"))) {
+                    JSONObject temp = new JSONObject();
+                    temp.put("name", user.getString("name"));
+                    temp.put("state", user.getString("state"));
+                    temp.put("number", user.getString("number"));
+                    seatLst.add(temp);
+                    userIterator.remove();
+                    count++;
+                }
+
+            }
+            if (seatLst.size() > 0) {
+                dept.put("seatLst", seatLst);  //添加坐席呼叫状态
+
+                //添加坐席呼叫状态统计    readySum 示闲unreadySum  示忙 busySum通话中合计
+                int readySum = 0;
+                int unreadySum = 0;
+                int busySum = 0;
+                for (JSONObject json : seatLst) {
+                    switch (json.getString("state")) {//坐席状态 1.示闲 ready  2.示忙 unready  3.通话中 busy， 0.其他
+                        case "1":
+                            readySum++;
+                            break;
+                        case "2":
+                            unreadySum++;
+                            break;
+                        case "3":
+                            busySum++;
+                            break;
+                        default:
+                    }
+                }
+                dept.put("readySum", readySum);//示闲合计
+                dept.put("unreadySum", unreadySum);//示忙合计
+                dept.put("busySum", busySum);//通话中合计
+            }
+            if (userSet.size() == 0) {//如果数据用完了,结束遍历
+                break;
+            }
+        }
+        //添加已注册坐席数量
+        List<PageData> list = sysUserService.getUserRegisteredNumber();
+
+        final Iterator<PageData> iterator = deptLs.iterator();
+
+        while (iterator.hasNext()) {
+            PageData next = iterator.next();
+            if (next.get("seatLst") == null) {
+                iterator.remove();
+            }
+        }
+        //在线人数 解析接口 String count = JSONObject.fromObject(rs).getString("count");
+        JSONObject rsjob = new JSONObject();
+        rsjob.put("registeredTotal", list.size());
+        rsjob.put("onlineNumber", count);
+        rsjob.put("rows", deptLs);
+
+        return rsjob;
+    }
+
+
+    /**
+     * 从数据接口获得 坐席号
+     * 根据坐席号 匹配数据库USER客服列表 (@link rstJSon())
+     *
+     * @Author: zhao yi
+     * @Date : 2018/5/25 15:45
+     * @Param : [rs, deptId]
+     * @return: java.util.HashSet<net.sf.json.JSONObject>
+     */
+    private HashSet<JSONObject> getUserLstByNumber(String rs, PageData pd) {
+
+        //获得解析页面数据
+        JSONObject rsObj = JSONObject.fromObject(rs);
+        JSONArray agentsArray = (JSONArray) rsObj.get("agents");
+        //根据数据获得numbers坐席号集合 匹配指定的客服加入集合
+        List<String> numbers = new ArrayList<>();
+        for (int i = 0; i < agentsArray.size(); i++) {
+            JSONObject temp = (JSONObject) agentsArray.get(i);
+            final String number = temp.getString("extn");
+            numbers.add(number);
+        }
+
+
+        pd.put("numbers", numbers);
+        //查询 客服集合
+        List<PageData> sysUserLst = sysUserService.getSysUserLstByNumbers(pd);
+        //   重新进行组装
+        HashSet<JSONObject> set = rstJSon(agentsArray, sysUserLst);
+        return set;
+    }
+
+
+    /**
+     * 数据匹配
+     * 根据坐席号 匹配数据库USER客服列表
+     *
+     * @Author: zhao yi
+     * @Date : 2018/5/25 11:41
+     * @Param : [agentsArray 页面数据 , sysUserLst 用户数据]
+     * @return: java.util.HashSet<net.sf.json.JSONObject>
+     * {"deptId":"123","name":"张三","state":"1"}
+     * {"deptId":"124","name":"李四","state":"0"}
+     * {"deptId":"222","name":"王五","state":"0"}
+     */
+    private HashSet<JSONObject> rstJSon(JSONArray agentsArray, List<PageData> sysUserLst) {
+        HashSet<JSONObject> set = new HashSet<>();
+        for (PageData u : sysUserLst) {
+            //获得 部门ID,姓名,部门
+            String deptId = u.getString("DEPT_ID");
+            String name = u.getString("NAME");
+            String deptLayerorder = u.getString("DEPT_LAYERORDER");
+            String deptName = u.getString("DEPT_NAME");
+
+            JSONObject job = new JSONObject();
+            for (int i = 0; i < agentsArray.size(); i++) {
+                JSONObject agent = (JSONObject) agentsArray.get(i);
+                String extn = agent.getString("extn");
+                String state = null;
+
+                switch (agent.getString("state")) {//坐席状态 1.示闲 ready  2.示忙 unready  3.通话中 busy， 0.其他
+                    case "ready":
+                        state = "1";
+                        break;
+                    case "unready":
+                        state = "2";
+                        break;
+                    case "busy":
+                        state = "3";
+                        break;
+                    default:
+                        state = "0";
+                        break;
+                }
+
+                if (extn.equals(u.getString("NUMBER"))) {
+                    job.put("number", extn);
+                    job.put("deptId", deptId);
+                    job.put("name", name);
+                    job.put("state", state);
+                    job.put("DEPT_NAME", state);
+//                    job.put("deptLayerorder", deptLayerorder);
+                    agentsArray.remove(i);//标记删除法
+                }
+            }
+            set.add(job);
+        }
+
+
+        return set;
+    }
+
+
+    /**
+     * 递归部门
+     *
+     * @Author: zhao yi
+     * @Date : 2018/5/25 16:26
+     * @Param : [inlst 部门数据, parentId 上级id]
+     * @return: net.sf.json.JSONArray
+     */
+    @Deprecated
+    private List<PageData> recursiveDepartment(List<PageData> inlst, String parentId) {
+        List<PageData> childDept = new ArrayList<>();
+        String DeptId;
+        String pid;
+        String DEPT_NAME;
+        for (PageData object : inlst) {
+            PageData jsonMenu = new PageData();//临时变量
+            DeptId = object.getString("DEPT_ID");
+            pid = object.getString("DEPT_PID");
+            DEPT_NAME = object.getString("DEPT_NAME");
+            HashSet<JSONObject> seatLst = (HashSet<JSONObject>) object.get("seatLst");// {name='', state=''}
+            jsonMenu.put("id", DeptId);
+            jsonMenu.put("name", DEPT_NAME);
+            if (parentId.equals(pid)) {
+
+                List<PageData> c_node = recursiveDepartment(inlst, DeptId);
+                if (c_node.size() != 0) {
+                    jsonMenu.put("children", c_node);
+                }
+
+                if (seatLst != null) {
+                    jsonMenu.put("seatLst", seatLst);//添加用户集合
+
+                    //添加坐席呼叫状态 统计++   readySum 示闲unreadySum  示忙 busySum通话中合计
+                    int readySum = 0;
+                    int unreadySum = 0;
+                    int busySum = 0;
+                    for (JSONObject json : seatLst) {
+                        switch (json.getString("state")) {//坐席状态 1.示闲 ready  2.示忙 unready  3.通话中 busy， 0.其他
+                            case "1":
+                                readySum++;
+                                break;
+                            case "2":
+                                unreadySum++;
+                                break;
+                            case "3":
+                                busySum++;
+                                break;
+                            default:
+                        }
+                    }
+                    jsonMenu.put("readySum", readySum);//示闲合计
+                    jsonMenu.put("unreadySum", unreadySum);//示忙合计
+                    jsonMenu.put("busySum", busySum);//通话中合计
+                }
+                childDept.add(jsonMenu);
+            }
+        }
+        return childDept;
+    }
+}

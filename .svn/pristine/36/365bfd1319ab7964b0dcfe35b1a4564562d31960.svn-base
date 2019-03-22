@@ -1,0 +1,95 @@
+package com.dbsun.controller.settleAccounts;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.settleAccounts.SettleAccountsInService;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+
+/**
+ * @Description: 业务结账确认单接口层
+ * @Author: zhao yi
+ * @CreateDate: 2018-11-02 13:32:10
+ * @Version: V1.0
+ */
+@Controller
+@RequestMapping("/settle_accounts_in")
+public class SettleAccountsInController extends BaseController {
+
+
+    @Autowired
+    public SettleAccountsInService settleAccountsInService;
+
+
+    /***
+     * 跳转已结账页面 业务结账确认单
+     * @return
+     */
+    @RequestMapping("goNewsFinanceAccount")
+    public String goNewsFinanceAccount() {
+        return "html/system/finance/newsFinanceAccount";
+    }
+
+
+    /***
+     * 分页查询-查询数据列表-Auto
+     * @Param [YBCACI001:主键,YBCACI002:客户名称,YBCACI003:合同编号(财务编号),YBCACI004:合同类型(贷款类型),YBCACI005:付款方式,YBCACI006:付款金额,YBCACI007:前台利润(付款金额-运营成本-提现手续费-其他费用),YBCACI008:客户经理,YBCACI010:客户经理部门,YBCACI011:团队经理姓名,YBCACI012:客户总监姓名,YBCACI013:贷款金额,YBCACI014:贷款渠道,YBCACI015:期限,YBCACI016:运营成本,YBCACI017:提现手续费,YBCACI018:其他费用,YBCACI019:后台做单人姓名,YBCACI020:后台做单人组长姓名,YBCACI021:后台做单人部长姓名,YBCACI022_TM:结账时间(手工录入),USER_ID:操作人,YBCACI024:操作人姓名,YBCACI025_TM:操作人时间,YBCACI026_TP:结账类型 1结账 2违约金,YBCACI027:付款公式,]
+     * @time 2018-11-02 13:32:10
+     * @return
+     */
+    @RequestMapping("/getPageSettleAccountsInList")
+    @ResponseBody
+    public JSONObject getPageSettleAccountsInList() {
+        Page page = this.getPage();
+        PageData pd = this.getPageData();
+        page.setPd(pd);
+        return this.viewReturnPageData(page, settleAccountsInService.getPageSettleAccountsInList(page));
+    }
+
+    /**
+     * 新增-Auto
+     *
+     * @Param [YBCACI001:主键可选,YBCACI002:客户名称,YBCACI003:合同编号(财务编号),YBCACI004:合同类型(贷款类型),YBCACI005:付款方式,YBCACI006:付款金额,YBCACI007:前台利润(付款金额-运营成本-提现手续费-其他费用),YBCACI008:客户经理,YBCACI010:客户经理部门,YBCACI011:团队经理姓名,YBCACI012:客户总监姓名,YBCACI013:贷款金额,YBCACI014:贷款渠道,YBCACI015:期限,YBCACI016:运营成本,YBCACI017:提现手续费,YBCACI018:其他费用,YBCACI019:后台做单人姓名,YBCACI020:后台做单人组长姓名,YBCACI021:后台做单人部长姓名,YBCACI022_TM:结账时间(手工录入),USER_ID:操作人,YBCACI024:操作人姓名,YBCACI025_TM:操作人时间,YBCACI026_TP:结账类型 1结账 2违约金,YBCACI027:付款公式,]
+     * @time 2018-11-02 13:32:10
+     */
+    @RequestMapping("/addSettleAccountsIn")
+    @ResponseBody
+    public JSONObject addSettleAccountsIn() {
+        PageData pd = this.getPageData();
+        pd.putAll(this.getUserPd());
+        return this.getAddOrUpdJson(settleAccountsInService.addSettleAccountsIn(pd));
+    }
+
+    /**
+     * 删除-根据主键-Auto
+     *
+     * @Param YBCACI001 主键
+     * @time 2018-11-02 13:32:10
+     */
+    @RequestMapping("/delSettleAccountsInByPrimaryKey")
+    @ResponseBody
+    public JSONObject delSettleAccountsInByPrimaryKey() {
+        PageData pd = this.getPageData();
+        return this.getAddOrUpdJson(settleAccountsInService.delSettleAccountsInByPrimaryKey(pd));
+    }
+
+    /**
+     * 修改-根据主键-Auto
+     *
+     * @Param [YBCACI001:主键,YBCACI002:客户名称,YBCACI003:合同编号(财务编号),YBCACI004:合同类型(贷款类型),YBCACI005:付款方式,YBCACI006:付款金额,YBCACI007:前台利润(付款金额-运营成本-提现手续费-其他费用),YBCACI008:客户经理,YBCACI010:客户经理部门,YBCACI011:团队经理姓名,YBCACI012:客户总监姓名,YBCACI013:贷款金额,YBCACI014:贷款渠道,YBCACI015:期限,YBCACI016:运营成本,YBCACI017:提现手续费,YBCACI018:其他费用,YBCACI019:后台做单人姓名,YBCACI020:后台做单人组长姓名,YBCACI021:后台做单人部长姓名,YBCACI022_TM:结账时间(手工录入),USER_ID:操作人,YBCACI024:操作人姓名,YBCACI025_TM:操作人时间,YBCACI026_TP:结账类型 1结账 2违约金,YBCACI027:付款公式,]
+     * @time 2018-11-02 13:32:10
+     */
+    @RequestMapping("/updSettleAccountsInByPrimaryKey")
+    @ResponseBody
+    public JSONObject updSettleAccountsInByPrimaryKey() {
+        PageData pd = this.getPageData();
+        return this.getAddOrUpdJson(settleAccountsInService.updSettleAccountsInByPrimaryKey(pd));
+    }
+
+
+}

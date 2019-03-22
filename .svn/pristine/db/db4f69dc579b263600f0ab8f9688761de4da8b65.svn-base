@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.product.ProdectMapper">
+	<!-- 新增产品类型 -->
+	<insert id="addProductType" parameterType="pd" flushCache="false">
+		insert
+			into 
+				ybc_type
+					(
+						YBCT001,
+						YBCT002,
+						YBCT003,
+						YBCT004_ID,
+						YBCT005_TP,
+						YBCT006,
+						YBCT007
+					)
+					values
+					(
+						#{YBCT001},
+						#{YBCT002},
+						#{YBCT003},
+						#{YBCT004_ID},
+						#{YBCT005_TP},
+						#{YBCT006},
+						#{YBCT007}
+					)
+	</insert>
+
+	<!-- 获取x级产品 -->
+	<select id="getProductByLev" parameterType="pd" resultType="pd" useCache="false" >
+		select
+			t.*, 
+			(select name from sys_user where user_id = t.YBCT004_ID) as owner  
+		from ybc_type t  
+		where t.YBCT005_TP = #{proLevel}
+	</select>
+	<!-- 获取当前指定类型下的所有产品-->
+	<select id="getProductTypeAllLst" parameterType="pd" resultType="pd" useCache="false">
+		select
+		t.*,
+		(select name from sys_user where user_id=t.YBCT004_ID) NAME
+		from ybc_type t
+	</select>
+	<!-- 获取指定类型下的所有产品信息列表 -->
+	<select id="getProductByTypeForLst" parameterType="pd" resultType="pd" useCache="false">
+		select
+		t.YBTL001 as value,
+		t.YBTL002 as label
+		from ybt_list t
+		where t.YBCT001 = #{YBCT001}
+	</select>
+	<!-- 获取指定类型下的所有产品信息列表(包含其他信息) -->
+	<select id="getPageProductTypeAllLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			*
+		from ybt_list t
+		where t.YBCT001 = #{pd.YBCT001}
+	</select>
+	<!--获取当前产品类型是否有子类-->
+	<select id="getProductTypeByYbct007" parameterType="pd" resultType="String" useCache="false">
+		select
+		*
+		from ybc_type t
+		where t.YBCT007 = #{YBCT001} <!-- 传入的主ID作为父ID使用查看是否有子类数据-->
+	</select>
+	<!--获取当前产品是否有相关业务数据-->
+	<select id="getProductByYbtl001" parameterType="pd" resultType="String" useCache="false">
+		select
+		*
+		from ybc_match m
+		where m.YBTL001 = #{YBTL001}
+	</select>
+	<!--获取1层级类型数据房贷信贷 -->
+	<select id="getProductByTypeOneForLst" parameterType="pd" resultType="pd" useCache="false">
+		select
+		t.YBCT001 as value,
+		t.YBCT002 as label,
+		t.YBCT004_ID,
+		(select name from sys_user where user_id=t.YBCT004_ID) name
+		from ybc_type t
+		where t.YBCT007 = '0'
+	</select>
+	<!--获取1层级类型数据房贷信贷 -->
+	<select id="getProductId" parameterType="pd" resultType="String" useCache="false">
+		select YBCS009_TP  from ybc_sign where ybcs001 = #{YBCS001}
+	</select>
+	<!--获取所有的客户标签数据 -->
+	<select id="getLabelAllLst" parameterType="pd" resultType="pd" useCache="false">
+		select
+		*
+		from ybc_label t where YBC_LAB004_TP = #{YBC_LAB004_TP}
+	</select>
+	<!--新增产品 -->
+	<insert id="addProduct" parameterType="pd" flushCache="false">
+		insert into ybt_list (
+		YBTL001,
+		YBCT001,
+		YBTL002,
+		YBTL004,
+		YBTL005,
+		YBTL006,
+		YBTL007,
+		USER_ID,
+		YBTL008_TM,
+		YBTL009,
+		YBTL010,
+		YBTL011,
+		YBTL012 )
+		values (
+		#{YBTL001},
+		#{YBCT001},
+		#{YBTL002},
+		#{YBTL004},
+		#{YBTL005},
+		#{YBTL006},
+		#{YBTL007},
+		#{USER_ID},
+		now(),
+		#{YBTL009},
+		#{YBTL010},
+		#{YBTL011},
+		#{YBTL012} )
+	</insert>
+	<!--更新产品 -->
+	<update id="updateProduct" parameterType="pd" flushCache="false">
+		update  ybt_list set
+		YBTL002 = #{YBTL002},
+		YBTL004 = #{YBTL004},
+		YBTL005 = #{YBTL005},
+		YBTL006 = #{YBTL006},
+		YBTL007 = #{YBTL007},
+		YBTL009 = #{YBTL009},
+		YBTL010 = #{YBTL010},
+		YBTL011 = #{YBTL011},
+		YBTL012 = #{YBTL012}
+		where  YBTL001 = #{YBTL001}
+	</update>
+	<!--删除产品 -->
+	<delete id="delProduct" parameterType="pd" flushCache="false">
+		delete from ybt_list where YBTL001 = #{YBTL001}
+	</delete>
+
+	<!-- 产品类型操作 -->
+	<!--更新产品 -->
+	<update id="updateProductType" parameterType="pd" flushCache="false">
+		update  ybc_type <set>
+			YBCT002 = #{YBCT002},
+		<!-- 产品负责人 -->
+		<if test="YBCT004_ID != null and YBCT004_ID !=''">
+			YBCT004_ID = #{YBCT004_ID},
+		</if>
+		</set>
+		where  YBCT001 = #{YBCT001}
+	</update>
+	<!--删除产品类型 -->
+	<delete id="delProductType" parameterType="pd" flushCache="false">
+		delete from ybc_type where YBCT001 = #{YBCT001}
+	</delete>
+</mapper>

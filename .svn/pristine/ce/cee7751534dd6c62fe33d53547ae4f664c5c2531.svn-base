@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.cusothermsg.CorHouseProMapper">
+	<!-- 客户房产信息-->
+
+	<!-- 添加资质 -->
+	<insert id="addHousePro" parameterType="pd" flushCache="false">
+		insert 
+			into 
+				YBC_HOUSE 
+				(
+				   YBC001, 
+				   YBC_HOU002_TP, 
+				   YBC_HOU003_TP, 
+				   YBC_HOU004_TM, 
+				   YBC_HOU005, 
+				   YBC_HOU006, 
+				   YBC_HOU007, 
+				   YBC_HOU008, 
+				   YBC_HOU009, 
+				   YBC_HOU010, 
+				   YBC_HOU011, 
+				   YBC_HOU012, 
+				   YBC_HOU013_TM, 
+				   DEPT_LAYERORDER, 
+				   POSITION
+				)
+				values
+				(
+				   #{YBC001}, 
+				   #{YBC_HOU002_TP}, 
+				   #{YBC_HOU003_TP}, 
+				   #{YBC_HOU004_TM}, 
+				   #{YBC_HOU005}, 
+				   #{YBC_HOU006}, 
+				   #{YBC_HOU007}, 
+				   #{YBC_HOU008}, 
+				   #{YBC_HOU009}, 
+				   #{YBC_HOU010}, 
+				   #{USER_ID}, 
+				   (select name from sys_user where user_id = #{USER_ID}), 
+				   now(), 
+				   #{DEPT_LAYERORDER}, 
+				   1
+				)
+	</insert>
+	
+	<select id="getHosProsByCusId" parameterType="pd" resultType="pd" useCache="false">
+		select
+			h.*
+		from YBC_HOUSE h 
+		where h.ybc001 = #{YBC001}
+	</select>
+	
+	
+</mapper>

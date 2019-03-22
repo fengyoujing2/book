@@ -1,0 +1,17 @@
+package com.dbsun.mapper.luckdraw;
+
+import com.dbsun.entity.system.PageData;
+
+import java.util.List;
+import java.util.Map;
+
+
+public interface LucMapper {
+	
+	public List<PageData> getWtLucUsers(PageData pd);
+	public List<PageData> getUsersOfRandomByAttr(PageData pd);
+	public int updateUsersLdLvlAdIsLd(Map map);
+	public List<PageData> getPrizeOfEmps(PageData pd);
+	public int updateForPrizeInit(PageData pd);
+
+}

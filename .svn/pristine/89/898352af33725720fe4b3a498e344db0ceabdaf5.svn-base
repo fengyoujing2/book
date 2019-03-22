@@ -1,0 +1,26 @@
+package com.dbsun.mapper;
+
+import java.util.List;
+
+import com.dbsun.entity.system.PageData;
+
+/**
+ * 个人福利(积分等)
+ * @author DongZai
+ *
+ */
+public interface YwRewardMapper {
+	
+	/**通过YWU001获取个人福利*/
+	public List<PageData> getYwRewardByYwu001OrOpenId(PageData pd);
+	
+	/**所得积分*/
+	public PageData getSumJF(PageData pd);
+	
+	/**所得还款金*/
+	public PageData getSumHKJ(PageData pd);
+	
+	/**新增个人福利*/
+	public int addYwReward(PageData pd);
+	
+}

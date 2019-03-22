@@ -1,0 +1,30 @@
+package com.dbsun.mapper;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+/**
+ * 用户账号
+ * @author DongZai
+ *
+ */
+public interface YwuMapper {
+	
+	/**账号列表数据*/
+	public List<PageData> getPageYwuLst(Page page);
+	
+	/**新增用户*/
+	public int addYwu(PageData pd);
+	
+	/**更新用户*/
+	public int updateYwu(PageData pd);
+	
+	/**绑定手机号*/
+	public int updateBindTel(PageData pd);
+	
+	/**获取用户*/
+	public PageData getYwuByYwu010(PageData pd);
+	
+}

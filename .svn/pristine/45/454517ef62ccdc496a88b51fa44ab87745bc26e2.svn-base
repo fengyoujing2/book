@@ -1,0 +1,106 @@
+package com.dbsun.service.importallot;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.SysUserMapper;
+import com.dbsun.mapper.importallot.ImpAllotFirstMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.Tools;
+
+@Service
+public class ImpAllotFirstService extends BaseService {
+
+	@Autowired
+	private ImpAllotFirstMapper impAllotFirstMapper;
+	@Autowired
+	private SysUserMapper sysUserMapper;
+	
+	public List<PageData> getPageCanFirstAltLst(Page page){
+		return impAllotFirstMapper.getPageCanFirstAltLst(page);
+	}
+	
+	/**
+	 * 批量更新Imp的分配状态为已分配
+	 * @param pd
+	 * 			branchNum -- 分配数量
+	 * @return
+	 */
+	public int updateImpToAltEd(PageData pd){
+		return impAllotFirstMapper.updateImpToAltEd(pd);
+	}
+	
+	public int updateAllotOfFirst(PageData pd){
+		int ret = 0;
+		
+		//limit后的数据应该是Integer类型
+		int branchNum = Integer.parseInt(pd.getString("branchNum"));//注意branchNum不能为非数字哦
+		pd.put("branchNum", branchNum);
+		
+		try {
+			
+		//分配到部门	
+			if(Tools.isObjEmpty(pd.get("USER_ID2"))){
+				//将分配信息添加到IMP2
+				this.addIMP2(pd);
+				//修改IMP的分配状态
+				this.updateImpToAltEd(pd);//用于下次分配，标记，是添加到客户表的数据源
+			}else{
+		//分配到个人
+				PageData userPd = new PageData();
+				userPd.put("USER_ID", pd.get("USER_ID2"));
+				userPd = sysUserMapper.getSysUserById(userPd);
+				//为添加到客户表做准备
+				pd.put("DEPT_LAYERORDER", userPd.get("DEPT_LAYERORDER"));
+				pd.put("NAME", userPd.get("NAME"));
+				
+				//将分配信息添加到IMP2
+				//this.addIMP2(pd);//既然已经分配到具体的客户经理，那再讲数据从IMP迁移到IMP2有意义吗
+				//添加到YBC表
+				this.addCus(pd); 
+				//修改IMP的分配状态
+				//this.updateImpToAltEd(pd);//既然要删除，还更新做甚
+				//将已分配到客户经理的数据从IMP表中删除
+				this.delAltEdDb(pd);
+			}
+			
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	
+	/**
+	 * 添加到IMP2
+	 * @param pd
+	 * 	
+	 * @return
+	 */
+	public int addIMP2(PageData pd){
+		return impAllotFirstMapper.addIMP2(pd);
+	}
+	
+	/**
+	 * 添加到客户表
+	 * @param pd
+	 * 			branchNum，USER_ID，DEPT_LAYERORDER
+	 * @return
+	 */
+	public int addCus(PageData pd){
+		return impAllotFirstMapper.addCus(pd);
+	}
+	
+	public PageData getCountOfCanFirstAlt(PageData pd){
+		return impAllotFirstMapper.getCountOfCanFirstAlt(pd);
+	}
+	
+	public int delAltEdDb(PageData pd){
+		return impAllotFirstMapper.delAltEdDb(pd);
+	}
+	
+}

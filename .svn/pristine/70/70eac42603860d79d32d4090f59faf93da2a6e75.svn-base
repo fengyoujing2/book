@@ -1,0 +1,134 @@
+package com.dbsun.service.background;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.SysUserMapper;
+import com.dbsun.mapper.background.BacAllotMapper;
+import com.dbsun.mapper.customer.CusMapper;
+import com.dbsun.mapper.stm.SysDeptMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.Tools;
+
+@Service
+public class BacAllotService extends BaseService {
+
+	@Autowired
+	private BacAllotMapper bacAllotMapper;
+	@Autowired
+	private SysUserMapper sysUserMapper;
+	@Autowired
+	private SysDeptMapper sysDeptMapper;
+	@Autowired
+	private CusMapper cusMapper;
+	
+	public int addAlt(PageData pd){
+		return bacAllotMapper.addAlt(pd);
+	}
+	
+//部长分配	start
+	
+	public List<PageData> getPageWtAllotForMinisterLst(Page page){
+		return bacAllotMapper.getPageWtAllotForMinisterLst(page);
+	}
+	
+	public int updateAltForMinister(PageData pd){
+		return bacAllotMapper.updateAltForMinister(pd);
+	}
+	
+	public int updateSignAdAlt(PageData pd, PageData usrPd){
+		int ret = 0;
+		try {
+			//获取部门ID
+				PageData dtPd = new PageData();
+				dtPd.put("DEPT_ID", pd.get("DEPT_ID"));
+				//获取部门的负责人、DEPT_LAYERORDER
+					//部门主管可能不存在
+						PageData leaderPd = sysDeptMapper.getLeaderByDeptId(dtPd);
+					//当没有选择员工，但是部门又没有主管的情况，给予提示
+						if(Tools.isObjEmpty(pd.get("USER_ID"))/*没有选择员工*/ && Tools.isObjEmpty(leaderPd)/*部门又没有主管*/)return -1;
+					
+					String leaderId = "";
+					//选择了部门&&选择了员工，但是部门没有主管，相应字段为空就是了，程序继续往下执行
+						if(!Tools.isObjEmpty(leaderPd) && !Tools.isObjEmpty(leaderPd.getString("USER_ID")))leaderId= leaderPd.getString("USER_ID");//获取主管USER_ID
+					
+			//添加分配记录
+				PageData altPd = new PageData();
+				altPd.put("YBCBR001", this.get32UUID());
+				
+				//从前端传入的参数
+				altPd.put("YBC001", pd.get("YBC001"));
+				altPd.put("USER_ID", pd.get("USER_ID"));
+				altPd.put("YBCBR004", pd.get("YBCBR004"));
+				
+				//组长
+				altPd.put("YBCBR005", leaderId);
+				
+				//签单
+				altPd.put("YBCS001", pd.get("YBCS001"));
+				
+				this.addAlt(altPd);
+			
+			//修改签单表状态
+				PageData signPd = new PageData();
+				signPd.put("YBCS037", leaderId);
+				signPd.put("YBCS001", pd.get("YBCS001"));
+				signPd.put("USER_ID", pd.get("USER_ID"));//用于确定是否分配到了做单员时间
+				this.updateAltForMinister(signPd);
+				
+			//更新客户做单员信息，因为没有意义，就注释掉
+				/*if(!Tools.isObjEmpty(pd.get("USER_ID"))){
+					PageData updateCusPd = new PageData();
+					updateCusPd.put("YBC001", pd.get("YBC001"));
+					//sql中更新了做单员ID、做单员姓名
+					cusMapper.updateCusBasicData(updateCusPd);
+				}*/
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;		
+	}
+	
+	public PageData getAltByCusId(PageData pd){
+		return bacAllotMapper.getAltByCusId(pd);
+	}
+	
+//部长分配	end
+
+
+//组长分配	start
+	public List<PageData> getPageWtAltForHeadmanLst(Page page){
+		return bacAllotMapper.getPageWtAltForHeadmanLst(page);
+	}
+	
+	public int updateAltForHeadman(PageData pd){
+		return bacAllotMapper.updateAltForHeadman(pd);
+	}
+	
+	public int updateAltUSERID(PageData pd){
+		return bacAllotMapper.updateAltUSERID(pd);
+	}
+	
+	//分配
+	public int updateForHM(PageData pd){
+		int ret = 0;
+		
+		try {
+			this.updateAltUSERID(pd);
+			this.updateAltForHeadman(pd);
+			
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
+		
+		
+//组长分配	end
+}

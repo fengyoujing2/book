@@ -1,0 +1,69 @@
+
+<div class="huodong">
+    <div class="row" style="background: white;margin-top: 20px;border-top: 1px solid #E5E5E5;">
+        <div class="col-xs-6  text-left  huodong_inner" style="padding: 15px;padding-left: 25px;padding-bottom: 5px">
+            最新活动通知 <i class="fa fa-circle" style="color: #FF0000;font-size: 11px"></i>
+        </div>
+        <div class="col-xs-6  text-right" style="padding: 15px;padding-right: 25px;padding-bottom: 5px">
+            <i class="fa fa-angle-right" style="font-size: 18px"></i>
+        </div>
+    </div>
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left  huodong_inner" style="padding-left: 25px;font-size: 12px">
+            2017-08-25  09:26:31
+        </div>
+    </div>
+    <div class="row" style="border-bottom: 1px solid #E5E5E5;background: white">
+        <div class="col-xs-12  text-left  huodong_inner" style="padding: 15px;padding-left: 25px;font-size: 12px;padding-top: 5px;padding-right: 25px">
+            您的积分有变动，可以通过邀请好友或者参加瑞信贷 活动获得积分，积分可以兑换额度，点击查看您的积 分详情.
+        </div>
+
+    </div>
+</div>
+
+
+<div class="huodong">
+    <div class="row" style="background: white">
+        <div class="col-xs-6  text-left  " style="padding: 15px;padding-left: 25px;padding-bottom: 5px">
+            最新活动通知 <i class="fa fa-circle" style="color: #FF0000;font-size: 11px"></i>
+        </div>
+        <div class="col-xs-6  text-right" style="padding: 15px;padding-right: 25px;padding-bottom: 5px">
+            <i class="fa fa-angle-right" style="font-size: 18px"></i>
+        </div>
+    </div>
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left  " style="padding-left: 25px;font-size: 12px">
+            2017-08-25  09:26:31
+        </div>
+    </div>
+    <div class="row" style="border-bottom: 1px solid #E5E5E5;background: white">
+        <div class="col-xs-12  text-left  " style="padding: 15px;padding-left: 25px;font-size: 12px;padding-top: 5px;padding-right: 25px">
+            您的积分有变动，可以通过邀请好友或者参加瑞信贷 活动获得积分，积分可以兑换额度，点击查看您的积 分详情.
+        </div>
+
+    </div>
+</div>
+
+
+<div class="huodong">
+    <div class="row" style="background: white">
+        <div class="col-xs-6  text-left  " style="padding: 15px;padding-left: 25px;padding-bottom: 5px">
+            最新活动通知 <i class="fa fa-circle" style="color: #FF0000;font-size: 11px"></i>
+        </div>
+        <div class="col-xs-6  text-right" style="padding: 15px;padding-right: 25px;padding-bottom: 5px">
+            <i class="fa fa-angle-right" style="font-size: 18px"></i>
+        </div>
+    </div>
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left  " style="padding-left: 25px;font-size: 12px">
+            2017-08-25  09:26:31
+        </div>
+    </div>
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left  " style="padding: 15px;padding-left: 25px;font-size: 12px;padding-top: 5px;padding-right: 25px">
+            您的积分有变动，可以通过邀请好友或者参加瑞信贷 活动获得积分，积分可以兑换额度，点击查看您的积 分详情.
+        </div>
+
+    </div>
+</div>
+

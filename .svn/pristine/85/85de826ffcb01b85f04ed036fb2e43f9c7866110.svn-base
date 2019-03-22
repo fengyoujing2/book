@@ -1,0 +1,30 @@
+package com.dbsun.service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.SysImpMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class SysImpService {
+	@Autowired
+	private SysImpMapper sysImpMapper;
+	/**
+	 * 添加导入数据信息
+	 * */
+	public int addImp(String path,PageData pd){
+		//插入临时表
+		sysImpMapper.addImp(path);
+		//批量更新电话号码去掉非法字符
+		sysImpMapper.updateImpYbc003(pd);
+		//方式1调用过程把临时表数据转入正式表并且返回无效数据汇总条数
+		//方式2 后台根据插入临时表的数据直接插入有效的数据进正式表,返回更新条数则表示这些数据是成功数据
+		int successNum = sysImpMapper.addTmpTable(pd);
+		//清空导入的数据
+		sysImpMapper.delImp(pd);
+		return successNum;
+	}
+
+}

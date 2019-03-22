@@ -1,0 +1,31 @@
+package com.dbsun.controller.phonesys;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.PageData;
+/**
+ * 来电
+ * @author DongZai
+ *
+ */
+@Controller
+@RequestMapping("/pho_calIn")
+public class PhoCalInController extends BaseController {
+	
+	
+	/**
+	 * 通话筛选个人列表数据
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping("/goPageCalInIndex")
+	public String goPageCalInIndex(Model model){
+		PageData pd = this.getPageData();
+		model.addAttribute("pd", pd);
+		return "html/system/phonesys/callInWeb";
+	}
+	
+}

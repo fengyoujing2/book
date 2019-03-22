@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.homepage.HmPRankingListMapper">
+	<!-- 排行榜 -->
+	
+	<!-- 业绩榜 -->
+	<select id="getRankForAchi" parameterType="pd" resultType="pd" useCache="false">
+		select
+			left (IFNULL(sum(m.YBCMA022), 0),5) as incSum, <!-- 利润额 -->
+			m.YBCMA044 as name<!-- 姓名 -->
+		from ybc_match m
+		where 1 = 1
+		<choose>
+			<when test="DEPT_LAYERORDER_Sea != null and DEPT_LAYERORDER_Sea != ''"><!-- 以签单员的组织机构搜索 -->
+				and m.DEPT_LAYERORDER2 like concat(#{DEPT_LAYERORDER_Sea}, "%")<!-- 搜索传入的组织机构 -->
+			</when>
+			<otherwise><!-- 默认本部门 -->
+				and m.DEPT_LAYERORDER2 like concat(#{DEPT_LAYERORDER}, "%")<!-- 当前登陆者的组织机构 -->
+			</otherwise>
+		</choose>
+		<!-- 结账时间搜索 -->
+		<if test="startTm != null and startTm != ''">
+			and m.YBCMA025_TM <![CDATA[ >= ]]> #{startTm}
+		</if>
+		<if test="endTm != null and endTm != ''">
+			and m.YBCMA025_TM <![CDATA[ <= ]]> #{endTm}
+		</if>
+		<if test="(startTm == null or startTm == '') and (endTm == null or endTm == '')"><!-- 没有选择时间的情况下，默认选择当月 -->
+			and DATE_FORMAT(m.YBCMA025_TM, '%Y%m' ) = DATE_FORMAT(NOW(), '%Y%m' )
+		</if>
+		group by m.user_id2<!-- 以签单员分组 -->
+		order by incSum desc
+		limit 0, 10
+	</select>
+	
+	
+	<!-- 签单量排行榜 -->
+	<select id="getRankForSign" parameterType="pd" resultType="pd" useCache="false">
+		select
+			count(s.ybcs001) as finishNum, 
+			s.YBCS038 as name<!-- 姓名 -->
+		from ybc_sign s
+		where 1 = 1
+		<choose>
+			<when test="DEPT_LAYERORDER_Sea != null and DEPT_LAYERORDER_Sea != ''"><!-- 搜索 -->
+				and s.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER_Sea}, "%")<!-- 搜索传入的组织机构 -->
+			</when>
+			<otherwise><!-- 默认本部门 -->
+				and s.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")<!-- 当前登陆者的组织机构 -->
+			</otherwise>
+		</choose>
+		<!-- 签单时间搜索 -->
+		<if test="startTm != null and startTm != ''">
+			and s.YBCS002_TM <![CDATA[ >= ]]> #{startTm}
+		</if>
+		<if test="endTm != null and endTm != ''">
+			and s.YBCS002_TM <![CDATA[ <= ]]> #{endTm}
+		</if>
+		<if test="(startTm == null or startTm == '') and (endTm == null or endTm == '')"><!-- 没有选择时间的情况下，默认选择当月 -->
+			and DATE_FORMAT(s.YBCS002_TM, '%Y%m' ) = DATE_FORMAT(NOW(), '%Y%m' )
+		</if>
+		group by s.user_id<!-- 以签单员分组 -->
+		order by finishNum desc 
+		limit 0, 10
+	</select>
+	
+	
+	
+</mapper>

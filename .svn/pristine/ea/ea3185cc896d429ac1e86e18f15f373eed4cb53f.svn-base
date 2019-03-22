@@ -1,0 +1,74 @@
+package com.dbsun.controller.customer;
+
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.customer.CusCantSingleService;
+/**
+ * 不能做单客户
+ * @author DongZai
+ *
+ */
+@Controller
+@RequestMapping("/cus_cantSingle")
+@SuppressWarnings("unused")
+public class CusCantSingleController extends BaseController {
+	
+	@Autowired
+	private CusCantSingleService cusCantSingleService;
+	
+	/**
+	 * 跳转到不能做单客户界面
+	 * @return
+	 */
+	@RequestMapping("/goPageCantSingleIndex")
+	public String goPageCantSingleIndex(ModelMap model){
+		//构建初始数据
+		Page page = this.getPage();
+		PageData pd = this.getPageData();
+		page.setPd(pd);
+		List<PageData> cantSingleLst = null;
+		try {
+			cantSingleLst = cusCantSingleService.getPageCantSingleLst(this.putUserIdAdDeLAdPosPd(page, pd));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		model.addAttribute("cantSingleTableLst",cantSingleLst);
+		model.addAttribute("page",page);
+		System.out.println(model);
+		return "html/system/customer/noMakeSign";
+	}
+	
+	/**
+	 * 不能做单客户列表数据
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping("/getPageCantSingleLst")
+	@ResponseBody
+	public JSONObject getPageCantSingleLst(){
+		PageData pd = this.getPageData();
+		Page page = this.getPage();
+		page.setPd(pd);
+		List<PageData> cantSinglLst = null;
+		try {
+			cantSinglLst = cusCantSingleService.getPageCantSingleLst(this.putUserIdAdDeLAdPosPd(page, pd));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return viewReturnPageData(page, cantSinglLst);
+	}
+	
+	
+}

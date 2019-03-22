@@ -1,0 +1,176 @@
+package com.dbsun.controller.system;
+
+import net.sf.json.JSONObject;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.dbsun.controller.WeixinController;
+import com.dbsun.util.RedisUtil;
+
+/**
+ * 消息
+ * 
+ * @author DongZai
+ * 
+ */
+@Controller
+@RequestMapping("/wx_mesg")
+public class WXMessageController extends WeixinController {
+	
+	private Logger wechatLogger = Logger.getLogger("wechat");
+	
+	@SuppressWarnings("rawtypes")
+	@Autowired
+	private RedisUtil redisUtil;
+	
+    /**
+     * 设置所属行业
+     * @param args
+     */
+    @RequestMapping("/tempApiSetIndustry")
+    public void tempApiSetIndustry() {
+    	wechatLogger.info("开始设置所属行业...");
+    	try {
+			String requestUrl = RedisUtil.TEMP_API_SET_INDUSTRY_URL.replace("ACCESS_TOKEN", redisUtil.readWxToken());
+			wechatLogger.info("设置所属行业发送的请求为：" + requestUrl);
+			
+			StringBuffer sb = new StringBuffer();
+			sb.append("{");
+			sb.append("\"industry_id1\":\"1\",");//公众号模板消息所属行业编号，注意‘，’
+			sb.append("\"industry_id2\":\"4\"");
+			sb.append("}");
+			
+			JSONObject jsonObject = httpRequst(requestUrl, "POST", sb.toString());
+			wechatLogger.info("设置所属行业返回的json为：" + jsonObject);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    	
+	}
+    
+    /**
+     * 获取设置的行业信息
+     */
+    @RequestMapping("/tempGetIndustry")
+    public void tempGetIndustry() {
+    	wechatLogger.info("开始获取设置的行业信息...");
+    	try {
+			String requestUrl = RedisUtil.TEMP_GET_INDUSTRY_URL.replace("ACCESS_TOKEN", redisUtil.readWxToken());
+			wechatLogger.info("获取设置的行业信息的请求地址为：" + requestUrl);
+			JSONObject jsonObject = httpRequst(requestUrl, "POST", null);
+			wechatLogger.info("获取设置的行业信息返回的json为：" + jsonObject);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+    
+    /**
+     * 获得模板ID
+     */
+    @RequestMapping("/apiAddTemplate")
+    public void apiAddTemplate() {
+    	wechatLogger.info("开始获得模板ID...");
+    	try {
+			String requestUrl = RedisUtil.API_ADD_TEMPLATE_URL.replace("ACCESS_TOKEN", redisUtil.readWxToken());
+			wechatLogger.info("获得模板ID发送的请求为：" + requestUrl);
+			
+			StringBuffer sb = new StringBuffer();
+			sb.append("{");
+			sb.append("\"template_id_short\":\"TM00015\"");//模板库中模板的编号，有“TM**”和“OPENTMTM**”等形式
+			sb.append("}");
+			
+			JSONObject jsonObject = httpRequst(requestUrl, "POST", sb.toString());
+			wechatLogger.info("获得模板ID返回的json为：" + jsonObject);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+    
+    /**
+     * 获取模板列表
+     */
+    @RequestMapping("/getAllPrivateTem")
+    public void getAllPrivateTem() {
+    	wechatLogger.info("开始获取模板列表...");
+    	try {
+			String requestUrl = RedisUtil.GET_ALL_PRIVATE_TEMPLATE_URL.replace("ACCESS_TOKEN", redisUtil.readWxToken());
+			wechatLogger.info("获取模板消息列表的请求地址为：" + requestUrl);
+			JSONObject jsonObject = httpRequst(requestUrl, "POST", null);
+			wechatLogger.info("获取模板消息列表返回的json为：" + jsonObject);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+    
+    /**
+     * 删除模板
+     */
+    @RequestMapping("/delPrivateTemp")
+    public void delPrivateTemp() {
+    	wechatLogger.info("开始删除模板...");
+    	try {
+			String requestUrl = RedisUtil.DEL_PRIVATE_TEMPLATE_URL.replace("ACCESS_TOKEN", redisUtil.readWxToken());
+			wechatLogger.info("删除模板的请求地址为：" + requestUrl);
+			
+			StringBuffer sb = new StringBuffer();
+			sb.append("{");
+			sb.append("\"template_id\" : \"Dyvp3-Ff0cnail_CDSzk1fIc6-9lOkxsQE7exTJbwUE\"");//公众帐号下模板消息ID
+			sb.append("}");
+			
+			JSONObject jsonObject = httpRequst(requestUrl, "POST", sb.toString());
+			wechatLogger.info("删除模板返回的json为：" + jsonObject);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+    /**
+     * 发送模板消息
+     */
+    @RequestMapping("/tempSend")
+    public void tempSend() {
+    	wechatLogger.info("开始发送模板消息...");
+    	try {
+			String requestUrl = RedisUtil.TEMP_SEND_URL.replace("ACCESS_TOKEN", redisUtil.readWxToken());
+			wechatLogger.info("发送模板消息的请求地址为：" + requestUrl);
+			
+			StringBuffer sb = new StringBuffer();
+			sb.append("{");
+			sb.append("\"touser\":\"oCTss1lbXzLAkWkXTny5AEaCldFI\",");
+			sb.append("\"template_id\":\"4NWSKUUjMtzW3Ai4renclPgPMIiPPZgjNmAzBxH5YDA\",");
+			sb.append("\"url\":\"http://weixin.qq.com/download\", ");
+			sb.append("\"data\":{");
+			sb.append("\"first\": {");
+			sb.append("\"value\":\"恭喜你购买成功\",");
+			sb.append("\"color\":\"#173177\"");
+			sb.append("},");
+			sb.append("\"keynote1\":{");
+			sb.append("\"value\":\"巧克力\",");
+			sb.append("\"color\":\"#173177\"");
+			sb.append("},");
+			sb.append("\"keynote2\": {");
+			sb.append("\"value\":\"39.8元\",");
+			sb.append("\"color\":\"#173177\"");
+			sb.append("},");
+			sb.append("\"keynote3\": {");
+			sb.append("\"value\":\"2014年9月22日\",");
+			sb.append("\"color\":\"#173177\"");
+			sb.append("},");
+			sb.append("\"remark\":{");
+			sb.append("\"value\":\"欢迎再次购买！\",");
+			sb.append("\"color\":\"#173177\"");
+			sb.append("}");
+			sb.append("}");
+			sb.append("}");
+			
+			JSONObject jsonObject = httpRequst(requestUrl, "POST", sb.toString());
+			wechatLogger.info("发送模板消息返回的json为：" + jsonObject);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+}

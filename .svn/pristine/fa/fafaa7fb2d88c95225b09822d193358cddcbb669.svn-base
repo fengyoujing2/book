@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+    <title>后台情况</title>
+
+    <link rel="shortcut icon" href="favicon.ico"> 
+    
+<!--    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">-->
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+<!--    <link href="../static/css/animate.css" rel="stylesheet">-->
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+    
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0]; 
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+    
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+    
+    <style>
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        .cusMTable{
+            margin-top: 20px;
+        }
+        .cusMTable .el-table tr{
+            background-color: #4aa5fb;
+            color:#fff;
+        }
+        .el-table .odd-row {
+            background: #f1f7fe !important;
+            color:#878787 !important;
+        }
+        .el-table .even-row {
+            background: #ffffff !important;
+            color:#878787 !important;
+        }
+        .el-input-group__append{
+            color: #4aa5fb !important;
+        }
+        .top_divR{
+            margin-right: 6px;
+        }
+        .el-dialog__header {
+            padding: 15px 0px 10px !important;
+        }
+        .el-dialog__title{
+            border-left: 4px solid #4BA5FD;
+            padding-left: 10px;
+        }
+        .btnBGC{
+            background-color: #fd8c12 !important;
+            border-color: #fd8c12 !important;
+        }
+/*        // 去掉input[type=number]默认的加减号*/
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .el-table td{
+            padding: 4px 0 !important;
+        }
+        .el-message-box {
+            margin-top: -300px;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:10px;">
+    <div id="backstageSitApp" v-cloak>
+<!--        坐席功能按钮-->
+        <div v-if="adminSF">
+            <el-input size="mini"  v-if="topSearchFlag" placeholder="请输入客户电话" v-model="soMoreUserIpt.YBC003" style="width:400px;"  class="top_divR">
+                <el-button slot="append" @click="changeSearchFlag">更多条件>></el-button>
+            </el-input>
+            <span v-else>
+                <el-input size="mini"  placeholder="客户姓名" v-model="soMoreUserIpt.YBC002" style="width:150px;"  class="top_divR"></el-input>
+                <el-input size="mini"  type="number" placeholder="联系电话" v-model="soMoreUserIpt.YBC003" style="width:150px;"  class="top_divR"></el-input>
+                <el-select  size="mini" v-model="soMoreUserIpt.YBC008_TP" placeholder="客户状态" style="width:150px;" class="top_divR">
+                    <el-option label="临时(大类)" value="0"></el-option>
+                    <el-option label="临时(小类)" value="10"></el-option>
+                    <el-option label="意向" value="1"></el-option>
+                    <el-option label="上门" value="2"></el-option>
+                    <el-option label="签单" value="3"></el-option>
+                </el-select>
+<!--                <el-input size="mini"  placeholder="介绍人" v-model="soMoreUserIpt.introName" style="width:150px;"  class="top_divR"></el-input>-->
+                <el-input size="mini"  placeholder="联系人" v-model="soMoreUserIpt.contanName" style="width:150px;"  class="top_divR"></el-input>
+            </span>
+            <el-button size="mini"  type="warning" style="background-color:#fd8c12;" class="top_divR" @click="checkUser">查询</el-button>
+            <el-button size="mini"  type="primary" class="top_divR" @click="clearCheck">清空</el-button>
+        </div>
+        <div class="cusMTable"
+            v-loading="loading">
+            <el-table
+            :data="cusTableLstInit"
+            style="width: 100%"
+            :row-class-name="tableRowClassName">
+                <el-table-column
+                  prop="proName"
+                  label="产品名称" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="singleFlwState"
+                  label="产品进度" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCMA041"
+                  label="做单员" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCMA037"
+                  label="过件金额" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCMA039_TM"
+                  label="过件时间" min-width="160">
+                </el-table-column>
+                <el-table-column
+                  prop="passState"
+                  label="过件状态" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCMA030"
+                  label="放贷金额" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCMA033"
+                  label="放贷周期" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCMA032"
+                  label="应收金额" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCMA012"
+                  label="实收金额" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCMA020"
+                  label="后台成本" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCMA022"
+                  label="前台利润" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="YBCMA025_TM"
+                  label="结账时间" min-width="160">
+                </el-table-column>
+                <el-table-column fixed="right" width="100" label="操作">
+                  <template slot-scope="scope">
+                    <el-button
+                      size="mini"
+                      @click="handleUserInfo(scope.$index, scope.row)">查看详情</el-button>
+                  </template>
+                </el-table-column>
+            </el-table>
+            <div style="text-align:right;">
+                <el-pagination
+                  @current-change="handleCurrentChange"
+                  :current-page="pageInit.currentPage"
+                  :page-size="10"
+                  layout="total, prev, pager, next, jumper"
+                  :total="pageInit.totalResult">
+                </el-pagination>
+            </div>
+        </div>
+    </div>
+</body>
+<script th:inline="javascript">
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+
+    new Vue({
+        el:"#backstageSitApp",
+        data(){
+            return {
+//                从后台模板里面获取
+                pageInit:[[${page}]],
+                cusTableLstInit:[[${sitTableLst}]],
+//                登录用户身份判断
+                adminSF:true,
+//                头部搜索状态
+                topSearchFlag:true,
+//                搜索客户条件
+                soMoreUserIpt:{},
+                loading:false
+            }
+        },
+//        DOM渲染前执行
+        mounted(){
+            console.log("后台情况")
+            console.log([[${sitTableLst}]])
+        },
+        methods:{
+//            搜索更多条件
+            changeSearchFlag(){
+                this.topSearchFlag=false;
+            },
+//            查询搜索客户
+            checkUser(){
+                this.handleCurrentChange(1);
+            },
+//            清空搜索条件，并回到初始状态
+            clearCheck(){
+                this.soMoreUserIpt={};
+                this.time=[];
+                this.handleCurrentChange(1);
+            },
+//            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                if(rowIndex==1){
+                    
+                }else if (rowIndex%2 == 0) {
+                    return 'odd-row';
+                }
+                return 'even-row';
+            },
+//            选中表格中的行
+            selCusRows(val){
+                console.log(val)
+            },
+//            当前页翻页
+            handleCurrentChange(val){
+                this.loading=true;
+                this.soMoreUserIpt.currentPage=val;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/bac_situ/getPageBacSituationLst`,
+                    data:that.soMoreUserIpt,
+                    success:function(data){
+                        that.cusTableLstInit=data.rows;
+                        that.pageInit.totalResult=data.total;
+                        that.pageInit.currentPage=val;
+                        that.loading=false;
+                    }
+                })
+            },
+//            查看客户详情
+            handleUserInfo(index,row){
+                let url=`${basePath}/bac_situ/goBacSituationDetaPage?YBC001=${row.YBC001}`
+                let newTabs={
+                    name:"客户详情",
+                    url
+                }
+                for(let index in app.$data.editableTabs){
+                    if(app.$data.editableTabs[index].name=="客户详情"){
+                        app.$data.editableTabs.splice(index,1)
+                    }
+                }
+                app.$data.editableTabs.push(newTabs);
+                setTimeout(function(){
+                    app.$data.editableTabsValue="客户详情";
+                },500)
+            }
+        }
+    })
+    
+</script>
+</html>

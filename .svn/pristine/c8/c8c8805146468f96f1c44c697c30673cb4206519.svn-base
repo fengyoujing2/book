@@ -1,0 +1,67 @@
+package com.dbsun.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.YwBankMapper;
+import com.dbsun.util.DateUtil;
+import com.dbsun.util.SmsUtil;
+
+/**
+ * 个人银行卡
+ * 
+ * @author DongZai
+ * 
+ */
+@Service
+public class YwBankService {
+
+	@Autowired
+	private YwBankMapper ywBankMapper;
+	@Autowired
+	private YwBankService ywBankService;
+	/** 添加用户 */
+	public int addYwBank(PageData pd) {
+		return ywBankMapper.addYwBank(pd);
+	}
+
+	/** 修改用户信息 */
+	public int updateYwBank(PageData pd) {
+		return ywBankMapper.updateYwBank(pd);
+	}
+
+	/** 获取 */
+	public List<PageData> getYwBankByYwu001(PageData pd) {
+		return ywBankMapper.getYwBankByYwu001(pd);
+	}
+
+	/** 修改用户信息 */
+	public int updateUnBindBankByYwBank001(PageData pd) {
+		return ywBankMapper.updateUnBindBankByYwBank001(pd);
+	}
+
+	/**添加銀行卡*/
+	public String addYwBank(PageData pd, String openId){
+		String result = "field";
+		try {
+			//验证验证码
+			String res = SmsUtil.validateCode(pd.getString("tel"), pd.getString("code"));
+			//验证未通过
+			if(!res.equals("2")){
+				return res;
+			}
+			
+			pd.put("YWU010", openId);
+			pd.put("YWBANK008_TM", DateUtil.get1000ParsedDate());
+			pd.put("YWBANK007_TP", 1);
+			ywBankService.addYwBank(pd);
+			result = "success";
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+}

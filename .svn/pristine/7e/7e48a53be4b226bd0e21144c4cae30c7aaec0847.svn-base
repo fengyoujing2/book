@@ -1,0 +1,50 @@
+package com.dbsun.service.phonesys;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.customer.CusFollowMapper;
+import com.dbsun.mapper.phonesys.PhoCaloutMapper;
+import com.dbsun.mapper.phonesys.PhoDtaMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.DateUtil;
+import com.dbsun.util.Tools;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.text.DecimalFormat;
+import java.util.List;
+
+@Service
+public class PhoDtaService extends BaseService {
+
+	@Autowired
+	private PhoDtaMapper phoDtaMapper;
+
+
+	/**
+	 * 获取首页左上角呼叫相关数据
+	 * 呼出总次数、呼出总时长、接通率
+	 */
+	public PageData getTodayPhoCont(PageData pd){
+		PageData pda1 = phoDtaMapper.getTodayPhoCount(pd);//呼出总次数、呼出总时长
+		PageData pda2 = phoDtaMapper.getTodayPhoOpenCount(pd);//接通数
+		PageData returnPd = new PageData();
+		returnPd.put("callOutCount",pda1.get("callOutCount"));//呼出总次数
+		returnPd.put("totalDialBridgeDuration",pda1.get("totalDialBridgeDuration"));//呼出总时长
+		//计算接通率，接通数/通话总数量
+		int callOutConCot = Integer.parseInt(pda2.get("conOpen").toString());//接通数
+		int callOutCount = Integer.parseInt(pda1.get("callOutCount").toString());//呼出总次数
+		DecimalFormat df = new DecimalFormat("0.00");//保留两位小数
+		double conRate = 0;
+		//任意参数为0结果为0
+		if(callOutCount == 0 || callOutConCot == 0){
+			conRate = 0;
+		}else{
+			conRate = ((float)callOutConCot/callOutCount)*100;
+		}
+		returnPd.put("conRate", df.format(conRate) + "%");//接听率
+		return returnPd;
+	}
+	
+}

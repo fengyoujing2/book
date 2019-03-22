@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.task.TaskMapper">
+	<!-- 任务 -->
+	
+	<!-- 新增任务 -->
+	<insert id="addTask" parameterType="pd" flushCache="false">
+		insert into YBT (
+			YBT001, 
+			YBT002, 
+			YBT003_TP, 
+			USER_ID, 
+			YBT014, 
+			YBT004_TM, 
+			YBT005, 
+			YBT006_TP, 
+			YBT007, 
+			YBT008_TM, 
+			YBT009_TP, 
+			YBT010, 
+			YBT011,
+			YBT015, 
+			YBT012, 
+			YBT013, 
+			DEPT_LAYERORDER, 
+			POSITION
+		) values (
+			#{YBT001}, 
+			#{YBT002}, 
+			#{YBT003_TP}, 
+			#{executor}, <!-- 执行者 -->
+			(select name from sys_user where user_id = #{executor}), <!-- 下达任务人姓名 -->
+			now(), 
+			#{YBT005}, <!-- 任务有效期 -->
+			0, <!-- 任务阶段 -->
+			#{YBT007}, <!-- 任务内容 -->
+			#{YBT008_TM}, <!-- 任务开始时间 -->
+			#{YBT009_TP}, <!-- 下达任务类型 -->
+			#{YBT010}, <!-- 下达部门 ，必传-->
+			#{USER_ID}, <!--  添加任务人默认就是下达任务人-->
+			(select name from sys_user where user_id = #{USER_ID}), <!-- 下达任务人姓名 -->
+			#{YBT012}, 
+			#{YBT013}, <!-- 任务完成情况( -->
+			(select DEPT_LAYERORDER from sys_dept where dept_id = #{YBT010}), <!-- 任务执行人部门 -->
+			1
+		)
+	</insert>
+	
+	<!-- 新增多条任务 -->
+	<insert id="addTasks" parameterType="pd" flushCache="false">
+		insert into YBT (
+			YBT001, 
+			YBT002, 
+			YBT003_TP, 
+			USER_ID, 
+			YBT014, 
+			YBT004_TM, 
+			YBT005, 
+			YBT006_TP, 
+			YBT007, 
+			YBT008_TM, 
+			YBT009_TP, 
+			YBT010, 
+			YBT011,
+			YBT015, 
+			YBT012, 
+			YBT013, 
+			DEPT_LAYERORDER, 
+			POSITION
+		) values   
+    	<foreach collection="list" item="item" index="index" separator=","> 
+    		(
+				#{YBT001}, 
+				#{YBT002}, 
+				#{YBT003_TP}, 
+				#{executor}, <!-- 执行者 -->
+				(select name from sys_user where user_id = #{executor}), <!-- 下达任务人姓名 -->
+				now(), 
+				#{YBT005}, 
+				#{YBT006_TP}, 
+				#{YBT007}, 
+				#{YBT008_TM}, 
+				#{YBT009_TP}, 
+				#{YBT010}, 
+				#{USER_ID}, <!--  添加任务人默认就是下达任务人-->
+				(select name from sys_user where user_id = #{USER_ID}), <!-- 下达任务人姓名 -->
+				#{YBT012}, 
+				#{YBT013}, 
+				(select DEPT_LAYERORDER from sys_user where user_id = #{executor}), <!-- 任务执行人部门 -->
+				1
+			 )
+		</foreach>
+	</insert>
+	
+	<!-- 通过ID获取任务数据 -->
+	<select id="getTskById" parameterType="pd" resultType="pd" useCache="false">
+		select 
+			t.*, 
+			(
+				case t.YBT003_TP 
+					when 1 then "签单任务"
+					when 2 then "利润任务"
+				end
+			) as taskType, 
+			(
+				case t.YBT009_TP 
+					when 1 then "部门任务"
+					when 2 then "个人任务"
+				end
+			) as orderType
+			
+		from YBT t 
+		where t.YBT001 = #{YBT001} 
+	</select>
+	
+	<!-- 通过任务编号获取任务 -->
+	<select id="getTskAdUserById" parameterType="pd" resultType="pd" useCache="false">
+		select 
+			t.*, 
+			(
+				case t.YBT003_TP 
+					when 1 then "签单任务"
+					when 2 then "利润任务"
+				end
+			) as taskType, 
+			(
+				case t.YBT009_TP 
+					when 1 then "部门任务"
+					when 2 then "个人任务"
+				end
+			) as orderType, 
+			<!-- 个人 start -->
+			(
+				select left (COUNT(s.YBCS001) / t.YBT012 *100,5) 
+				from ybc_sign s 
+				where 1 = 1 
+				and s.user_id = t.user_id
+			 	AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 任务开始时间 -->
+				AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005 <!-- 任务结束时间 -->
+			) as doSTotal, <!-- 签单率 -->
+			(
+				select count(s.YBCS001) 
+				from ybc_sign s 
+				where 1 = 1
+				and s.user_id = t.user_id
+				AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM 
+				AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005
+			) as doSTotalNum, <!-- 签单数 -->
+			(
+				select 
+					left (IFNULL(sum(m.YBCMA022), 0) / t.YBT012 *100,5) as 完成率
+				from ybc_match m
+				where m.user_id2 = t.user_id <!-- 签单人员ID -->
+				and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+				and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+			 ) as doIncomeTol, <!-- 利润率 -->
+			 (
+				select 
+					IFNULL(sum(m.YBCMA022), 0) as 完成额
+				from ybc_match m
+				where m.user_id2 = t.user_id 
+				and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+				and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+			 ) as doIncomeTolNum,<!-- 利润额 --> 
+			 <!-- 个人 end -->
+			 <!-- 部门 start -->
+			(
+				select 	left (count(s.YBCS001) / t.YBT012 *100,5) as 部门签单完成率 
+				from ybc_sign s 
+				where 1 = 1
+				and s.DEPT_LAYERORDER like t.DEPT_LAYERORDER || '%'	
+				AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM 
+				AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005
+			) as doSTotaldept, <!-- 部门签单率 -->
+			(
+				select count(s.YBCS001) 
+				from ybc_sign s 
+				where 1 = 1
+				and s.DEPT_LAYERORDER like t.DEPT_LAYERORDER || '%'	
+				AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM 
+				AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005
+			) as doSTotalNumdept, <!-- 部门签单量 -->
+			(
+				select
+					left (IFNULL(sum(m.YBCMA022), 0) / t.YBT012 *100,5) as 完成率
+				from ybc_match m
+				where 1 = 1
+				and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+				and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+				and m.DEPT_LAYERORDER2 like t.DEPT_LAYERORDER || '%'
+			 ) as doIncomeToldept, <!-- 部门利润完成率 -->
+			 (
+				select
+					sum(ifnull(m.YBCMA022, 0)) as 完成利润额
+				from ybc_match m
+				where 1 = 1
+				and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+				and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+				and m.DEPT_LAYERORDER2 like t.DEPT_LAYERORDER || '%'
+			 ) as doIncomeTolNumdept,<!-- 部门利润完成利润额 -->
+			 <!-- 部门 end -->
+			 <!-- 完成率 Start -->
+			 (
+			 	case 
+			 		 when (t.YBT003_TP = 1 and t.YBT009_TP = 1) then 
+			 		 (
+				 		<!-- ( -->
+									select 	left (count(s.YBCS001) / t.YBT012 *100,5) as 部门签单完成率 
+									from ybc_sign s 
+									where 1 = 1
+									and s.DEPT_LAYERORDER like t.DEPT_LAYERORDER || '%'	
+									AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM 
+									AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005
+						<!-- ) as doSTotaldept,  --><!-- 部门签单率 -->
+					 ) 
+			 		 when (t.YBT003_TP = 1 and t.YBT009_TP = 2) then 
+			 		 (
+			 		 	<!-- ( -->
+							select left (COUNT(s.YBCS001) / t.YBT012 *100,5) 
+							from ybc_sign s 
+							where 1 = 1 
+							and s.user_id = t.user_id
+						 	AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 任务开始时间 -->
+							AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005 <!-- 任务结束时间 -->
+						<!-- ) as doSTotal,  --><!-- 签单率 -->
+			 		 ) 
+			 		 when (t.YBT003_TP = 2 and t.YBT009_TP = 1) then 
+			 		 (
+			 		 	<!-- ( -->
+							select
+								left (IFNULL(sum(m.YBCMA022), 0) / t.YBT012 *100,5) as 完成率
+							from ybc_match m
+							where 1 = 1
+							and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+							and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+							and m.DEPT_LAYERORDER2 like t.DEPT_LAYERORDER || '%'
+						 <!-- ) as doIncomeToldept, --> <!-- 部门利润完成率 -->
+			 		 ) 
+			 		 when (t.YBT003_TP = 2 and t.YBT009_TP = 2) then 
+			 		 (
+			 		 	<!-- ( -->
+							select 
+								left (IFNULL(sum(m.YBCMA022), 0) / t.YBT012 *100,5) as 完成率
+							from ybc_match m
+							where m.user_id2 = t.user_id 
+							and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+							and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+						 <!-- ) as doIncomeTol, --> <!-- 利润率 -->
+			 		 ) 
+			 		 else 0
+			 	end
+			 ) as completionRate
+			 <!-- 完成率 End -->
+		from YBT t
+		where t.YBT001 = #{YBT001} 
+	</select>
+	
+</mapper>

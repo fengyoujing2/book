@@ -1,0 +1,31 @@
+package com.dbsun.mapper;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+/**
+ * 业务申请
+ * @author DongZai
+ *
+ */
+public interface YwApplyMapper {
+	
+	/**账号列表数据*/
+	public List<PageData> getPageYwApplyLst(Page page);
+	
+	/**新增用户*/
+	public int addYwApply(PageData pd);
+	
+	/**新增到微信业务统计表*/
+	public int addWbYbc(PageData pd);
+	
+	/**更新用户*/
+	public int updateYwApply(PageData pd);
+	
+	/**从以往的申请记录中导入姓名和号码*/
+	public PageData getYwuByYwu010(PageData pd);
+	
+	
+}

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+
+    <title>呼叫系统-来电</title>
+
+    <link rel="shortcut icon" href="favicon.ico"> 
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+    
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0]; 
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+    
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+
+    <style>
+        body{
+            min-height: 900px !important;
+            min-width: 1600px !important;
+            overflow: auto;
+        }
+        a{
+            text-decoration: none;
+            color: #fff;
+        }
+        .callA{
+            width: 400px;
+            padding: 10px;
+            background-color: #fff;
+            margin: 0 auto;
+        }
+/*        // 去掉input[type=number]默认的加减号*/
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body style="background-color:#F1F7FE;margin:0;">
+    <div id="callInApp">
+        <div>
+            <div class="callA">
+                <div>
+                    <span>{{callinPhone}}</span>
+                </div>
+                <div>
+                    <span>{{callinName}}</span>
+                </div>
+                <div>
+                    <span>{{callState}}</span>
+                </div>
+                <div>
+                    <el-button type="primary" @click="Answer">接听</el-button>
+                    <el-button type="primary" @click="hangup">挂断</el-button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../static/xl_seat/xl_client.js"></script>
+<script th:inline="javascript">
+    
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+    
+    var callInApp=new Vue({
+        el:"#callInApp",
+        data(){
+            return {
+                callinPhone:"",
+                callinName:"",
+                callState:"",
+                timerFlag:false,
+                YBCF0011_TP:1,
+                YBCF0010_TP:2
+            }
+        },
+        mounted(){
+            console.log([[${pd}]])
+        },
+        methods:{
+            Answer(){
+                
+            },
+            hangup(){
+                
+            },
+//    来电接听的时候，启动定时器
+            timer(){
+                let that=this;
+                let s=0;
+                let m=0;
+                let h=0;
+                let sj = setInterval(function(){
+                        let str_s=s;
+                        let str_m=m;
+                        let str_h=h;
+                        if(s<10){
+                            str_s='0' + s;
+                        }
+                        if(m<10){
+                            str_m='0' + m;
+                        }
+                        if(h<10){
+                            str_h='0' + h;
+                        }
+                        let num=str_h + ":" + str_m + ":" + str_s;
+                        that.callState=num;
+                        s++;
+                        if(s>59){
+                            s=0;
+                            m++;
+                        }
+                        if(m>59){
+                            s=0;
+                            h++;
+                        }
+                        if(that.timerFlag){
+                            window.clearInterval(sj);
+                        }
+                    },1000);
+            },
+//            暂时不管来电
+//    当来电的时候
+            callInS(){
+                this.callInFg=true;
+            },
+//    来电接听
+            callInAnswer(){
+//                通话类型--1呼入  2呼出
+                this.YBCF0011_TP=1;
+                //通话状态--1接通 2未接通
+                this.YBCF0010_TP=1;
+                this.timer();
+            },
+//    来电未接挂断
+            callInHangUp(){
+                
+            },
+//    来电-接听后挂断
+            callInAnswerHangup(){
+                this.clearTimer();
+            },
+//    清除定时器
+            clearTimer(){
+                this.timerFlag=true
+            }
+        }
+    })
+    //监听来电状态
+    xl_seat.xlClient.onCallinCallTaskStatus = function (accepted, phone){
+        console.log("监听来电状态：" + accepted);
+    };
+    
+    //自定义来电显示
+    xl_seat.xlClient.incomingDialogShow = function (cllingPhone, successCallback, dangerCallback){
+        console.log(cllingPhone);
+
+        onAccept = function (){
+            successCallback();
+            callInApp.callInAnswer()
+            
+        }
+        onHangup = function (){
+            hangupTest(cllingPhone)
+        }
+
+    }; 
+    // 挂断电话
+    function hangupTest(phone) {
+        console.log('来电号码：' + phone + '  ');
+        xl_seat.xlClient.hangup(phone, handler("挂断电话"));
+        callInApp.clearTimer();
+    }
+    
+</script>
+</html>

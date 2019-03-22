@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+    <title>客户管理-部长已分配再撤销</title>
+
+    <link rel="shortcut icon" href="favicon.ico"> 
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+    
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0]; 
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+    
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+    
+    <style>
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        .tips{
+            display: inline-block;
+            width: 100%;
+            padding: 1rem;
+            background-color: #4aa5fb;
+            color: #fff;
+            font-size: 16px;
+        }
+        .cusMTable{
+            margin-top: 20px;
+        }
+        .cusMTable .el-table tr{
+            background-color: #4aa5fb;
+            color:#fff;
+        }
+        .el-table .odd-row {
+            background: #f1f7fe !important;
+            color:#878787 !important;
+        }
+        .el-table .even-row {
+            background: #ffffff !important;
+            color:#878787 !important;
+        }
+        .el-input-group__append{
+            color: #4aa5fb !important;
+        }
+        .top_divR{
+            margin-right:6px;
+        }
+        #resL{
+            width:100%;
+            float:left;
+        }
+        #test{
+            display: none;
+            float:right;
+            width: 30%;
+            padding-left:10px;
+            margin-top: 20px;
+            animation:move 1s;
+        }
+        @keyframes move{
+            0%{
+                opacity: 0;
+                transform: translateX(300px);
+            }
+            100%{
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .testDiv{
+            min-height: 600px;
+            background-color: #fff;
+        }
+        .elBtn{
+            border-radius: 30px !important;
+            padding: 6px 20px !important;
+        }
+/*        // 去掉input[type=number]默认的加减号*/
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .el-table td{
+            padding: 4px 0 !important;
+        }
+        .el-message-box {
+            margin-top: -300px;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:10px;">
+    <div id="minister_doSignApp" v-cloak>
+        <div>
+            <el-input size="mini" placeholder="客户姓名" v-model="soMoreUserIpt.YBC002" style="width:120px;"  class="top_divR"></el-input>
+                <el-input size="mini" type="number" placeholder="联系电话" v-model="soMoreUserIpt.YBC003" style="width:120px;"  class="top_divR"></el-input>
+                <el-input size="mini" placeholder="合同编号" v-model="soMoreUserIpt.YBCS017" style="width:120px;"  class="top_divR"></el-input>
+            <el-button size="mini" type="warning" style="background-color:#fd8c12;margin-left:6px;" class="top_divR" @click="checkUser">查询</el-button>
+            <el-button size="mini" type="primary" class="top_divR" @click="clearCheck">清空</el-button>
+        </div>
+        <div style="width:100%">
+            <div class="cusMTable" id="resL"
+            v-loading="loading">
+                <el-table
+                ref="allotTable"
+                :data="cusTableLstInit"
+                style="width: 100%"
+                :row-class-name="tableRowClassName">
+                    <el-table-column
+                      prop="YBC002"
+                      label="客户姓名" min-width="100">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBC003"
+                      label="联系电话" min-width="120">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBCS017"
+                      label="合同编号" min-width="100">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBCS007"
+                      label="财务编号" min-width="100">
+                    </el-table-column>
+                    <el-table-column
+                      prop="proTypeName"
+                      label="贷款类型" min-width="100">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBCS010"
+                      label="签单金额" min-width="100">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBCS052_TM"
+                      label="分配时间" min-width="160">
+                    </el-table-column>
+                    <el-table-column label="操作" fixed="right" width="150">
+                        <template slot-scope="scope">
+                        <el-button
+                          size="mini"
+                          @click="handleUserInfo(scope.$index, scope.row)">查看详情</el-button>
+                        <el-button
+                          size="mini"
+                          type="text"
+                          @click="Revoke(scope.$index, scope.row)">撤销</el-button>
+                      </template>
+                    </el-table-column>
+                </el-table>
+                <div style="text-align:right;">
+                    <el-pagination
+                      @current-change="handleCurrentChange"
+                      :current-page="pageInit.currentPage"
+                      :page-size="10"
+                      layout="total, prev, pager, next, jumper"
+                      :total="pageInit.totalResult">
+                    </el-pagination>
+                </div>
+            </div>
+            <div id="test">
+<!--
+                <div class="testDiv">
+                    <div v-if="transFlag">
+                        <div>
+                            <span class="tips" style="background-color:#fd8c12;">做单分配</span>
+                        </div>
+                        <div style="margin-top:30px;">
+                            <div style="text-align:center;">
+                                <span>部门:</span>
+                                <el-cascader
+                                    v-model="selProdtsArr"
+                                        change-on-select
+                                    :options="moreAlloatArr1"
+                                    @change="handleChangeMore">
+                                </el-cascader>
+                            </div>
+                            <div style="text-align:center;margin-top:10px;">
+                                <span>人员:</span>
+                                <el-cascader
+                                    :options="moreAlloatArr2"
+                                    v-model="selMana">
+                                </el-cascader>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else>
+                        <div>
+                            <span class="tips" style="background-color:#fd8c12;">做单转移</span>
+                        </div>
+                        <div style="margin-top:30px;">
+                            <div style="text-align:center;">
+                                <span>贷款类型:</span>
+                                <el-select v-model="transferData.newLeaderId" placeholder="请选择贷款类型">
+                                    <el-option
+                                      v-for="item in productTs"
+                                      :key="item.value"
+                                      :label="item.label"
+                                      :value="item.YBCT004_ID">
+                                    </el-option>
+                                </el-select>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:center;margin-top:20px;">
+                        <el-button type="primary" class="elBtn" @click="qxSure">取消</el-button>
+                        <el-button type="primary" class="elBtn" @click="submits" style="margin-left:40px;">确定</el-button>
+                    </div>
+                </div>
+-->
+            </div>
+        </div>
+    </div>
+</body>
+<script th:inline="javascript">
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+    
+    new Vue({
+        el:"#minister_doSignApp",
+        data(){
+            return {
+//                从后台模板里面获取
+                pageInit:[[${page}]],
+                cusTableLstInit:[[${canRevkLstTableLst}]],
+                moreAlloatArr1:[],
+                moreAlloatArr2:[],
+//                做单分配选中的经理
+                selMana:[],
+//                做单分配提交的data
+                submitData:{},
+//                搜索客户条件
+                soMoreUserIpt:{},
+//                搜索时间范围
+                time:[],
+                transferData:{},
+                transFlag:true,
+                selProdtsArr:[],
+                loading:false
+            }
+        },
+//        DOM渲染前执行
+        mounted(){
+            
+        },
+        methods:{
+            
+//            查找所有产品类型
+            productType(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pubSys/getTypeOneLst`,
+                    data:"",
+                    success:function(data){
+                        console.log(data);
+                        if(data.msg="200"){
+                            that.productTs=data.result;
+                        }
+                    }
+                })
+            },
+//            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                if(rowIndex==1){
+                    
+                }else if (rowIndex%2 == 0) {
+                    return 'odd-row';
+                }
+                return 'even-row';
+            },
+//            查询搜索客户
+            checkUser(){
+                this.handleCurrentChange(1);
+            },
+//            清空搜索条件，并回到初始状态
+            clearCheck(){
+                this.soMoreUserIpt={};
+                this.time=[];
+                this.handleCurrentChange(1);
+            },
+//            当前页翻页
+            handleCurrentChange(val){
+                this.loading=true;
+                this.soMoreUserIpt.currentPage=val;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/bac_revk/getPageRevkLst`,
+                    data:that.soMoreUserIpt,
+                    success:function(data){
+                        that.cusTableLstInit=data.rows;
+                        that.pageInit.totalResult=data.total;
+                        that.pageInit.currentPage=val;
+                        that.loading=false;
+                    }
+                })
+            },
+//            做单分配
+            doSign(index,row){
+                this.transFlag=true;
+                this.submitData.YBC001=row.YBC001;
+                this.submitData.YBCS001=row.YBCS001;
+                
+                this.getDepartment();
+                
+//                css展示
+                $("#resL").animate({width:'70%'},100);
+                $("#test").css("display","block")
+            },
+//            做单转移
+            transferSign(index,row){
+                this.transFlag=false;
+                this.transferData.YBCS001=row.YBCS001;
+                this.productType();
+                
+//                css展示
+                $("#resL").animate({width:'70%'},100);
+                $("#test").css("display","block")
+            },
+//            获取产品列表
+            getDepartment(){
+//                DEPT_ID   获取产品
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/deptLst`,
+                    data:"",
+                    success:function(data){
+                        that.moreAlloatArr1=data.result;
+                    }
+                })
+            },
+//            当多分配时改变产品选择
+            handleChangeMore(value){
+                this.submitData.DEPT_ID=value[value.length-1];
+                let DEPT_ID=value[value.length-1];
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/deptAndUserLst`,
+                    data:{DEPT_ID:DEPT_ID},
+                    success:function(data){
+                        that.moreAlloatArr2=data.result;
+                    }
+                })
+            },
+//            做单分配提交
+            submits(){
+                if(this.transFlag){
+                    if(this.submitData.DEPT_ID){
+                        if(this.selMana!=''){
+                            this.submitData.USER_ID=this.selMana.toString();
+                        }
+                        let that=this;
+                        $.ajax({
+                            type:"GET",
+                            url:`${basePath}/bac_allot/updateForMinister`,
+                            data:that.submitData,
+                            success:function(data){
+                                if(data.msg=="200"){
+                                    that.$message({
+                                      message: '恭喜你，客户做单分配成功',
+                                      type: 'success'
+                                    });
+        //                          css隐藏
+                                    $("#resL").animate({width:'100%'},100);
+                                    $("#test").css("display","none");
+                                    that.moreAlloatArr1=[];
+                                    that.moreAlloatArr2=[];
+                                    that.submitData={};
+                                    that.selProdtsArr=[];
+                                    that.handleCurrentChange(1);
+                                }else if(data.msg=="501"){
+                                    that.$message.error(data.result);
+                                }else{
+                                    that.$message.error('客户做单分配失败，请重新分配');
+                                }
+                            }
+                        }) 
+                    }else{
+                        this.$message({
+                            message: '请先选择产品或客户经理！',
+                            type: 'warning'
+                        });
+                    }
+                }else{
+                    console.log(this.transferData);
+                    if(this.transferData.newLeaderId){
+                        if(this.transferData.newLeaderId.length>0){
+                            let that=this;
+                            $.ajax({
+                                type:"GET",
+                                url:`${basePath}/bac_transfer/updateForTransfer`,
+                                data:that.transferData,
+                                success:function(data){
+                                    if(data.msg=="200"){
+                                        that.$message({
+                                          message: '恭喜你，客户做单转移成功',
+                                          type: 'success'
+                                        });
+            //                          css隐藏
+                                        $("#resL").animate({width:'100%'},100);
+                                        $("#test").css("display","none");
+                                        that.moreAlloatArr1=[];
+                                        that.moreAlloatArr2=[];
+                                        that.submitData={};
+                                        that.selProdtsArr=[];
+                                        that.transferData={newLeaderId:""}
+                                        that.handleCurrentChange(1);
+                                    }else{
+                                        that.$message.error('客户做单转移失败，请重新转移');
+                                    }
+                                }
+                            })
+                        }
+                    }else{
+                        this.$message.error('请选择转移贷款类型');
+                    }
+                }
+            },
+//            查看客户详情
+            handleUserInfo(index,row){
+                let url=`${basePath}/bac_situ/goBacSituationDetaPage?YBC001=${row.YBC001}`
+                let newTabs={
+                    name:"客户详情",
+                    url
+                }
+                for(let index in app.$data.editableTabs){
+                    if(app.$data.editableTabs[index].name=="客户详情"){
+                        app.$data.editableTabs.splice(index,1)
+                    }
+                }
+                app.$data.editableTabs.push(newTabs);
+                setTimeout(function(){
+                    app.$data.editableTabsValue="客户详情";
+                },500)
+            },
+//            取消
+            qxSure(){
+//              css隐藏
+                $("#resL").animate({width:'100%'},100);
+                $("#test").css("display","none");
+                this.submitData={};
+                this.transferData={};
+                this.selProdtsArr=[];
+            },
+//            撤销做单
+            Revoke(index,row){
+                let that=this;
+                
+                this.$confirm('此操作将撤销该单, 是否继续?', '提示', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                }).then(() => {
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/bac_revk/revkAlt`,
+                        data:{YBCS001:row.YBCS001,YBCBR001:row.YBCBR001},
+                        success:function(data){
+                            if(data.msg="200"){
+                                that.$message({
+                                  message: '恭喜你，撤销成功',
+                                  type: 'success'
+                                });
+                                that.handleCurrentChange(1);
+                            }else{
+                                that.$message.error('撤销失败，请重新撤销');
+                            }    
+                        }
+                    })
+                }).catch(() => {
+
+                });
+            }
+        }
+    })
+    
+</script>
+</html>

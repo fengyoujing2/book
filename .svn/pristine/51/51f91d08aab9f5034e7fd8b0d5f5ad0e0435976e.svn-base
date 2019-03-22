@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dbsun.mapper.phonesys.PhoGroupBusyMapper">
+
+
+    <!-- 添加通话记录 -->
+    <insert id="addFollow" parameterType="pd" flushCache="false">
+        insert
+        into
+        ybc_follow
+        (
+        YBCF001,
+        YBC001,
+        USER_ID,
+        DEPT_LAYERORDER,
+        POSITION,
+        YBCF002_TM,
+        YBCF004_TP,
+        YBCF005,
+        YBCF006,
+        YBCF007_TP,
+        YBCF008,
+        YBCF009,
+        YBCF0010_TP,
+        YBCF0011_TP,
+        YBCF0012,
+        YBCF0013
+        )
+        values
+        (
+        #{YBCF001},
+        #{YBC001},
+        #{USER_ID},
+        #{DEPT_LAYERORDER},
+        1,
+        now(),
+        #{YBCF004_TP},
+        #{YBCF005},
+        #{YBCF006},
+        2,<!-- 通话状态 -->
+        (select name from sys_user where user_id = #{USER_ID}),
+        #{YBCF009},
+        #{YBCF0010_TP},
+        #{YBCF0011_TP},
+        #{YBCF0012},
+        #{YBCF0013}<!-- 通话录音地址 -->
+        )
+    </insert>
+
+
+    <!-- 修改通话记录表的YBC001-->
+    <update id="updateFollowByYBCF009">
+
+        UPDATE ybc_follow
+        SET
+        YBC001 =#{YBC001},
+        YBCF006=#{YBCF006}<!-- 跟进内容-->
+        where YBCF009 = #{YBCF009}
+    </update>
+
+
+    <!--添加 群呼意向表的意向客户-->
+    <insert id="addCallIntentYbc">
+
+     INSERT INTO ybc_call_intent
+                (YBCCI001,
+                 YBC001,
+                 YBC002,
+                 YBC003,
+                 YBCCI002_TM,
+                 USER_ID,
+                 NAME,
+                 POSITION,
+                 DEPT_LAYERORDER)
+    VALUES (
+             UUID(),
+             #{YBC001},
+             #{YBC002},
+             #{YBC003},
+                 now(),
+            #{USER_ID},
+            #{NAME},
+            1,
+            #{DEPT_LAYERORDER})
+    </insert>
+
+
+    <!--添加意向用户 2018/7/10 15:39-->
+    <insert id="addCusReturnYBC001">
+
+        insert
+        into
+        ybc
+        (
+        <!-- 請求添加字段 -->
+        YBC001,
+        YBC002,
+        YBC003,
+        YBC004_TP,
+        YBC008_TP,
+        YBC009_TP,
+        YBC013,
+        YBC018_TP,
+        <!-- 系统字段 -->
+        YBC014_TM,
+        YBC015_TM,
+        <!--       1）登录用户相关   start-->
+        USER_ID,
+        DEPT_LAYERORDER,
+        POSITION,
+        YBC029,
+        <!--       1）登录用户相关   end -->
+        YBC016_TP,
+        YBC017_TP,
+        PYBC001,
+        YBC026_TP,
+        YBC031_TP,
+        YBC033_TP,
+        YBC035_TM,<!-- 意向时间 -->
+        YBC042_TP,<!--2018-05-11 新增需求：增加数据来源永久记录 -->
+        YBC020,<!-- 最近跟进信息 -->
+        YBC021,
+        YBC022_TM,
+        YBC028,
+        YBC024<!--是否回收 -->
+        <!-- 添加字段 -->
+        )
+        values(
+        <!-- 请求添加字段 -->
+        #{YBC001},
+        #{YBC002},
+        #{YBC003},
+        #{YBC004_TP},
+        #{YBC008_TP},
+        #{YBC009_TP},
+        #{YBC013},
+        #{YBC018_TP},
+        <!-- 系统字段 -->
+        now(),
+        now(),
+        <!--       1）登录用户相关   start-->
+        #{USER_ID},
+        #{DEPT_LAYERORDER},
+        1,
+        (select name from sys_user where user_id = #{USER_ID}),
+        <!--       1）登录用户相关   end-->
+        1,<!-- 是否已分配 -->
+        0,<!-- 当前流程 -->
+        #{PYBC001},
+        0,
+        0,
+        0,
+        #{YBC035_TM},<!-- 意向时间 -->
+        12,<!--2018-05-11 新增需求：增加数据来源永久记录 -->
+        #{YBC020},<!-- 最近跟进信息 -->
+        #{YBC021},
+        #{YBC022_TM},
+        #{YBC028},
+        0
+        )
+    </insert>
+
+
+    <!-- 查询 群呼系统转为意向的用户-->
+    <select id="getPageRedistributeCus" parameterType="page" resultType="com.dbsun.entity.system.PageData">
+        SELECT
+        ci.YBCCI001,
+        ci.YBC002,
+        ci.YBC003,
+        ci.YBCCI002_TM,
+        ci.NAME,
+        (SELECT d.DEPT_NAME FROM sys_dept d WHERE d.DEPT_LAYERORDER= ci.DEPT_LAYERORDER)AS DEPT_NAME
+        FROM ybc_call_intent ci
+        <where>
+            <!-- 权限 start -->
+            and (
+            (
+            ci.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+            and
+            ci.POSITION = #{pd.POSITION}
+            )<!-- 主管 -->
+            or
+            ci.USER_ID = #{pd.USER_ID} <!-- 做单员 -->
+            )
+            <!-- 权限 end -->
+
+            <if test="pd.YBC002 != null and pd.YBC002 != '' ">
+                and ci.YBC002 like concat(#{pd.YBC002},'%')
+            </if>
+            <if test="pd.YBC003 != null and pd.YBC003 != '' ">
+                and ci.YBC003 LIKE concat(#{pd.YBC003},'%')
+            </if>
+
+            <!-- 客户经理-->
+            <if test="pd.USER_ID_Sea !=null and pd.USER_ID_Sea !=''">
+                and ci.USER_ID_Sea =#{pd.USER_ID_Sea}
+            </if>
+            <!-- 部门-->
+            <if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != '' ">
+                and ci.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea},'%')
+            </if>
+            <!-- 按跟进时间搜索 -->
+            <if test="pd.dateStart != null and pd.dateStart != ''"><!-- 开始时间 -->
+                and ci.YBCCI002_TM <![CDATA[ >= ]]> #{pd.dateStart}
+            </if>
+            <if test="pd.dateEnd != null and pd.dateEnd != ''"><!-- 结束时间 -->
+                and ci.YBCCI002_TM <![CDATA[ <= ]]> #{pd.dateEnd}
+            </if>
+        </where>
+
+        order by ci.YBCCI002_TM desc
+
+    </select>
+
+
+</mapper>

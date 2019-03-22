@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.SysUserMapper">
+
+    <!-- 判断用户名和密码 -->
+    <select id="getLoginValidation" parameterType="pd" resultType="pd">
+        select
+        *
+        from app_user u
+        where 1=1
+        <if test="USERNAME != null and PASSWORD != null">
+            and USERNAME = #{USERNAME} and PASSWORD = #{PASSWORD}
+        </if>
+        <if test="USER_ID != null and USER_ID != ''">
+            and USER_ID = #{USER_ID}
+        </if>
+    </select>
+
+    <!--判断用户名是否存在-->
+    <select id="getUserByUserName" parameterType="pd" resultType="pd">
+        select
+          count(0) as ret
+        from app_user u
+        where 1=1
+        and USERNAME = #{USERNAME}
+
+    </select>
+
+    <insert id="registerUser" parameterType="pd" flushCache="false">
+		insert
+			into
+				app_user
+					(
+
+						USERNAME,
+						PASSWORD,
+						NAME
+					)
+				values(
+						#{USERNAME},
+						#{PASSWORD},
+						#{NAME}
+					)
+	</insert>
+
+    <select id="getAllUser" parameterType="pd" resultType="pd">
+        select
+          *
+        from app_user u
+    </select>
+
+    <update id="updateUserById" parameterType="pd" flushCache="false">
+        update app_user
+			set
+				STATUS = #{status}
+			where
+				USER_ID = #{userId}
+    </update>
+
+
+</mapper>

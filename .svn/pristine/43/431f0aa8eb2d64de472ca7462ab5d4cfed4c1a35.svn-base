@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--命名空间完全限定名-->
+<mapper namespace="com.dbsun.mapper.vip.CutVipGiftMapper">
+
+    <!--查询客户的送礼历史记录 -->
+    <select id="getPageVipGifHistoryLst" resultType="pd" parameterType="page">
+        SELECT
+        y.YBC002,<!--客户姓名-->
+        <!--名目 节假日 时间-->
+        VIPG004,
+        (CASE  VIPG005_TP
+        WHEN 1 THEN '生日'
+        WHEN 2 THEN '端午'
+        WHEN 3 THEN '中秋'
+        WHEN 4 THEN '春节'
+        WHEN 5 THEN '体检'
+        WHEN 6 THEN '课程'
+        ELSE '其他'
+        END) AS VIPG005_TP,#节日
+        VIPG003_TM
+
+        FROM vip_gift v join ybc y on v.YBC001=y.YBC001
+        WHERE 1=1
+        <!--客户筛选-->
+        <if test=" pd.YBC001 != null and pd.YBC001!='' ">
+            and v.YBC001=#{pd.YBC001}
+        </if>
+        <!--节假日筛选-->
+        <if test=" pd.VIPG005_TP != null and pd.VIPG005_TP!='' ">
+            and VIPG005_TP=#{pd.VIPG005_TP}
+        </if>
+        ORDER BY  v.VIPG006_TM desc
+
+    </select>
+
+    <!--新增送礼记录-->
+    <insert id="addYbcVipGif" parameterType="pd">
+ INSERT INTO  vip_gift
+            (VIPG001,
+             YBC001,
+             VIPG002,
+             VIPG003_TM,
+             VIPG004,
+             VIPG005_TP,
+             USER_ID,<!--当前操作人-->
+             OP_DEPT_LAYERORDER,
+             OP_POSITION,
+              VIPG006_TM)<!--系统时间-->
+VALUES (#{VIPG001},
+        #{YBC001},
+        #{VIPG002},
+        #{VIPG003_TM},
+        #{VIPG004},
+        #{VIPG005_TP},
+        #{USER_ID},
+        #{DEPT_LAYERORDER},
+        #{POSITION},
+        now());
+    </insert>
+
+</mapper>

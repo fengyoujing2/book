@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.YwRewardMapper">
+	<!-- 个人福利表(积分等) -->
+
+	<!-- 通过YWU001或者YWU010获取个人福利 -->
+	<select id="getYwRewardByYwu001OrOpenId" parameterType="pd" resultType="pd" useCache="false">
+		select
+			yr.*, 
+			(SELECT FROM_UNIXTIME(yr.YWREWARD004_TM, '%y')) as year,
+			(SELECT FROM_UNIXTIME(yr.YWREWARD004_TM, '%m')) as month,
+			(SELECT FROM_UNIXTIME(yr.YWREWARD004_TM, '%d')) as date, <!-- 多少日 -->
+			(select YWU004 from YWU where YWU010 = yr.YWU001_RELATION) as YWU004 <!-- 用户账号表中的昵称 -->
+		from ywreward yr
+		where 1 = 1 
+		and yr.YWU010 = #{YWU010} 
+		order by yr.YWREWARD004_TM desc 
+	</select>
+	
+	<!-- 新增个人福利表 -->
+	<insert id="addYwReward" parameterType="pd" flushCache="false">
+		insert into
+		ywreward (
+			YWU001, 
+			YWREWARD002_TP, 
+			YWREWARD003_TP, 
+			YWREWARD004_TM, 
+			YWREWARD005, 
+			YWU001_RELATION, 
+			YWU010
+		) values (
+			#{YWU001},
+			#{YWREWARD002_TP},
+			#{YWREWARD003_TP},
+			#{YWREWARD004_TM},
+			#{YWREWARD005},
+			#{YWU001_RELATION},
+			#{YWU010}
+		)
+	</insert>
+	
+	<!-- 所得积分 -->
+	<select id="getSumJF" parameterType="pd" resultType="pd" useCache="false">
+		select 
+			ifnull(sum(yw.YWREWARD005), 0) as sum, 
+			count(yw.YWREWARD001) as count
+		from ywreward yw 
+		where 1 = 1 
+		and yw.YWREWARD002_TP = 1<!-- 积分 -->
+		and yw.YWU010 = #{YWU010}
+	</select>
+	
+	<!-- 所得还款金 -->
+	<select id="getSumHKJ" parameterType="pd" resultType="pd" useCache="false">
+		select 
+			ifnull(sum(yw.YWREWARD005), 0) as sum, 
+			count(yw.YWREWARD001) as count
+		from ywreward yw 
+		where 1 = 1 
+		and yw.YWREWARD002_TP = 2<!-- 还款金 --> 
+		and yw.YWU010 = #{YWU010}
+	</select>
+
+</mapper>

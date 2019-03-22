@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="renderer" content="webkit"/>
+
+    <title> 后台管理系统- 主页</title>
+
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+
+    <!--[if lt IE 9]>
+    <meta http-equiv="refresh" content="0;ie.html" />
+    <![endif]-->
+    
+    <link rel="stylesheet" href="static/element-ui/lib/theme-chalk/index.css">
+
+    
+    <script src="static/js/vue.js"></script>
+    <script src="static/element-ui/lib/index.js"></script>
+    <script src="static/js/jquery.min.js"></script>
+    
+    <style>
+    	.el-tabs__header{
+    		margin-bottom:0 !important;
+    		background-color:#f1f7fe;
+    	}
+/*
+    	.active{
+    		background-color:#fff !important;
+    	}
+    	.nav-label{
+    		color:#bed3eb !important;
+    	}
+    	.J_menuItem i{
+    		color:#bed3eb !important;
+    	}
+        .nini a:link{
+            background-color: #fff !important;
+        }
+        .nini a:link i,.nini a:link span{
+            color:#bed3eb  !important;
+        }
+        .navbar-default .nav > li > a:hover, .navbar-default .nav > li > a:focus {
+            color:#4aa5fb !important;
+            background-color: #f1f7fe !important;
+        }
+        .nini a:hover{
+            background-color: #4aa5fb !important;
+        }
+        .nini a:hover i,.nini a:hover span{
+            color:#fff  !important;
+        }
+*/
+        #loginOut:hover{
+            background-color: inherit !important;
+        }
+        #editPwd:hover{
+            background-color: inherit !important;
+        }
+        .el-tabs__nav .el-tabs__item:nth-child(1) span{
+            display: none;
+        }
+        .callinDiv{
+            text-align: center;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body class="fixed-sidebar full-height-layout gray-bg" style="overflow:hidden">
+        <div id="wrapper">
+        <!--左侧导航开始-->
+        <nav class="navbar-default navbar-static-side" role="navigation"  style="box-shadow: 5px 0 5px rgba(0,0,0,.2);">
+            <div class="nav-close"><i class="fa fa-times-circle"></i>
+            </div>
+            <div class="sidebar-collapse" style="height: 100%;overflow: auto;">
+                <ul class="nav" id="side-menu">
+                    <li class="nav-header">
+                        <div class="dropdown profile-element">
+                            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                                <span class="clear">
+                                    <span class="block m-t-xs" style="font-size:20px;text-align: center;">
+                                        管理系统
+<!--                                        <img src="static/img/newCrmLogo.png">-->
+                                    </span>
+                                </span>
+                            </a>
+                        </div>
+                        <div class="logo-element">管理系统
+                        </div>
+                    </li>
+
+                    <li class="nini">
+                        <a class="J_menuItem" href="javascript:" onclick="getMenu(this)"  name="index_v1.html">
+                            <i class="fa fa-home"></i>
+                            <span class="nav-label">主页</span>
+                        </a>
+                    </li>
+                    <!-- 遍历菜单开始... -->
+                    <li th:each="menu:${menuLst}" class="nini">
+                    	<a href="#">
+                            <i class="fa fa fa-bar-chart-o"></i>
+                            <span class="nav-label" th:text="${menu.MENU_NAME}"></span>
+                            <span class="fa arrow"></span>
+                        </a>
+                        <!-- 子菜单嵌套循环 -->
+                        <ul class="nav nav-second-level" th:if="${not #lists.isEmpty(menu.subMenu)}">
+                            <li th:each="submenu:${menu.subMenu}">
+                                <a class="J_menuItem" href="javascript:" th:name="${submenu.MENU_URL}" th:text="${submenu.MENU_NAME}" onclick="getMenu(this)"></a>
+                            </li> 
+                        </ul>
+                    </li>
+                    <!-- 遍历菜单结束... -->
+                </ul>
+            </div>
+        </nav>
+        <!--左侧导航结束-->
+        <!--右侧部分开始-->
+        <div id="page-wrapper" class="gray-bg dashbard-1" style="height:1000px;">
+            <div class="row border-bottom">
+                <nav class="navbar navbar-static-top" role="navigation" style="margin-bottom: 0;background: #4aa5fb;">
+                    <div class="navbar-header" style="padding: 12.8px 0;"><a class="navbar-minimalize minimalize-styl-2 btn btn-info " style="background-color:#fff;border-color:#fff;" href="#"><i class="fa fa-bars" style="color:#4aa5fb;"></i> </a>
+						<div style="color:#fff;font-size:18px;margin-top:18px;">今天是{{todayDate}}，距离本月结束还有{{surplusDay}}天，加油哦</div>
+                    </div>
+                    <ul class="nav navbar-top-links navbar-right" style="margin-top:15px;">
+                    	<li>
+                    	</li>
+                    	<li>
+                    		<span th:text="${name +' 你好!'}"></span>
+                    	</li>
+                        <li>
+                            <a id="editPwd" class="fa fa-cog" @click="EditFlag=true" style="font-size:20px;color:#03FCF4;"></a>
+                        </li>
+                        <li class="dropdown" id="getout">
+                            <a @click="loginOut" id="loginOut">
+<!--                                <i class="fa fa-circle-o-notch fa-lg" style="color:#fff;"></i>
+-->
+                                <img style="width:20px;" src="static/img/loginOut.png"/>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="row J_mainContent" id="content-main" v-loading="loading" element-loading-text="请等待服务器响应(如长时间没有响应，请刷新网页)">
+                <el-tabs v-model="editableTabsValue" type="card" closable @tab-remove="removeTab" @tab-click="clickTab" id="J_iframe">
+                    <el-tab-pane
+                        v-for="(item, index) in editableTabs"
+                        :key="item.name"
+                        :label="item.name"
+                        :name="item.name"
+                                 :data-lname="item.url">
+                        <iframe :src="item.url" :id="item.url" frameborder="0" width="100%" height="1000px" min-width="100%" min-height="1200px" scrolling="auto"></iframe>
+                    </el-tab-pane>
+                </el-tabs>
+                
+<!--                <iframe id="J_iframe" width="100%" height="100%" src="index_v1.html?v=4.0" frameborder="0" data-id="index_v1.html"></iframe>-->
+                
+            </div>
+        </div>
+        <!--右侧部分结束-->
+        <!--        添加介绍人-->
+        <el-dialog title="设置密码" :visible.sync="EditFlag" width="30%">
+          <el-form :model="pwd" label-width="100px">
+            <el-form-item label="新密码" >
+                <el-input  type="password" v-model="pwd.PASSWORD" palceholder="请输入新密码" style="width:90%;"></el-input>
+            </el-form-item>
+            <el-form-item label="确认密码">
+                <el-input  type="password" v-model="pwd.PASSWORD2" palceholder="再次输入新密码" style="width:90%;"></el-input>
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="qxPwd">取 消</el-button>
+            <el-button type="primary" @click="surePwd">确 定</el-button>
+          </div>
+        </el-dialog>
+        
+        <el-dialog  :title="callinName" :visible.sync="callInFlag" width="30%" :before-close="closeCallIn">
+            <div class="callinDiv" style="font-size:20px;">
+                <span>{{callinPhone}}</span>
+            </div>
+            <div style="height:20px;font-size:14px;color:#4AA5FB;" class="callinDiv">
+                <span>{{callState}}</span>
+            </div>
+            <div class="callinDiv">
+                <el-button v-if="callinOnFlag" icon="fa fa-phone"
+                          style="color:#fff;padding:4px 14px;margin-right:40px;background-color:#54de9e;border-color:#54de9e;font-size:30px;" onclick="onAccept()"></el-button>
+                <a v-if="callinOnHungFlag" href="javascript:" style="display:inline-block;background-color:#FC5C7E;border-radius:4px;border-color:#FC5C7E;padding: 1px 8px;vertical-align: bottom;" onclick="onHangup()">
+                    <img style="width:38px;" src="static/img/hungUp.png"/>
+                </a>
+                <a v-else href="javascript:" style="display:inline-block;background-color:#BFBFBF;border-radius:4px;border-color:#BFBFBF;padding: 1px 8px;vertical-align: bottom;">
+                    <img style="width:38px;" src="static/img/hungUp.png"/>
+                </a>
+            </div>
+        </el-dialog>
+    </div>
+<div th:include="html/page/indexpublic :: html"></div>
+    
+</body>
+<script type="text/javascript" src="static/xl_seat/xl_client.js"></script>
+    <script type="text/javascript">
+
+        var webSocketIp = window.location.host;
+        var webSocketUrl = 'wss://'+webSocketIp+'/dbSun/websocket'
+        var ws = new WebSocket(encodeURI(webSocketUrl));
+        ws.onopen = function()
+        {  console.log("open");
+          //ws.send("hello");
+        };
+        ws.onmessage = function(evt)
+        {
+          console.log(evt.data)
+
+        App.aletMsg(evt.data);
+        };
+        ws.onclose = function(evt)
+        {
+          console.log("WebSocketClosed!");
+        };
+        ws.onerror = function(evt)
+        {
+          console.log("WebSocketError!");
+        };
+        
+    </script>
+    
+<script  th:inline="javascript">
+    
+    var basePath="/"+window.location.pathname.split("/")[1];
+    console.log("——————————————————————————")
+    console.log(basePath);
+    
+//    https://192.168.1.163:8443/dbSun/index
+    
+    
+    var callSeat=true;
+    
+    let userNumber=[[${session.user.NUMBER}]];
+    onReady(parseInt(userNumber));
+    let basePathCall="/"+window.location.pathname.split("/")[1];
+    
+    //初始化加载，登录
+    function onReady(loginAccount) {
+        var loginDomain = "rx";//这里调用API接口 所以要用81端口
+        console.log("------------未转换前的坐席号----------")
+        console.log(userNumber);
+        console.log(userNumber.indexOf('8'));
+        let callSeat0=userNumber.indexOf('8');
+        
+        console.log("——————————第一个是否是坐席————————————————");
+        console.log(callSeat);
+        if(callSeat0==0){
+            xl_seat.xlClient.bootstrap("192.168.1.241", false, loginDomain, loginAccount, loginAccount, {
+                // 登录成功处理
+                oncomplete() {
+                    console.log("登录成功");
+                    callSeat=true;
+                    App.$data.lgSeatFlag=true;
+                },
+                // 登录失败处理
+                onerror() {
+                    console.log("登录失败");
+                    callSeat=true;
+                    App.$data.lgSeatFlag=false;
+                }
+            });
+        }else{
+            console.log("——————————第二个是否是坐席(不是坐席)————————————————");
+            console.log(callSeat);
+            callSeat=false;
+        }
+        
+    }
+    
+    //来电
+    
+    //来电挂断
+    
+        //监听来电状态
+    xl_seat.xlClient.onCallinCallTaskStatus = function (accepted, phone){
+        console.log("监听来电状态：" + accepted);
+//        if(!accepted){
+//            App.callInHangup();
+//        }
+    };
+    
+    //自定义来电显示
+    xl_seat.xlClient.incomingDialogShow = function (cllingPhone, successCallback, dangerCallback){
+
+        console.log("进入来电显示");
+        App.$data.callInFlag=true;
+        App.$data.callState="";
+        App.$data.callinOnFlag=true;
+        App.$data.callinOnHungFlag=true;
+        App.$data.callinPhone=cllingPhone;
+        App.getCallName(cllingPhone);
+
+        onAccept = function (){
+            console.log("进入来电接听");
+            successCallback();//接听后进入此方法
+            App.callInAnswer();
+        }
+        onHangup = function (){
+            
+            console.log("进入来电挂断");
+            hangupTest(cllingPhone);
+            App.callInHangup();
+        }
+
+    }; 
+    //自定义回调
+    function handler(msg){
+        // 自定义拨打状态返回处理方法（可选）
+        var handler = {
+            oncomplete(e) {
+                console.log(msg + e);
+            },
+            onerror(e) {
+                console.log(msg + e);
+            }
+        };
+        return handler;
+    }
+    
+    
+    // 挂断电话
+    function hangupTest(phone) {
+        console.log('来电号码：' + phone + '  ');
+        xl_seat.xlClient.hangup(phone, handler("挂断电话"));
+        if(App.$data.callInFlag){
+            App.clearTimer();
+        }else{
+            var callWorkBench =document.getElementById(basePath+"/pho_calOut/goWorkBench?YBC008_TP=0").contentWindow.callWorkbApp;
+            callWorkBench.callBFlag=false;
+            callWorkBench.callState="通话结束";
+            callWorkBench.callingFg=true;
+        }
+    }    
+        //外呼
+    function calloutTest(phone,extFields) {
+        var callWorkBench =document.getElementById(basePath+"/pho_calOut/goWorkBench?YBC008_TP=0").contentWindow.callWorkbApp;
+        
+        callWorkBench.YBCF0010_TP=2;
+        //重新初始化通话状态，一个页面内的多次通话不能受影响
+        callWorkBench.callStateS = 0;
+
+        // 自定义监听拨打电话状态对象（可选）
+        var listener = xl_seat.xlClient.buildCallTaskStatusListener();
+        // 自定义监听外呼任务成功（可选）
+        listener.onCreate = function () {
+            console.log("创建外呼任务成功");
+            callWorkBench.callStateS = 1;
+        }
+        // 自定义监听等待接通坐席（可选）
+        listener.onWaitSeat = function () {
+            console.log("等待接通坐席");
+        };
+        // 自定义监听等待接通手机用户（可选）
+        listener.onWaitBridge = function () {
+            console.log("等待接通手机用户");
+            callWorkBench.callStateS = 2;
+        };
+        // 自定义监听电话已接通（可选）
+        listener.onBridged = function () {
+            console.log("电话已接通");
+            callWorkBench.callStateS = 3;
+            callWorkBench.callOutAnswer();
+            callWorkBench.YBCF0010_TP=1;
+        };
+        // 自定义监听通话结束（可选）
+        listener.onEnded = function () {
+            console.log("通话结束");
+            callWorkBench.callHangUPDo();
+            callWorkBench.callStateS = 4;
+        };
+
+        // 自定义拨打状态返回处理方法（可选）
+        //发送拨打任务
+        xl_seat.xlClient.callout(phone, listener, handler("拨打请求"),extFields);
+    }
+    //自定义回调
+    function handler(msg){
+        // 自定义拨打状态返回处理方法（可选）
+        var handler = {
+            oncomplete(e) {
+                console.log(msg + e);
+            },
+            onerror(e) {
+                console.log(msg + e);
+            }
+        };
+        return handler;
+    }
+    
+    //自定义监听
+    function onAssPhoneTest(){
+        xl_seat.xlClient.onAssignPhone = function (callin) {
+            //拨打的号码所在区域
+            console.log("来电号码：" + callin.phone);
+            console.log("来电类型：" + callin.srcType);
+            console.log("来电地区编号：" + callin.info.areaCode);
+            console.log("来电地区名字：" + callin.info.areaName);
+        }
+    }
+    
+        //从手机端呼入系统时监听从手机端挂断电话
+	xl_seat.xlClient.onChannelHangup=function(status){
+        
+        if(App.$data.callInFlag){
+                //    清除定时器
+            App.callInHangup();
+            console.log(status);
+        }else{
+            var callWorkBench =document.getElementById(basePath+"/pho_calOut/goWorkBench?YBC008_TP=0").contentWindow.callWorkbApp;
+        
+            callWorkBench.clearTimer();
+            callWorkBench.callingFg=true;
+            callWorkBench.callState="通话结束"
+            callWorkBench.getCallRecord();
+            console.log(status);
+        }
+        
+         
+	}
+    
+    
+    
+    
+</script>
+<script type="text/javascript">
+    var editableTabsValue="主页";
+    var editableTabs=[{name:"主页",url:"index_v1.html"}];
+    var basePath="/"+window.location.pathname.split("/")[1];
+    
+    var oldNode=undefined;
+    
+	$(document).ready(function () {
+        
+//		$('#getout').click(function () {
+//		    swal({
+//		        title: "您确定退出吗?",
+//		        text: "退出后需要重新登录！",
+//		        type: "warning",
+//		        showCancelButton: true,
+//		        confirmButtonColor: "#DD6B55",
+//		        confirmButtonText: "退出",
+//		        closeOnConfirm: false
+//		    }, function () {
+//		    	loginOut();
+//		    });
+//		});
+    
+	});
+	
+	//退出
+//	function loginOut(){
+//        var user = $("#user").val(); 
+//        var password = $("#pwd").val();    
+//        	 $.ajax({
+//			        type: "get",
+//			        url: basePath+"/logout",
+//			        async: false,
+//			        success: function (data)
+//			        {
+//			        	//swal("退出成功！", "", "success");
+//			        	window.location.href=basePath+"/login";			        },
+//			        error:function(){
+//			        	swal("退出出错！", "", "faild");
+//			        }
+//			     });
+//        
+//        }
+    
+
+    var App=new Vue({
+        el:"#wrapper",
+        data(){
+            return {
+                editableTabsValue:editableTabsValue,
+                editableTabs:editableTabs,
+                todayDate:"2017-12-12",
+                surplusDay:0,
+                lgSeatFlag:false,
+                EditFlag:false,
+                pwd:{},
+                callInFlag:false,
+                callinPhone:"",
+                callinName:"",
+                callState:"",
+                timerFlag:false,
+                YBCF0011_TP:1,
+                YBCF0010_TP:2,
+                callinOnFlag:true,
+                callinOnHungFlag:true,
+                callSeat:callSeat,
+                loading:false
+            }
+        },
+        mounted(){
+            var date=new Date();
+            
+            var y=date.getFullYear();
+            var m=date.getMonth()+1;
+            var d=date.getDate();
+            
+            var day = new Date(y, m, 0);
+            
+            this.todayDate=`${y}-${m}-${d}`;
+            this.surplusDay=day.getDate()-d;
+            
+            console.log("——————————第三个是否是坐席————————————————");
+            console.log(this.callSeat);
+            
+            this.editableTabsValue="主页";
+            this.editableTabs=[{
+                    name:"主页",
+                    url:'index_v1.html'
+                }]
+            
+        },
+        methods:{
+//            退出登录
+            loginOut(){
+                this.$confirm('此操作将退出登录?', '提示', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                }).then(() => {
+			         window.location.href=basePath+"/login";	
+                }).catch(() => {         
+                });  
+            },
+            qxPwd(){
+                this.pwd={};
+                this.EditFlag=false;
+            },
+            surePwd(){
+                if(this.pwd.PASSWORD != this.pwd.PASSWORD2){
+                    this.$message({
+                      message: '两次输入的密码不一致,请重新输入',
+                      type: 'warning'
+                    });
+                }else if(this.pwd.PASSWORD == this.pwd.PASSWORD2){
+                    let that=this;
+                     $.ajax({
+                        type:"GET",
+                        url:`${basePath}/user/userEditPsw`,
+                        data:{PASSWORD:that.pwd.PASSWORD},
+                        success:function(data){
+                            if(data.msg=="200"){
+                                that.$message({
+                                  message: '恭喜你，密码修改成功',
+                                  type: 'success'
+                                });
+                                that.EditFlag=false;
+                                that.pwd={};
+                            }
+                        }
+                    })
+                }
+            },
+            removeTab(targetName) {
+                let tabs = this.editableTabs;
+                let activeName = this.editableTabsValue;
+                if (activeName === targetName) {
+                  tabs.forEach((tab, index) => {
+                    if (tab.name === targetName) {
+                      let nextTab = tabs[index + 1] || tabs[index - 1];
+                      if (nextTab) {
+                        activeName = nextTab.name;
+                      }
+                    }
+                  });
+                }
+                this.editableTabsValue = activeName;
+                this.editableTabs = tabs.filter(tab => tab.name !== targetName);
+            },
+            aletMsg(message,id) {
+
+                 this.$notify({
+                  title: '消息提醒',
+                  message: message
+                 });
+            },
+            clickTab(node){
+                let oldAttr="a[name='"+node.$attrs['data-lname']+"']";
+                console.log(oldAttr);
+                let newNode=document.querySelector(oldAttr);
+                
+                if(newNode){
+                    if(oldNode){
+                        oldNode.style.color='#aeb2b7';
+                        oldNode.style.backgroundColor='transparent';
+                    }
+                    newNode.style.color='#fff';
+                    newNode.style.backgroundColor='#d84c31';
+                    oldNode=newNode;
+                }
+            },
+            Answer(){
+                
+            },
+            hangup(){
+                
+            },
+//            获取客户姓名
+            getCallName(phone){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pho_rec/getNameByTel`,
+                    data:{YBC003:phone},
+                    success:function(data){
+                        if(data.msg=="200"){
+                            if(data.result.YBC002){
+                                that.callinName="来自"+data.result.YBC002+'的来电';
+                            }else{
+                                that.callinName="陌生号码";
+                            }
+                        }
+                    }
+                })
+            },
+//            关闭来电
+            closeCallIn(done){
+                let that=this;
+                this.$confirm('确认是否关闭来电对话框？')
+                  .then(_ => {
+                    done();
+                    that.callInFlag=false;
+                  })
+                  .catch(_ => {});
+            },
+//    来电接听的时候，启动定时器
+            timer(){
+                let that=this;
+                let s=0;
+                let m=0;
+                let h=0;
+                let sj = setInterval(function(){
+                        let str_s=s;
+                        let str_m=m;
+                        let str_h=h;
+                        if(s<10){
+                            str_s='0' + s;
+                        }
+                        if(m<10){
+                            str_m='0' + m;
+                        }
+                        if(h<10){
+                            str_h='0' + h;
+                        }
+                        let num=str_h + ":" + str_m + ":" + str_s;
+                        that.callState=num;
+                        s++;
+                        if(s>59){
+                            s=0;
+                            m++;
+                        }
+                        if(m>59){
+                            s=0;
+                            h++;
+                        }
+                        if(that.timerFlag){
+                            window.clearInterval(sj);
+                            that.callState="通话结束";
+                        }
+                    },1000);
+            },
+//    来电接听
+            callInAnswer(){
+                this.callinOnFlag=false;
+                this.timerFlag=false;
+//                通话类型--1呼入  2呼出
+                this.YBCF0011_TP=1;
+                //通话状态--1接通 2未接通
+                this.YBCF0010_TP=1;
+                this.timer();
+            },
+//    来电-挂断
+            callInHangup(){
+                this.callinOnFlag=false;
+                this.callinOnHungFlag=false;
+                this.clearTimer();
+            },
+//    清除定时器
+            clearTimer(){
+                this.timerFlag=true
+            }
+        },
+        created(){
+            
+        }
+    })
+
+    
+    function getMenu(node){
+        if(oldNode){
+            oldNode.style.color='#aeb2b7';
+            oldNode.style.backgroundColor='transparent';
+        }
+        node.style.color='#fff';
+        node.style.backgroundColor='#d84c31';
+        oldNode=node;
+        
+        let tabsUrl;
+        let tabsName;
+        if(node.name=='index_v1.html'){
+            tabsUrl='index_v1.html';
+            tabsName="主页";
+        }else{
+            tabsUrl=node.name;
+            tabsName=node.innerHTML;
+        }
+        let newTabs={
+                name:tabsName,
+                url:tabsUrl
+        }
+        let tabsFlag=false;
+        for(let item of App.$data.editableTabs){
+            if(tabsUrl==item.url){
+                tabsFlag=true
+            }
+        }
+        if(tabsFlag){
+            App.$data.editableTabsValue=tabsName;
+            let ifms=document.getElementById(tabsUrl);
+            ifms.contentWindow.location.reload(true);
+        }else{
+            App.$data.editableTabs.push(newTabs)
+            App.$data.editableTabsValue=tabsName
+        }
+    }
+    
+</script>
+
+</html>

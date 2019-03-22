@@ -1,0 +1,21 @@
+package com.dbsun.mapper;
+
+import com.dbsun.entity.system.PageData;
+
+
+
+
+
+/**
+ * 
+ *
+ */
+public interface ImgmsgMapper {
+	
+	/**
+	 * 
+	 */
+	public PageData findByKw(PageData pd);
+	
+	
+}

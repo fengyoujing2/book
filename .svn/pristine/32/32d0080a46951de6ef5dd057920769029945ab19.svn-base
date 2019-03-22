@@ -1,0 +1,94 @@
+package com.dbsun.controller.vip;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.SysUser;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.vip.CusVipMapper;
+import com.dbsun.mapper.vip.CutVisitMapper;
+import com.dbsun.service.vip.CutVisitExceptionService;
+import com.dbsun.service.vip.CutVisitService;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+/**
+ * @author user
+ * @create 2018-04-13 15:31
+ * @desc 客服服务-会员回访异常
+ **/
+
+@Controller
+@RequestMapping("/vip_visit_exc")
+public class CutVisitExceptionController extends BaseController {
+
+    @Autowired
+    private CutVisitExceptionService cutVisitExceptionService;
+
+    @Autowired
+    private CutVisitService cutVisitService;
+
+
+    /***
+     *客服部异常会员页面 查看所有
+     *
+     */
+    public static final String MENBER_UNUSUAL_ALL = "html/system/member/menberUnusualAll";
+    /***
+     * 普通异常会员页面
+     */
+    public static final String MENBER_UNUSUAL = "html/system/member/menberUnusual";
+
+    /***
+     *跳转-客服部异常会员回访记录页面
+     * @return
+     */
+    @RequestMapping("/showMenberUnusualAll")
+    public String showMenberUnusualAll() {
+        return MENBER_UNUSUAL_ALL;
+    }
+
+    /***
+     *跳转-普通异常会员回访记录页面
+     * @return
+     */
+    @RequestMapping("/showMenberUnusual")
+    public String showMenberUnusual() {
+        return MENBER_UNUSUAL;
+    }
+
+
+    /***
+     * 查询异常会员回访记录-通用
+     * @return
+     */
+
+    @ResponseBody
+    @RequestMapping("/getPageYbcVisitExceptionLst")
+    public JSONObject getPageYbcVisitExceLst() {
+        Page page = this.getPage();
+        PageData pd = this.getPageData();
+        pd = this.putUserPd(pd);
+        page.setPd(pd);
+        return this.viewReturnPageData(page, cutVisitExceptionService.getPageYbcVisitExcLst(page));
+    }
+
+
+    /***
+     * 查询 异常状态的会员
+     *
+     */
+    @ResponseBody
+    @RequestMapping("/getPageYbcVisitExceptionVipLst")
+    public JSONObject getPageYbcVisitExeStatusLst() {
+        Page page = this.getPage();
+        PageData pd = this.getPageData();
+        pd = this.putUserPd(pd);
+        page.setPd(pd);
+
+        return this.viewReturnPageData(page, cutVisitService.getPageYbcVisitExeStatusLst(page));
+    }
+
+}

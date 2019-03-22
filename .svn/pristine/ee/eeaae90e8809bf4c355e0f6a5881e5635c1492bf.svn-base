@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.YwDataMapper">
+
+	<!-- 个人资料表 -->
+
+	<!-- 根据账号ID获取个人资料 -->
+	<select id="getYwDataByYwu001" parameterType="pd" resultType="pd"
+		useCache="false">
+		select
+		yw.* 
+		from ywdata yw 
+		where yw.YWU001 = #{YWU001}
+	</select>
+	
+	<!-- 根据账号ID获取个人资料 -->
+	<select id="getYwDataByYwu010" parameterType="pd" resultType="pd"
+		useCache="false">
+		select
+		yw.* 
+		from ywdata yw 
+		where yw.YWU010 = #{YWU010}
+	</select>
+
+	<!-- 新增个人资料表 -->
+	<insert id="addYwData" parameterType="pd" flushCache="false">
+		insert into ywdata (
+			YWU001, 
+			YWDATA002, 
+			YWDATA003_TP, 
+			YWDATA004_TP, 
+			YWDATA005_TP, 
+			YWDATA006, 
+			YWDATA007_TP, 
+			YWDATA008_TP, 
+			YWDATA009_TP, 
+			YWDATA0010, 
+			YWDATA0010_TP, 
+			YWDATA0011, 
+			YWDATA0011_TP, 
+			YWDATA0012, 
+			YWDATA0012_TP, 
+			YWDATA0013_TM, 
+			YWDATA0014_TM, 
+			YWDATA0015_TP, 
+			YWDATA0016_TP, 
+			YWDATA0017_TM, 
+			YWDATA0018, 
+			YWU010
+		) values (
+			#{YWU001}, 
+			#{YWDATA002}, 
+			#{YWDATA003_TP}, 
+			#{YWDATA004_TP}, 
+			#{YWDATA005_TP}, 
+			#{YWDATA006}, 
+			#{YWDATA007_TP}, 
+			#{YWDATA008_TP}, 
+			#{YWDATA009_TP}, 
+			#{YWDATA0010}, 
+			#{YWDATA0010_TP}, 
+			#{YWDATA0011}, 
+			#{YWDATA0011_TP}, 
+			#{YWDATA0012}, 
+			#{YWDATA0012_TP}, 
+			#{YWDATA0013_TM}, 
+			#{YWDATA0014_TM}, 
+			#{YWDATA0015_TP}, 
+			#{YWDATA0016_TP}, 
+			#{YWDATA0017_TM}, 
+			#{YWDATA0018}, 
+			#{YWU010}
+		)
+		
+	</insert>
+
+	<!-- 个人资料 -->
+	<update id="updateYwDataByYwu001" parameterType="pd" flushCache="false">
+		update ywdata
+		<set>
+			<if test="YWDATA002 != null and YWDATA002 !=''">
+				YWDATA002 			= #{YWDATA002},
+			</if>
+			<if test="YWDATA003_TP != null and YWDATA003_TP !=''">
+				YWDATA003_TP 		= #{YWDATA003_TP},
+			</if>
+			<if test="YWDATA004_TP != null and YWDATA004_TP != ''">
+				YWDATA004_TP 		= #{YWDATA004_TP},
+			</if>
+			<if test="YWDATA005_TP != null and YWDATA005_TP != ''">
+				YWDATA005_TP 		= #{YWDATA005_TP},
+			</if>
+			<if test="YWDATA006 != null and YWDATA006 != ''">
+				YWDATA006 			= #{YWDATA006},
+			</if>
+			<if test="YWDATA007_TP != null and YWDATA007_TP != ''">
+				YWDATA007_TP 		= #{YWDATA007_TP},
+			</if>
+			<if test="YWDATA008_TP != null and YWDATA008_TP != ''">
+				YWDATA008_TP 		= #{YWDATA008_TP},
+			</if>
+			<if test="YWDATA009_TP != null and YWDATA009_TP != ''">
+				YWDATA009_TP 		= #{YWDATA009_TP},
+			</if>
+			<if test="YWDATA0010 != null and YWDATA0010 != ''">
+				YWDATA0010 			= #{YWDATA0010},
+			</if>
+			<if test="YWDATA0010_TP != null and YWDATA0010_TP != ''">
+				YWDATA0010_TP 		= #{YWDATA0010_TP},
+			</if>
+			<if test="YWDATA0011 != null and YWDATA0011 != ''">
+				YWDATA0011 			= #{YWDATA0011},
+			</if>
+			<if test="YWDATA0011_TP != null and YWDATA0011_TP != ''">
+				YWDATA0011_TP 		= #{YWDATA0011_TP},
+			</if>
+			<if test="YWDATA0012 != null and YWDATA0012 != ''">
+				YWDATA0012 			= #{YWDATA0012},
+			</if>
+			<if test="YWDATA0012_TP != null and YWDATA0012_TP != ''">
+				YWDATA0012_TP 		= #{YWDATA0012_TP},
+			</if>
+			<if test="YWDATA0015_TP != null and YWDATA0015_TP != ''">
+				YWDATA0015_TP 		= #{YWDATA0015_TP},
+			</if>
+			<if test="YWDATA0016_TP != null and YWDATA0016_TP != ''">
+				YWDATA0016_TP 		= #{YWDATA0016_TP},
+			</if>
+			<if test="YWDATA0017_TM != null and YWDATA0017_TM != ''">
+				YWDATA0017_TM 		= #{YWDATA0017_TM},
+			</if>
+			<if test="YWDATA0018 != null and YWDATA0018 != ''">
+				YWDATA0018 		= #{YWDATA0018}
+			</if>
+		</set>
+		where YWDATA001 = #{YWDATA001}
+	</update>
+	
+	<!-- 资质认证 -->
+	<update id="updateIdenByYwu001" parameterType="pd" flushCache="false">
+		update ywdata
+		<set>
+			<if test="YWDATA0010 != null and YWDATA0010 != ''">
+				YWDATA0010			= #{YWDATA0010},
+			</if>
+			<if test="YWDATA0011 != null and YWDATA0011 != ''">
+				YWDATA0011			= #{YWDATA0011},
+			</if>
+			<if test="YWDATA0012 != null and YWDATA0012 != ''">
+				YWDATA0012			= #{YWDATA0012},
+			</if>
+			<if test="YWDATA0014_TM != null and YWDATA0014_TM != ''">
+				YWDATA0014_TM		= #{YWDATA0014_TM}
+			</if>
+		</set>
+		where YWU010 				= #{YWU010}
+	</update>
+	
+	
+
+</mapper>

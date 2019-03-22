@@ -1,0 +1,15 @@
+package com.dbsun.mapper.task;
+
+import com.dbsun.entity.system.PageData;
+
+public interface TaskMapper {
+	
+	public int addTask(PageData pd);
+	
+	public int addTasks(PageData pd);
+	
+	public PageData getTskById(PageData pd);
+	
+	public PageData getTskAdUserById(PageData pd);
+	
+}

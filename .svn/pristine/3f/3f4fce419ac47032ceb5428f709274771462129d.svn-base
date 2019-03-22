@@ -1,0 +1,49 @@
+package com.dbsun.mapper.customer;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface CusMapper {
+	
+	public int addCus(PageData pd) throws Exception;
+	
+	public List<PageData> getPageCusLst(Page page) throws Exception;
+
+	public PageData getCusById(PageData pd) throws Exception;
+	
+	/**
+	 * 更改客户基本资料（默认更新修改时间015_TM）
+	 * @param pd
+	 * 			YBC001
+	 * @return
+	 */
+	public int updateCusBasicData(PageData pd);
+	
+	/*public int updateCusToRecovery(PageData pd);*/
+	
+	/**
+	 * 获取介绍人信息
+	 * @param pd
+	 * @return
+	 */
+	public List<PageData> getIntroducerByCusId(PageData pd);
+	
+	/**
+	 * 通过号码获取客户名称
+	 * @param pd
+	 * @return
+	 */
+	public PageData getCusNameByPhone(PageData pd);
+
+	/**
+	 * 获取客户所有进度信息
+	 * @param pd
+	 * @return
+	 */
+	public List<PageData> getybcSpeedLst(PageData pd);
+
+	public int updateCusLabel(PageData pd);
+	
+}

@@ -1,0 +1,126 @@
+package com.dbsun.controller.msg;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.msg.MessAgeService;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+/**
+ * @author user
+ * @create 2018-04-24 10:38
+ * @desc
+ **/
+@Controller
+@RequestMapping("/cus_msg")
+public class MsgController extends BaseController {
+
+    @Autowired
+    private MessAgeService messAgeService;
+
+    /***
+     * 跟进 页面
+     */
+    private static final String FOLLOW_MSG = "html/system/message/followMsg";
+    /***
+     * 已放贷 页面
+     */
+    private static final String LOAN_MSG = "html/system/message/loanMsg";
+
+    /***
+     * 跳转 跟进页面
+     * @return
+     */
+    @RequestMapping("/showFollowMsg")
+    public String showFollowMsg() {
+        return FOLLOW_MSG;
+    }
+
+    /***
+     * 跳转 已放贷 页面
+     * @return
+     */
+    @RequestMapping("/showLoanMsg")
+    public String showLoanMsg() {
+        return LOAN_MSG;
+    }
+
+
+    /***
+     * 待做单发送短信
+     * @return
+     */
+    @RequestMapping("/sendMessAgeByBranch")
+    @ResponseBody
+    public JSONObject sendMessAgeByBranch() {
+        Page page = getPage();
+        PageData pd = getPageData();
+        //不让前端传,防止暴露表名
+        pd.put("YBCMS002","ybc_branch2");
+        pd = putUserPd(pd);
+        page.setPd(pd);
+        return this.getAddOrUpdJson(messAgeService.sendMessAge(pd));
+    }
+
+    /***
+     * 已放贷发送短信
+     * @return
+     */
+    @RequestMapping("/sendMessAgeByMatch")
+    @ResponseBody
+    public JSONObject sendMessAgeByMatch() {
+        Page page = getPage();
+        PageData pd = getPageData();
+        //不让前端传,防止暴露表名
+        pd.put("YBCMS002","ybc_match");
+        pd = putUserPd(pd);
+        page.setPd(pd);
+        return this.getAddOrUpdJson(messAgeService.sendMessAge(pd));
+    }
+
+    /***
+     * 搜索已经签单,已经分配到做单人手里待做单的客户
+     * @return
+     */
+    @RequestMapping("/getPageMessAgeByBranch")
+    @ResponseBody
+    public JSONObject getPageMessAgeByBranch() {
+        Page page = getPage();
+        PageData pd = getPageData();
+        page.setPd(pd);
+        return this.viewReturnPageData(page, messAgeService.getPageMessAgeByBranch2(page));
+    }
+
+    /***
+     * 查询已放贷的
+     * @return
+     */
+    @RequestMapping("/getPageMessAgeByMatch")
+    @ResponseBody
+    public JSONObject getPageMessAgeByMatch() {
+        Page page = getPage();
+        PageData pd = getPageData();
+        page.setPd(pd);
+        return this.viewReturnPageData(page, messAgeService.getPageMessAgeByMatch(page));
+    }
+
+
+    /***
+     * 查询历史发送记录
+     * @return
+     */
+    @RequestMapping("/getPageMessAgeHistoryByModuleKey")
+    @ResponseBody
+    public JSONObject getPageMessAgeHistoryByModuleKey() {
+        Page page = getPage();
+        PageData pd = getPageData();
+        page.setPd(pd);
+        return this.viewReturnPageData(page, messAgeService.getPageMessAgeHistoryByModuleKey(page));
+    }
+
+
+}

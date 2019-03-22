@@ -1,0 +1,167 @@
+package com.dbsun.util;
+
+import java.text.DecimalFormat;
+
+import net.sf.json.JSONNull;
+import net.sf.json.JSONObject;
+
+import com.dbsun.entity.system.PageData;
+
+/**
+ * 电话坐席相关工具类
+ * @author DongZai
+ *
+ */
+public class PhoneStUtil {
+
+	//请求地址
+	private final static String URLUNIT = "171.221.217.40:81";//192.168.1.241:81，171.221.217.40:81
+	
+	//获取通话记录的地址
+	private final static String GETPHONERECURL = "http://"+URLUNIT+"/api/v1/cdr/query";
+	
+	//获取通话记录报告
+	public final static String GETPHONEREPURL = "http://"+URLUNIT+"/api/v1/cdr/queryReport";
+	
+	/**
+	 * 统计类型值
+	 */
+	public final static int ONWERTYPE = 2;
+
+	/**
+	 * 公司账号+token
+	 */
+	public final static String SENDREQPRE = "domain=rx&token=e66b1725de98469ba853c56e42136d34";
+
+
+
+	//获取通话记录的条数
+	private final static int RECNUMS = 5;
+	
+	//接听类型
+	public final static int TASK_TYPE_NOTANS = 4;
+
+	/**
+	 * 获取通话记录公用类
+	 * @param filterJson
+	 * 			过滤json
+	 * @param sortJson
+	 * 			排序json
+	 * @return
+	 */
+	public static JSONObject getRecUtil(JSONObject filterJson, JSONObject sortJson){
+		//获取通话记录
+		
+		JSONObject jsonRes = new JSONObject();
+		try {
+			//过滤
+			String filterStr = java.net.URLEncoder.encode(filterJson.toString(), "utf-8");
+			
+			//排序
+			String sortStr = java.net.URLEncoder.encode(sortJson.toString(), "utf-8");
+			//参数
+			String par = null;
+			par = SENDREQPRE + "&limit="+RECNUMS+"&sortFields="+ sortStr +"&filterFields=" + filterStr;
+			
+			String str = SentReqUtil.sendGet(GETPHONERECURL, par);
+			
+			jsonRes = JSONObject.fromObject(str);
+			System.out.println("返回的json：" + jsonRes);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return jsonRes;
+	}
+	
+	/**
+	 * 获取EmployeeId--获取通话记录要求
+	 * @return
+	 */
+	public static int getId(PageData userPd){
+		int id = 0;
+		try {
+			//通过坐席号获取employeed_id，用于查询通话记录
+			String getIdUrl = "http://"+URLUNIT+"/api/v1/seat/getEmployeeIdBySeatId";
+			String getIdPar = "domain=rx&token=e66b1725de98469ba853c56e42136d34&staffId=" + userPd.getString("NUMBER");
+			String eid = SentReqUtil.sendGet(getIdUrl, getIdPar);
+			JSONObject jsonId = JSONObject.fromObject(eid);
+			System.out.println("获取id的json:" + jsonId);
+			JSONObject dataJson =  JSONObject.fromObject(jsonId.get("data"));//debug chonlai 
+			if(!Tools.isObjEmpty(dataJson.get("id").toString()))id = (int) dataJson.get("id");//不为空再转，不然JSONNUll
+			
+			System.out.println("当前坐席对应的id为：" + id);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return id;
+	}
+	
+	/**
+	 * 获取统计数据
+	 * @param pd
+	 * 			签单请求数据
+	 * @param userPd
+	 * 			当前登录用户的Pd
+	 * @return
+	 * 			callOutCount--手动外呼数
+	 * 			totalDialBridgeDuration--外呼通话总时长
+	 * 			conRate--接通率
+	 * 			
+	 */
+	public static JSONObject getContCalOut(PageData pd, PageData userPd){
+		
+		//组或者坐席ID
+		int onwerId = PhoneStUtil.getId(userPd);
+		
+		//参数
+		String par = PhoneStUtil.SENDREQPRE + "&onwerType=" + PhoneStUtil.ONWERTYPE + "&onwerId="+onwerId 
+				+ "&startTime=" + pd.getString("startTime") 
+				+ "&endTime=" + pd.getString("endTime");
+		
+		//发送请求
+		String str = SentReqUtil.sendGet(PhoneStUtil.GETPHONEREPURL, par);
+		
+		//解析请求到的结果
+		JSONObject jsonRes = JSONObject.fromObject(str);
+		//解析JSON下的DATA
+		JSONObject dataJson = JSONObject.fromObject(jsonRes.get("data"));
+		
+		//呼出
+		int callOutCount = Integer.parseInt(dataJson.getString("totalManualCall"));//手动外呼数
+		int callOutConCot = Integer.parseInt(dataJson.getString("totalDialBridge"));//外呼接听数
+		dataJson.get("totalDialBridgeDuration");//外呼通话总时长
+		
+		//呼入
+		dataJson.get("totalIncoming");//呼入数
+		dataJson.get("totalIncomingBridge");//呼入接听数
+		dataJson.get("totalIncomingBridgeDuration");//呼入通话总时长
+		
+		dataJson.get("totalCall");//呼入呼出（不一定接通）总数
+		
+		JSONObject resultJson = new JSONObject();
+		resultJson.put("callOutCount", callOutCount);//手动外呼数
+		resultJson.put("totalDialBridgeDuration", dataJson.get("totalDialBridgeDuration"));//外呼通话总时长
+		
+		DecimalFormat df = new DecimalFormat("0.00");//保留两位小数
+		double conRate = 0;
+		//任意参数为0结果为0
+		if(callOutCount == 0 || callOutConCot == 0){
+			conRate = 0;
+		}else{
+			conRate = ((float)callOutConCot/callOutCount)*100;
+		}
+		resultJson.put("conRate", df.format(conRate) + "%");//接听率
+		
+		return resultJson;
+	}
+	
+	public static void main(String[] args) {
+		DecimalFormat df = new DecimalFormat("0.00");//保留两位小数
+		double conRate = 1.2/0;
+		System.out.println(conRate);
+		System.out.println(df.format(conRate));
+	}
+	
+}

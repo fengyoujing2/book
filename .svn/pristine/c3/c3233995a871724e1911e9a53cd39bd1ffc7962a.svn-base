@@ -1,0 +1,65 @@
+package com.dbsun.service.customer;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.SysUserMapper;
+import com.dbsun.mapper.customer.CusRecoveryMapper;
+import com.dbsun.service.BaseService;
+
+@Service
+public class CusRecoveryService extends BaseService {
+
+	@Autowired
+	private CusRecoveryMapper recoveryMapper;
+	@Autowired
+	private SysUserMapper sysUserMapper; 
+	
+	public List<PageData> getPageRecoveryLst(Page page){
+		return recoveryMapper.getPageRecoveryLst(page);
+	}
+	
+	/**
+	 * 回收客户重分配 -- 选择条数分配
+	 * @return
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked"})
+	public int updateReAllotOfLimit(PageData pd){
+		int ret = 0;
+		try {
+			Map map = new HashMap();
+			
+			//把输入的条数转化为Integer，否则SQL报错
+			map.put("userNum", Integer.parseInt(pd.getString("limitNum")));
+			map.put("inUserid", pd.get("NewUSER_ID"));//选择的客户经理ID
+			map.put("userid", pd.get("USER_ID"));//当前登录用户ID
+			map.put("DEPT_LAYERORDER", pd.get("DEPT_LAYERORDER"));//当前登录用户ID
+			map.put("POSITION", pd.get("POSITION"));//当前登录用户ID
+			
+			//调用存储过程
+			recoveryMapper.backUser_branch(map);
+			
+			if(map.get("state").equals(0))ret = 1;//成功
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+	/**
+	 * 回收池的重分配（按条数）
+	 * @param pd
+	 * @return
+	 */
+	public List<PageData> getPreReAllotLst(PageData pd){
+		return recoveryMapper.getPreReAllotLst(pd);
+	}
+	
+}

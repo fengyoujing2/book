@@ -1,0 +1,133 @@
+package com.dbsun.controller.product;
+
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.BaseService;
+import com.dbsun.service.product.ProductService;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
+@Controller
+@Component 
+@RequestMapping("/product")
+public class ProductController extends BaseController{
+    @Autowired
+    private BaseService baseService;
+    @Autowired
+    private ProductService productService;
+    /**
+     * 初始化跳转到产品管理页面
+     *
+     * */
+    @RequestMapping(value = "/productIndex")
+    public String productIndex(ModelMap model){
+        Page page = this.getPage();
+        PageData pd = this.getPageData();
+//        JSONArray productLst =  baseService.getProductTreeTypeLst(pd);
+//        model.addAttribute("page",productLst);
+        return "html/system/product/productList";
+    }
+
+    /**
+     * 显示左侧所有的产品类型
+     *
+     * */
+    @RequestMapping(value = "/getProTypeLst",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject getProTypeLst(){
+        PageData pd = getPageData();
+        JSONArray productLst =  baseService.getProductTreeTypeLst(pd);
+        return getSucJson(productLst);
+    }
+    /**
+     * 显示右侧所有的产品列表
+     *
+     * */
+    @RequestMapping(value = "/getProLst",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject getProLst(){
+        Page page = this.getPage();
+        PageData pd = this.getPageData();
+        page.setPd(pd);
+        System.out.println(page.getPd().getString("YBCT001"));
+        List<PageData> productLst =  baseService.getProductByTypeAllLst(page);
+        return viewReturnPageData(page,productLst);
+    }
+    /**
+     * 添加产品类型
+     *
+     * */
+    @RequestMapping(value = "/addProType",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject addProType(){
+        PageData pd = getPageData();
+        int updateNum = productService.addProductType(pd);
+        return getAddOrUpdJson(updateNum);
+    }
+    /**
+     * 添加产品
+     *
+     * */
+    @RequestMapping(value = "/addPro",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject addPro(){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());
+        int updateNum = productService.addProduct(pd);
+        return getAddOrUpdJson(updateNum);
+    }
+    /**
+     * 编辑产品类型
+     * 传入参数YBCT001 不能为空
+     * */
+    @RequestMapping(value = "/updateProType",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject updateProType(){
+        PageData pd = getPageData();
+        int updateNum = productService.updateProductType(pd);
+        return getAddOrUpdJson(updateNum);
+    }
+    /**
+     * 编辑产品
+     * 传入参数YBCT001 不能为空
+     * */
+    @RequestMapping(value = "/updatePro",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject updatePro(){
+        PageData pd = getPageData();
+        int updateNum = productService.updateProduct(pd);
+        return getAddOrUpdJson(updateNum);
+    }
+    /**
+     * 删除产品类型
+     * 传入参数YBCT001 不能为空
+     * */
+    @RequestMapping(value = "/delProType",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject delProType(){
+        PageData pd = getPageData();
+        int updateNum = productService.delProductType(pd);
+        return getAddOrUpdJson(updateNum);
+    }
+    /**
+     * 删除产品
+     * 传入参数YBCT001 不能为空
+     * */
+    @RequestMapping(value = "/delPro",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject delPro(){
+        PageData pd = getPageData();
+        int updateNum = productService.delProduct(pd);
+        return getAddOrUpdJson(updateNum);
+    }
+}

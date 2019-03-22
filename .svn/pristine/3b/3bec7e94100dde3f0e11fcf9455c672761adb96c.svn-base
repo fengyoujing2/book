@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="../static/img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>梦想贷</title>
+    <script src="../static/wechat/js/jquery9.min.js"></script>
+    <script src="https://s22.cnzz.com/z_stat.php?id=1272060834&web_id=1272060834" language="JavaScript"></script>
+
+    <style>
+    	body>a:first-child{
+    		display:none;
+    	}
+    
+        body{
+            padding: 0;
+            margin: 0;
+            background-color: #f6f6f3;
+        }
+        .formA{
+            padding: 10px 10px;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+        }
+        .formB{
+            font-size: 12px;
+            font-weight: 900;
+        }
+        .formC{
+            font-size: 12px;
+            color:red;
+        }
+        .formA input{
+            width: 100%;
+            border: 0;
+        }
+        .btn{
+            padding: 15px;
+            text-align: center;
+            background-color: #fff;
+        }
+        .btn button{
+            background-color: #f5a623;
+            border-radius: 6px;
+            width: 100%;
+            border: 1px solid #f5a623;
+            color: #fff;
+            font-size: 12px;
+            padding: 6px 0;
+        }
+        #getYZM{
+            display: inline-block;
+            width: 30%;
+            height: 30px;
+            border-radius: 6px;
+            background-color: #ccc;
+            color: #fff;
+            text-align: center;
+            font-size: 14px;
+            line-height: 30px;
+        }
+        a{
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <img src="../static/img/wt2_top.png" style="width:100%;">
+    </div>
+    <div style="padding:5px 0;background-color: #fff;">
+        <div class="formA">
+            <div>
+                <span class="formB">姓名</span>
+                <span class="formC">*</span>
+            </div>
+            <div style="flex-grow:1;">
+                <input type="text" id="cusName"/>
+            </div>
+        </div>
+        <div class="formA">
+            <div>
+                <span class="formB">电话</span>
+                <span class="formC">*</span>
+            </div>
+            <div  style="flex-grow:1;">
+                <input type="number" id="cusPhone"/>
+            </div>
+        </div>
+        <div class="formA">
+            <div>
+                <span class="formB">验证码</span>
+                <span class="formC">*</span>
+            </div>
+            <div  style="flex-grow:1;">
+                <div>
+                    <input type="text" id="phoneYZM" style="width:60%;"/>
+                    <a href="javascript:" id="getYZM">点击获取</a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div class="btn">
+        <button id="btn">立即借款</button>
+    </div>
+    <div>
+        <img src="../static/img/wt2_center.png" style="width:100%;">
+    </div>
+    <div>
+        <a href="tel:02866002200">
+            <img src="../static/img/wt2_down.png" style="width:100%;">
+        </a>
+    </div>
+</body>
+<script th:inline="javascript">
+    let btn=document.getElementById("btn");
+    let getYZM=document.getElementById("getYZM");
+    let phoneYZM=document.getElementById("phoneYZM");
+    let cusPhone=document.getElementById("cusPhone");
+    let flag=false;
+    let clearFlag=false;
+    var frm = [[${from}]];
+    
+    cusPhone.oninput=function(){
+    	let cusPhone=document.getElementById("cusPhone").value;
+        if(cusPhone.length>=11){
+            getYZM.style.cssText="background-color:orange"
+        }else{
+            getYZM.style.cssText="background-color:#ccc"
+        }
+    }
+    btn.onclick=function(){
+  		var token = "ruisun";
+  		let cusName=document.getElementById("cusName").value;
+    	let cusPhone=document.getElementById("cusPhone").value;
+    	let phoneYZM=document.getElementById("phoneYZM").value;
+    	if(flag){
+    		jQuery.ajax({
+              url:""+path+"/wc_wbybc/extendEntry",
+              data:{name:cusName, phone:cusPhone, sourceType:4, token:token, from:frm,code:phoneYZM},
+              type:'POST',
+              dataType:"json",
+              async: false,
+              success:function(result,status){
+              	console.log(result);
+              	if(result == "200"){
+              		alert("资料已提交！");
+                    clearFlag=true;
+              		document.getElementById("cusName").value="";
+              		document.getElementById("cusPhone").value="";
+                    document.getElementById("phoneYZM").value="";
+              	}else if(result=="505"){
+                    alert("验证码为空")
+                }else if(result=="502"){
+                    alert("验证码过期")
+                }else if(result=="503"){
+                    alert("验证码错误")
+                }else if(result=="500"){
+                    alert("网络发生意外，请重新提交")
+                }
+              }
+        	})
+    	}else{
+    		alert("请正确填写验证码");
+    	}
+  		
+    };
+    getYZM.onclick=function(){
+        clearFlag=false;
+    	let cusPhone=document.getElementById("cusPhone").value;
+        if(cusPhone.length>=11){
+            setsj();
+            jQuery.ajax({
+              url:""+path+"/wc_wbybc/sendCode",
+              data:{YBWY0003:cusPhone},
+              type:'POST',
+              dataType:"json",
+              async: false,
+              success:function(result,status){
+              	console.log(result);
+              	if(result=="200"){
+                    flag=true;
+              	}else if(result=="501"){
+                    clearFlag=true;
+                    alert("今日获取验证码次数已达上限");
+                }else{
+                    alert("出现未知问题，请刷新页面重试")
+                }
+              }
+        	})
+        }else{
+            alert("请正确填写电话号码！");
+        }
+    }
+    var url = window.location.href;
+    var path = getRealPath();
+    function setsj(){
+        let num=60;
+        getYZM.innerHTML=num+"s"
+        let sItersj=window.setInterval(function(){
+            num--;
+            getYZM.innerHTML=num+"s"
+            if(num==0){
+                clearFlag=true;
+            }
+            if(clearFlag){
+                window.clearInterval(sItersj);
+                getYZM.innerHTML='重新获取'
+            }
+        },1000)
+        
+    }
+    function getRealPath(){
+        var localObj = window.location;
+        var contextPath = localObj.pathname.split("/")[1];
+        var basePath = localObj.protocol + "//" + localObj.host + "/"+ contextPath;
+        return basePath ;
+    }
+    
+</script>
+
+</html>

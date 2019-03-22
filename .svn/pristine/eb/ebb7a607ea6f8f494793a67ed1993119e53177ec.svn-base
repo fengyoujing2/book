@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.customer.CusNewAddTmpOrSgnMapper">
+	<!-- 新增意向客户或者签单客户 -->
+
+	<!--<select id="getPageNewAdTpOrSgLst" parameterType="page" resultType="pd" useCache="false">-->
+		<!--select-->
+		<!--c.YBC029, &lt;!&ndash; 客户经理名称 &ndash;&gt;-->
+		<!--c.YBC001,-->
+		<!--c.YBC002,-->
+		<!--c.YBC003,-->
+		<!--(-->
+		<!--case c.YBC008_TP-->
+		<!--when 0 then '临时（大类）'-->
+		<!--when 10 then '临时（小类）'-->
+		<!--when 1 then '意向'-->
+		<!--when 2 then '上门'-->
+		<!--when 3 then '签单'-->
+		<!--when 4 then '回收'-->
+		<!--when 5 then '再签单'-->
+		<!--end-->
+		<!--) as state,-->
+		<!--&lt;!&ndash;客户转为意向客户时间_YBC035_TM 签单生成时间YBCS002_TM&ndash;&gt;-->
+
+		<!--if(#{pd.cusState} = '3',s.YBCS002_TM, c.YBC035_TM) as time, &lt;!&ndash; 根据传入的状态取相应的时间 &ndash;&gt;-->
+
+
+		<!--(select dept_name from sys_dept where DEPT_LAYERORDER = c.DEPT_LAYERORDER) as deptName-->
+		<!--from ybc c-->
+		<!--left join ybc_sign s-->
+		<!--on c.YBC001 = s.YBC001-->
+		<!--WHERE 1 = 1-->
+		<!--&lt;!&ndash; 权限 start &ndash;&gt;-->
+		<!--and (-->
+		<!--(-->
+		<!--c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")-->
+		<!--and-->
+		<!--c.POSITION = #{pd.POSITION}-->
+		<!--)&lt;!&ndash; 主管 &ndash;&gt;-->
+		<!--or-->
+		<!--c.USER_ID = #{pd.USER_ID} &lt;!&ndash; 客户经理 &ndash;&gt;-->
+		<!--)-->
+		<!--&lt;!&ndash; 权限 end &ndash;&gt;-->
+		<!--&lt;!&ndash; 搜索 Start &ndash;&gt;-->
+		<!--&lt;!&ndash; 时间搜索 &ndash;&gt;-->
+
+		<!--<if test="pd.cusState == 1 or pd.cusState == '1'">&lt;!&ndash; 意向客户 &ndash;&gt;-->
+			<!--and s.YBCS001 IS NULL    &lt;!&ndash; 意向客户就不取出有签单信息的客户，因为转为意向客户的时间不会清空，为了不更新两个文件 &ndash;&gt;-->
+			<!--<if test="pd.dateStart != null and pd.dateStart != ''">&lt;!&ndash; 转为意向客户的时间 &ndash;&gt;-->
+				<!--and c.YBC035_TM <![CDATA[ >= ]]> #{pd.dateStart,jdbcType=VARCHAR}-->
+			<!--</if>-->
+			<!--<if test="pd.dateEnd != null and pd.dateEnd != ''">-->
+				<!--and c.YBC035_TM <![CDATA[ <= ]]> #{pd.dateEnd,jdbcType=VARCHAR}-->
+			<!--</if>-->
+			<!--&lt;!&ndash;<if test="(pd.dateStart = null or pd.dateStart = '') and (pd.dateEnd = null or pd.dateEnd = '')">&lt;!&ndash; 默认当天 &ndash;&gt;&ndash;&gt;-->
+			<!--&lt;!&ndash;and DATE(c.YBC035_TM)  = curdate()&ndash;&gt;-->
+			<!--&lt;!&ndash;</if>&ndash;&gt;-->
+			<!--&lt;!&ndash;<if test="(pd.dateStart = null or pd.dateStart = '') and (pd.dateEnd = null or pd.dateEnd = '')">&lt;!&ndash; 默认当天 &ndash;&gt;&ndash;&gt;-->
+			<!--&lt;!&ndash;and  TO_DAYS(c.YBC035_TM)=TO_DAYS(curdate())&ndash;&gt;-->
+			<!--&lt;!&ndash;</if>&ndash;&gt;-->
+
+
+			<!--<if test="pd.dateStart "></if>-->
+
+		<!--</if>-->
+
+
+		<!--<if test="pd.cusState == 3 or pd.cusState == '3'">&lt;!&ndash; 签单客户 &ndash;&gt;-->
+			<!--and s.YBCS001 IS NOT NULL &lt;!&ndash; 以最新一条签单数据为准 &ndash;&gt;-->
+			<!--<if test="pd.dateStart != null and pd.dateStart != ''">&lt;!&ndash; 签单时间 &ndash;&gt;-->
+				<!--and s.YBCS002_TM <![CDATA[ >= ]]> #{pd.dateStart}-->
+			<!--</if>-->
+			<!--<if test="pd.dateEnd != null and pd.dateEnd != ''">-->
+				<!--and s.YBCS002_TM <![CDATA[ <= ]]> #{pd.dateEnd}-->
+			<!--</if>-->
+			<!--<if test="(pd.dateStart = null or pd.dateStart = '') and (pd.dateEnd = null or pd.dateEnd = '')">&lt;!&ndash; 默认当天 &ndash;&gt;-->
+				<!--and DATE(s.YBCS002_TM) = curdate()-->
+			<!--</if>-->
+		<!--</if>-->
+		<!--<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''">&lt;!&ndash; 按签单人员搜索 &ndash;&gt;-->
+			<!--and c.USER_ID = #{pd.USER_ID_Sea}-->
+		<!--</if>-->
+		<!--<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''">&lt;!&ndash; 按选中的部门搜索 &ndash;&gt;-->
+			<!--and c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")-->
+		<!--</if>-->
+		<!--&lt;!&ndash; 搜索 End &ndash;&gt;-->
+		<!--order by c.YBC015_TM desc-->
+	<!--</select>-->
+	<!-- 2018-04-18 修改：： -->
+	<select id="getPageNewAdTpOrSgLst" parameterType="page" resultType="pd" useCache="false">
+		select
+		c.YBC029, <!-- 客户经理名称 -->
+		c.YBC001,
+		c.YBC002,
+		c.YBC003,
+		(
+		case c.YBC008_TP
+		when 0 then '临时（大类）'
+		when 10 then '临时（小类）'
+		when 1 then '意向'
+		when 2 then '上门'
+		when 3 then '签单'
+		when 4 then '回收'
+		when 5 then '再签单'
+		end
+		) as state,
+		<!--客户转为意向客户时间_YBC035_TM 签单生成时间YBCS002_TM-->
+
+		if(#{pd.cusState} = '3',s.YBCS002_TM, c.YBC035_TM) as time, <!-- 根据传入的状态取相应的时间 -->
+
+
+		(select dept_name from sys_dept where DEPT_LAYERORDER = c.DEPT_LAYERORDER) as deptName
+		from ybc c
+		left join ybc_sign s
+		on c.YBC001 = s.YBC001
+		WHERE 1 = 1
+		<!-- 权限 start -->
+		and (
+		(
+		c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+		and
+		c.POSITION = #{pd.POSITION}
+		)<!-- 主管 -->
+		or
+		c.USER_ID = #{pd.USER_ID} <!-- 客户经理 -->
+		)
+		<!-- 权限 end -->
+		<!-- 搜索 Start -->
+		<!-- 时间搜索 -->
+
+		<if test="pd.cusState == 1 or pd.cusState == '1'"><!-- 意向客户 -->
+			and c.YBC035_TM is not null    <!-- YBC035_TM is not null 2018-04-18 修改：：  表示只要转为意向客户时间不为空就表示这个客户肯定是有过意向时刻，不管最后怎样-->
+			<if test="pd.dateStart != null and pd.dateStart != ''"><!-- 转为意向客户的时间 -->
+				and c.YBC035_TM <![CDATA[ >= ]]> #{pd.dateStart}
+			</if>
+			<if test="pd.dateEnd != null and pd.dateEnd != ''">
+				and c.YBC035_TM <![CDATA[ <= ]]> #{pd.dateEnd}
+			</if>
+		</if>
+		<if test="pd.cusState == 3 or pd.cusState == '3'"><!-- 签单客户 -->
+			and s.YBCS001 IS NOT NULL <!-- 以最新一条签单数据为准 -->
+			<if test="pd.dateStart != null and pd.dateStart != ''"><!-- 签单时间 -->
+				and s.YBCS002_TM <![CDATA[ >= ]]> #{pd.dateStart}
+			</if>
+			<if test="pd.dateEnd != null and pd.dateEnd != ''">
+				and s.YBCS002_TM <![CDATA[ <= ]]> #{pd.dateEnd}
+			</if>
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and c.USER_ID = #{pd.USER_ID_Sea}
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+		</if>
+		<!-- 搜索 End -->
+		order by time desc
+	</select>
+</mapper>

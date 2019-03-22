@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>还款查询</title>
+    <link rel="stylesheet" href="css/swiper.min.css"/>
+    <script src="js/swiper.min.js"></script>
+    <style>
+        a:hover{
+            text-decoration: none;
+        }
+
+        a:visited{
+            text-decoration: none;
+        }
+
+        a:active{
+            text-decoration: none;
+        }
+
+        #tanchuang{
+            display: none;
+        }
+
+    </style>
+
+
+</head>
+<body style="background:#ffffff;">
+
+<div class="container-fluid jianju"  id="contain" >
+    <div class="page-body">
+
+        <div class="row" onclick="showPro();" style="border-bottom: 1px solid rgb(245,245,245);background: white" id="chanpina">
+            <div class="col-xs-3  text-left  " style="padding: 15px;padding-right: 0">
+                产品A
+            </div>
+            <div class="col-xs-5  text-center" style="padding: 15px;padding-left: 0;padding-right: 0">
+                贷款总额：50000元
+            </div>
+            <div class="col-xs-4  text-right" style="padding: 15px;padding-left: 0;color: #929292">
+                2017.10.10
+            </div>
+        </div>
+
+
+        <div class="row" onclick="showPro();" style="border-bottom: 1px solid rgb(245,245,245);background: white">
+            <div class="col-xs-3  text-left  " style="padding: 15px;padding-right: 0">
+                产品B
+            </div>
+            <div class="col-xs-5  text-center" style="padding: 15px;padding-left: 0;padding-right: 0">
+                贷款总额：30000元
+            </div>
+            <div class="col-xs-4  text-right" style="padding: 15px;padding-left: 0;color: #929292">
+                2017.10.10
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div onclick="hidePro();" style="width: 100%;height: 100%;color: rgb(0, 0, 0);position: fixed;top: 0px;left: 0px;z-index: 60000;background: url('../static/img/back2.png');" id="tanchuang">
+    <div style="opacity: 1">
+        <div style="position: absolute;width: 275px;height:338px;top: 50%;left: 50%;margin: -169px 0 0 -137.5px;border: 1px solid transparent;color: #ffffff;border-radius: 10px;background: #ffffff;color: #000000;text-align: center">
+            <div style="width: 100%;height: 25%;font-size: 20px;font-weight: bold;line-height: 86px;border-top-right-radius: 10px;border-top-left-radius: 10px;position: relative">
+                	<span id="proName">产品A</span>
+                <div style="width: 21px;height: 21px;position: absolute;right:11px;top: 13px;background: url('../static/img/chacha_03.png');background-size: 100%" id="tanchuangnei">
+
+                </div>
+            </div>
+            <div style="width: 100%;height: 70%;  border-top: 2px solid #FF884D;text-align: left;padding: 10px;font-size: 15px">
+                <div style="margin-top: 10px;text-align: center">贷款总金额：50000元</div>
+                <div style="margin-top: 10px;text-align: center">贷款期限：12期</div>
+                <div style="margin-top: 10px;text-align: center">还款日：每月20日</div>
+                <div style="margin-top: 10px;text-align: center">还款方式：等额本息</div>
+                <div style="margin-top: 10px;text-align: center">每期还款金额：5200元</div>
+                <div style="margin-top: 10px;text-align: center">我的经理人：周经理  <span style="color: #FF884D">（18510662377)</span></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div th:include="html/page/contentpublic :: html"></div>
+<script>
+	
+	function hidePro(){
+		
+		$("#proName").html("产品B");
+		$("#tanchuang").hide();
+	}
+	
+	function showPro(){
+		$("#tanchuang").show();
+	}
+
+</script>
+
+
+</body>
+</html>

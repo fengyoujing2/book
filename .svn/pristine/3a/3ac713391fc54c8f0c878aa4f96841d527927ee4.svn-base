@@ -1,0 +1,23 @@
+package com.dbsun.controller.system;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.service.YwProductService;
+
+/**
+ * 产品
+ * 
+ * @author DongZai
+ * 
+ */
+@Controller
+@RequestMapping("/wx_ywProduct")
+public class YwProductController extends BaseController {
+
+	@Autowired
+	private YwProductService ywProductService;
+	
+}

@@ -1,0 +1,13 @@
+package com.dbsun.mapper.finance;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface FinSignMapper {
+	
+	public List<PageData> getPageConfSignLst(Page page);
+	public int updateConfSign(PageData pd);
+	public int updateSign(PageData pd);
+}

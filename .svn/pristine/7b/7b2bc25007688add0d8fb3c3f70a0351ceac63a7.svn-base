@@ -1,0 +1,25 @@
+package com.dbsun.service.homepage;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.homepage.HmPCusMapper;
+
+@Service
+public class HmPCusService {
+
+	@Autowired
+	private HmPCusMapper hmPCusMapper;
+	
+	public PageData getCusDb(PageData pd){
+		return hmPCusMapper.getCusDb(pd);
+	}
+	
+	public List<PageData> getCtForMonth(PageData pd){
+		return hmPCusMapper.getCtForMonth(pd);
+	}
+	
+}

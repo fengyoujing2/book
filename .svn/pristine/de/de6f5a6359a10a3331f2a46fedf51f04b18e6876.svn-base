@@ -1,0 +1,120 @@
+package com.dbsun.service.statistics;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.statistics.StatisticsMapper;
+
+@Service
+public class StatisticsService {
+	/**
+     * 获取产品类型
+     * */
+    @Autowired
+    private StatisticsMapper statisticsMapper;
+
+    /**
+     * 获取签单明细
+     * */
+    public List<PageData> getChartSignLst(Page pd){
+        List<PageData>  pdaLst = statisticsMapper.getPageChartSign(pd);
+        return pdaLst;
+    }
+    /**
+     * 获取签单当月签单总数
+     * */
+    public PageData getChartSignMonthCont(PageData pd){
+        PageData  pda = statisticsMapper.getChartSignMonthSum(pd);
+        return pda;
+    }
+    /**
+     * 获取退单明细
+     * */
+    public List<PageData> getChartBackSignLst(Page pd){
+        List<PageData>  pdaLst = statisticsMapper.getPageChartBackSign(pd);
+        return pdaLst;
+    }
+    /**
+     * 获取退单当月总数
+     * */
+    public PageData getChartBackSignMonthCont(PageData pd){
+        PageData  pda = statisticsMapper.getChartBackSignMonthSum(pd);
+        return pda;
+    }
+    /**
+     * 获取过件明细
+     * */
+    public List<PageData> getChartPieceLst(Page pd){
+        List<PageData>  pdaLst = statisticsMapper.getPageChartPiece(pd);
+        return pdaLst;
+    }
+
+    /**
+     * 获取过件相关总数
+     * */
+    public PageData getChartPieceAllCont(PageData pd){
+        PageData  pda = new  PageData();
+        //获取过件总金额
+        //获取放贷总金额
+        pda.putAll(statisticsMapper.getChartPieceAllSum(pd));
+        //获取本月过件总数量
+        //获取本月过件金额
+        //获取本月放贷金额
+        pda.putAll(statisticsMapper.getChartPieceMonthSum(pd));
+        return pda;
+    }
+    /**
+     * 获取放贷明细
+     * */
+    public List<PageData> getChartLendLst(Page pd){
+        List<PageData>  pdaLst = statisticsMapper.getPageChartLending(pd);
+        return pdaLst;
+    }
+
+    /**
+     * 获取放贷相关总数
+     * */
+    public PageData getChartLendAllCont(PageData pd){
+        PageData  pda = new  PageData();
+        //获取放贷总金额
+        pda.putAll(statisticsMapper.getChartLendAllSum(pd));
+        //获取本月放贷总数量
+        //获取本月放贷金额
+        pda.putAll(statisticsMapper.getChartLendMonthSum(pd));
+        return pda;
+    }
+//****------------------------------------------------------------------财务统计--------------------------********//
+    /**
+     * 获取收款明细表
+     * */
+    public List<PageData> getChartReceivablesLst(Page pd){
+        List<PageData>  pdaLst = statisticsMapper.getPageChartReceivables(pd);
+        return pdaLst;
+    }
+    /**
+     * 获取网贷收款明细表
+     * */
+    public List<PageData> getNetChartReceivablesLst(Page pd){
+        List<PageData>  pdaLst = statisticsMapper.getPageChartNetReceivables(pd);
+        return pdaLst;
+    }
+    /**
+     * 获取渠道收款明细表
+     * */
+    public List<PageData> getChartChannelReceivablesLst(Page pd){
+        List<PageData>  pdaLst = statisticsMapper.getPageChartChannelReceivables(pd);
+        return pdaLst;
+    }
+    /**
+     * 获取已结账明细表
+     * */
+    public List<PageData> getChartCheckoutReceivablesLst(Page pd){
+        List<PageData>  pdaLst = statisticsMapper.getPageChartCheckoutReceivables(pd);
+        return pdaLst;
+    }
+
+}

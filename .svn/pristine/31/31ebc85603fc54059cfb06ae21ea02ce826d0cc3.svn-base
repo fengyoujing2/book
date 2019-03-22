@@ -1,0 +1,126 @@
+package com.dbsun.service.customer;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.customer.CusReAllotMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.Tools;
+
+@Service
+public class CusReAllotService extends BaseService {
+
+	@Autowired
+	private CusReAllotMapper reAllotMapper;
+	
+	public List<PageData> getPageCanReAllotLst(Page page){
+		return reAllotMapper.getPageCanReAllotLst(page);
+	}
+	
+	/**
+	 * 
+	 * @param pd
+	 * 			YBC001Ary -- 客户ID数组
+	 * 			USER_ID   -- 新的客户经理ID
+	 * @return
+	 * 			受影响的行
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public int updateCusToReAllot(PageData pd, PageData userPd) throws Exception{
+		int ret = 0;
+		Map map = new HashMap();
+		try {
+			
+			//截取最后一个逗号之前的部分
+			map.put("inybc001", pd.getString("YBC001Ary").substring(0, pd.getString("YBC001Ary").length() - 1));
+			map.put("inUserid", pd.get("USER_ID"));
+			map.put("userid", userPd.get("USER_ID"));
+			map.put("DEPT_LAYERORDER", userPd.get("DEPT_LAYERORDER"));
+			
+			reAllotMapper.backUser_oneOrMany(map);
+			
+			if(map.get("state").equals(0))ret = 1;//成功
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+	public int updateCusToReAllotPlu(PageData pd, PageData userPd){
+		int ret = 0;
+		try {
+			ret = updateCusToReAllot(pd, userPd);
+			//在存储过程写
+			//this.addCusFlw(userPd, FollowUtil.CUS_UPDATE_REALT_STR, FollowUtil.CUS_UPDATE_REALT_CODE, FollowUtil.BATCH_REALT);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println(ret);
+		return ret;
+	}
+	
+	public List<PageData> getPageCusesByUserIdLst(Page page){
+		return reAllotMapper.getPageCusesByUserIdLst(page);
+	}
+	
+	/**
+	 * 获取客户经理的所有客户ID(eg:1,2)
+	 * @param pd
+	 * 			OLD_USER_ID -- 客户经理ID
+	 * @return
+	 */
+	public PageData getUserids(PageData pd){
+		return reAllotMapper.getUserids(pd);
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public int updateCusToFullReAllot(PageData pd, PageData userPd) throws Exception{
+		int ret = 0;
+		
+		Map map = new HashMap();
+		try {
+			PageData idsPd = getUserids(pd);
+			//该客户经理没有客户，返回0，在调用此接口前要先调用查询客户经理的接口，如果为空，那就是出错了
+			if(Tools.isObjEmpty(idsPd))return 0;
+			
+			map.put("inUserid", pd.get("USER_ID"));
+			map.put("outUserid", pd.get("OLD_USER_ID"));
+			map.put("userid", userPd.get("USER_ID"));//当前登陆者信息
+			map.put("DEPT_LAYERORDER", userPd.get("DEPT_LAYERORDER"));//当前登陆者信息
+			map.put("POSITION", userPd.get("POSITION"));//当前登陆者信息
+			
+			reAllotMapper.backUser_forUser(map);
+			
+			if(map.get("state").equals(0))ret = 1;//成功（返回状态为0时执行成功）
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		return ret;//失败
+	}
+	
+	public int updateCusToFullReAllotPlu(PageData pd, PageData userPd){
+		int ret = 0;
+		try {
+			ret = updateCusToFullReAllot(pd, userPd);
+			//存储过程处理
+			//this.addCusFlw(userPd, FollowUtil.CUS_UPDATE_FULLREALT_STR, FollowUtil.CUS_UPDATE_FULLREALT_CODE, FollowUtil.FULLBATCH_REALT);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+}

@@ -1,0 +1,102 @@
+package com.dbsun.service.vip;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.vip.CusVipMapper;
+import com.dbsun.mapper.vip.CutVisitExceptionMapper;
+import com.dbsun.mapper.vip.CutVisitMapper;
+import com.dbsun.util.UuidUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.List;
+
+/**
+ * @author user
+ * @create 2018-04-08 14:06
+ * @desc 回访
+ **/
+@Service
+public class CutVisitService {
+
+    @Autowired
+    private CusVipMapper cusVipMapper;
+    @Autowired
+    private CutVisitMapper cutVisitMapper;
+    @Autowired
+    private CutVisitExceptionMapper cutVisitExceptionMapper;
+
+
+
+    /**
+     * 查询客户可-回访会员 增加回访表字段的 显示最新状态
+     */
+    public List<PageData> getPageVipVisitList(Page page) {
+        return cusVipMapper.getPageVipVisitList(page);
+    }
+
+    /***
+     * 查询异常状态的会员
+     * 查询最近回访表的实时更新记录,如果实时更新 不是异常状态则不显示
+     * @param page
+     * @return
+     */
+    public List<PageData> getPageYbcVisitExeStatusLst(Page page) {
+        return cusVipMapper.getPageYbcVisitExeStatusLst(page);
+
+    }
+
+
+
+    /***
+     * 查询客户的回访表
+     * @return
+     */
+    public List<PageData> getPageYbcCutVisitLst(Page page) {
+        return cutVisitMapper.getPageYbcCutVisitLst(page);
+    }
+
+
+    /***
+     * 修改跟进状态
+     * 时间  VIPV003  VIPV002_TM  ybc001用户id
+     * @param pd
+     * @return
+     */
+    public int updateYbcVisitStatu(PageData pd) {
+        return cutVisitMapper.updateYbcVisitStatu(pd);
+    }
+
+
+    /***
+     * 新增回访记录
+     * 如果是异常记录,同时添加 回访异常表记录
+     */
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
+    public int addYbcVisit(PageData pd) {
+        String uuid = UuidUtil.get32UUID();
+        pd.put("VIPV001", uuid);
+        int vipv004_tp = Integer.parseInt(pd.getString("VIPV004_TP"));
+
+
+
+
+        //如果等于异常状态
+        if (Integer.parseInt(pd.getString("VIPV004_TP")) == 4) {
+            pd.put("VIPE001", uuid);
+            String vipv003 = pd.getString("VIPV003");
+            pd.put("VIPE002", vipv003);
+            if (!pd.containsKey("VIPV003") || vipv003.length() < 0 || vipv003.length() > 300) {
+                return 0;
+            }
+            //pd.put("VIPE003_IP", pd.getString("VIPV004_TP"));
+
+            cutVisitExceptionMapper.addYbcVisitExc(pd);//添加 回访异常表记录
+        }
+        return cutVisitMapper.addYbcVisit(pd);
+    }
+}

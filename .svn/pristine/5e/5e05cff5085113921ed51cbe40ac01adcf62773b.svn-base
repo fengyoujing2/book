@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.cusothermsg.CorCarMapper">
+	<!-- 客户车辆信息 -->
+
+	<insert id="addCar" parameterType="pd" flushCache="false">
+		insert 
+			into 
+				YBC_CAR 
+					(
+					   YBC001, 
+					   YBC_CAR002_TP, 
+					   YBC_CAR003, 
+					   YBC_CAR004, 
+					   YBC_CAR005_TP, 
+					   YBC_CAR006, 
+					   YBC_CAR007, 
+					   YBC_CAR008, 
+					   YBC_CAR009, 
+					   YBC_CAR010_TM, 
+					   DEPT_LAYERORDER, 
+					   POSITION
+					)
+				values
+					(
+					   #{YBC001}, 
+					   #{YBC_CAR002_TP}, 
+					   #{YBC_CAR003}, 
+					   #{YBC_CAR004}, 
+					   #{YBC_CAR005_TP}, 
+					   #{YBC_CAR006}, 
+					   #{YBC_CAR007}, 
+					   #{USER_ID}, 
+					   (select name from sys_user from user_id = #{USER_ID}), 
+					   now(), 
+					   #{DEPT_LAYERORDER}, 
+					   1
+					)
+	</insert>
+	
+	<select id="getCasByCusId" parameterType="pd" resultType="pd" useCache="false">
+		select
+			c.*
+		from YBC_CAR c
+		where c.ybc001 = #{YBC001}
+	</select>
+	
+</mapper>

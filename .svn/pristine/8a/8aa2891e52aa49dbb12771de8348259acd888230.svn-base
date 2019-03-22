@@ -1,0 +1,26 @@
+package com.dbsun.service.cusothermsg;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.cusothermsg.CorCarMapper;
+import com.dbsun.service.BaseService;
+
+@Service
+public class CorCarService extends BaseService {
+
+	@Autowired
+	private CorCarMapper corCarMapper;
+	
+	public int addCar(PageData pd){
+		return corCarMapper.addCar(pd);
+	}
+	
+	public List<PageData> getCasByCusId(PageData pd){
+		return corCarMapper.getCasByCusId(pd);
+	}
+	
+}

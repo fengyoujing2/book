@@ -1,0 +1,31 @@
+function getRealIndexPath(){
+                var localObj = window.location;
+                var contextPath = localObj.pathname.split("/")[1];
+                var basePath = localObj.protocol + "//" + localObj.host + "/"+ contextPath;
+                return basePath ;
+}
+function getContentIndexPath(){
+    var localObj = window.location;
+    var contextPath = localObj.pathname.split("/")[1];
+    return contextPath ;
+}
+$(document).ready(function(){
+	var url = window.location.pathname;//window.location.href;
+        var path = getRealIndexPath();
+        	jQuery.ajax({
+                url:path+"/wx_index/checkLogin",
+                data:{currentUrl:url},
+                type:'POST',
+                dataType:"json",
+                async: false,
+                success:function(result,status){
+                 //判定返回值200授权过可以不做其他处理
+                	if(result.msg != '200'){
+                		window.location.href=result.result.authUrl;//如果非200后台需要返回授权请求的地址
+                	}
+                 //201表示未授权需要重定向进行授权
+                 
+                }
+
+            });
+		});

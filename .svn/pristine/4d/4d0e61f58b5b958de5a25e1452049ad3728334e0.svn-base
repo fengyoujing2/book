@@ -1,0 +1,13 @@
+package com.dbsun.mapper.homepage;
+
+import java.util.List;
+
+import com.dbsun.entity.system.PageData;
+
+
+public interface HmPRankingListMapper {
+	
+	public List<PageData> getRankForSign(PageData pd);
+	public List<PageData> getRankForAchi(PageData pd);
+	
+}

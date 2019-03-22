@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.customer.CusAptitudeMapper">
+	<!-- 资质 -->
+
+	<!-- 添加资质 -->
+	<insert id="addAptitude" parameterType="pd" flushCache="false">
+		insert 
+			into 
+				ybc_data 
+				(
+					YBC001, 
+					YBCDA002_TP, 
+					YBCDA003, 
+					YBCDA004, 
+					YBCDA005_TM, 
+					YBCDA006, 
+					YBCDA007
+				)
+				values
+				(
+					#{YBC001}, 
+					#{YBCDA002_TP}, 
+					#{YBCDA003}, 
+					#{USER_ID}, 
+					now(), 
+					#{YBCDA006}, 
+					1
+				)
+	</insert>
+	
+	<select id="getAptitudesByYBC001" parameterType="pd" resultType="pd" flushCache="false">
+		select
+			d.*, 
+			(
+				case d.YBCDA002_TP 
+					when 1 then '身份证'
+					when 2 then '房产证'
+					when 3 then '行驶证'
+					when 4 then '其他'
+				end
+			) as aptitudeType, 
+			(select name from sys_user where user_id = d.YBCDA004) as uploader
+		from ybc_data d
+		where d.YBC001 = #{YBC001}
+	</select>
+	
+	<select id="getAptitudeById" parameterType="pd" resultType="pd" flushCache="false">
+		select
+			d.*, 
+			(
+				case d.YBCDA002_TP 
+					when 1 then '身份证'
+					when 2 then '房产证'
+					when 3 then '行驶证'
+					when 4 then '其他'
+				end
+			) as aptitudeType, 
+			(select name from sys_user where user_id = d.YBCDA004) as uploader
+		from ybc_data d 
+		where d.YBCDA001 = #{YBCDA001}
+	</select>
+	
+	<update id="updateAptitude" parameterType="pd" flushCache="false">
+		update 
+			ybc_data
+				<set>
+						YBCDA008_TM			= now(),
+					<if test="YBCDA002_TP != null and YBCDA002_TP != ''">
+						,YBCDA002_TP		= #{YBCDA002_TP}
+					</if>
+					<if test="YBCDA003 != null and YBCDA003 != ''">
+						,YBCDA003			= #{YBCDA003}
+					</if>
+					<if test="YBCDA004 != null and YBCDA004 != ''">
+						,YBCDA004			= #{YBCDA004}
+					</if>
+					<if test="YBCDA006 != null and YBCDA006 != ''">
+						,YBCDA006			= #{YBCDA006}
+					</if>
+					<if test="YBCDA007 != null and YBCDA007 != ''">
+						,YBCDA007			= #{YBCDA007}
+					</if>
+				</set>
+			where
+						YBCDA001			= #{YBCDA001}
+	</update>
+	
+</mapper>

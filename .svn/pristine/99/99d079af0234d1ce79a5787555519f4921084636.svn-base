@@ -1,0 +1,26 @@
+package com.dbsun.service.customer;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.customer.CusLabelMapper;
+import com.dbsun.service.BaseService;
+
+@Service
+public class CusLabelService extends BaseService {
+
+	@Autowired
+	private CusLabelMapper cusLabelMapper;
+
+	/**
+	 * 根据类型获取标签
+	 * @param pd
+	 * @return
+	 */
+	public List<PageData> getAllLabel(PageData pd){
+		return cusLabelMapper.getAllLabel(pd);
+	}
+}

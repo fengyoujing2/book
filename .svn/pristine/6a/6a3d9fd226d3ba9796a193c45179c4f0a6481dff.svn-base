@@ -1,0 +1,26 @@
+package com.dbsun.service.finance;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.finance.FinPayBillMapper;
+
+@Service
+public class FinPayBillService {
+
+	@Autowired
+	private FinPayBillMapper finPayBillMapper;
+	
+	
+	public List<PageData> getPageWtPayBillLst(Page page){
+		return finPayBillMapper.getPageWtPayBillLst(page);
+	}
+	
+	public int updateForPayBill(PageData pd){
+		return finPayBillMapper.updateForPayBill(pd);
+	}
+}

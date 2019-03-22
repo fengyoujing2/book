@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+    <title>签单统计</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0];
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+
+    <style>
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        .cusMTable{
+            margin-top: 20px;
+        }
+        .cusMTable .el-table tr{
+            background-color: #4aa5fb;
+            color:#fff;
+        }
+        .el-table .odd-row {
+            background: #f1f7fe !important;
+            color:#878787 !important;
+        }
+        .el-table .even-row {
+            background: #ffffff !important;
+            color:#878787 !important;
+        }
+        .el-input-group__append{
+            color: #4aa5fb !important;
+        }
+        .top_divR{
+            margin-right: 6px;
+        }
+        .el-dialog__header {
+            padding: 15px 0px 10px !important;
+        }
+        .el-dialog__title{
+            border-left: 4px solid #4BA5FD;
+            padding-left: 10px;
+        }
+/*        // 去掉input[type=number]默认的加减号*/
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .el-table td{
+            padding: 4px 0 !important;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:10px;">
+    <div id="finance_NumApp" v-cloak>
+        <div>
+                <el-select size="mini"  v-model="soMoreUserIpt.YBCS009_TP" placeholder="签单类型" style="width:120px;"  class="top_divR">
+                    <el-option v-for="item in signTypeList" :key="item.value" :label="item.label" :value="item.value">
+                </el-select>
+                <el-cascader size="mini" v-model="selParment"
+                    :options="moreAlloatArr1"
+                             placeholder="请选择营销部门"
+                    change-on-select
+                    @change="handleChangeMore" class="top_divR">
+                </el-cascader>
+                <el-cascader
+                    :options="moreAlloatArr2" size="mini"
+                             placeholder="请选择客户经理"
+                    v-model="selMana"  class="top_divR">
+                </el-cascader>
+                <el-date-picker
+                  v-model="time"
+                  type="daterange" size="mini"
+                  range-separator="至"
+                  value-format="yyyy-MM-dd"
+                  start-placeholder="签单开始日期"
+                  end-placeholder="签单结束日期">
+                </el-date-picker>
+            <el-button size="mini" type="warning" style="background-color:#fd8c12;margin-left:6px;" class="top_divR" @click="checkUser">查询</el-button>
+            <el-button size="mini" type="primary" class="top_divR btnBGC" @click="clearCheck">清空</el-button>
+        </div>
+        <div class="cusMTable"
+            v-loading="loading">
+            <el-table
+            :data="cusTableLstInit"
+            style="width: 100%"
+            :row-class-name="tableRowClassName"
+            @selection-change="selCusRows">
+                <el-table-column
+                  prop="cus_name"
+                  label="客户姓名"  min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="loan_type"
+                  label="贷款类型" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="sign_date"
+                  label="签单时间" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="cus_manager_name"
+                  label="客户经理" min-width="120">
+                </el-table-column>
+                <el-table-column
+                  prop="dept"
+                  label="所在部门" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="status"
+                  label="是否在职" min-width="100">
+                </el-table-column>
+                <el-table-column
+                  prop="fiance_confi_date"
+                  label="确认签单时间" min-width="160">
+                </el-table-column>
+            </el-table>
+            <div style="text-align:right;">
+                <el-pagination
+                  @current-change="handleCurrentChange"
+                  :current-page="pageInit.currentPage"
+                  :page-size="10"
+                  layout="total, prev, pager, next, jumper"
+                  :total="pageInit.totalResult">
+                </el-pagination>
+            </div>
+        </div>
+        <!--        添加签单编号-->
+        <el-dialog title="添加财务编号" :visible.sync="dialogAddSign" width="30%">
+          <el-form :model="addSignform" class="demo-ruleForm">
+                <el-form-item label="财务编号" :label-width="formLabelWidth" prop="YBCS007"
+                    :rules="[
+                      { required: true, message: '编号不能为空'}
+                    ]">
+                    <el-input type="YBCS007" v-model="addSignform.YBCS007" placeholder="请输入财务编号" style="width:80%;"></el-input>
+                </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogAddSign = false">取 消</el-button>
+                <el-button type="primary" @click="sureAddNum">确 定</el-button>
+          </div>
+        </el-dialog>
+    </div>
+</body>
+<script th:inline="javascript">
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+
+    document.onkeydown=function(e){
+        // 兼容FF和IE和Opera
+        var theEvent = e || window.event;
+        var code = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if (code == 13) {
+            finance_NumApp.checkUser(); //回车执行查询函数
+        }
+    }
+    var finance_NumApp=new Vue({
+        el:"#finance_NumApp",
+        data(){
+            return {
+//                从后台模板里面获取
+                pageInit:[],
+                cusTableLstInit:[],
+//                弹出窗标题宽度
+                formLabelWidth:"120px",
+                dialogAddSign:false,
+//                添加财务编号
+                addSignform:{},
+//                搜索客户条件
+                soMoreUserIpt:{},
+//                搜索时间范围
+                time:[],
+                moreAlloatArr1:[],
+                moreAlloatArr2:[],
+                selParment:[],
+                selMana:[],
+                loading:false,
+                signTypeList:[]
+
+            }
+        },
+//        DOM渲染前执行
+        mounted(){
+            this.getDepartment();
+            this.getSignTypeList();
+
+            let end = new Date();
+            let start = new Date();
+
+            var endY = end.getFullYear() + '-';
+            var endM = (end.getMonth()+1 < 10 ? '0'+(end.getMonth()+1) : end.getMonth()+1) + '-';
+            var endD = end.getDate();
+            this.soMoreUserIpt.dateEnd=endY+endM+endD;
+
+            var startDate=new Date(start.getTime() - 3600 * 1000 * 24 * 30);
+            var startY = startDate.getFullYear() + '-';
+            var startM = (startDate.getMonth()+1 < 10 ? '0'+(startDate.getMonth()+1) : startDate.getMonth()+1) + '-';
+            var startD = startDate.getDate();
+            this.soMoreUserIpt.dateStart=startY+startM+startD;
+            this.time=[startY+startM+startD,endY+endM+endD];
+
+            this.handleCurrentChange(1);
+        },
+        methods:{
+          // 获取贷款类型列表
+            getSignTypeList(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pubSys/getTypeOneLst`,
+                    data:"",
+                    success:function(data){
+                        if(data.msg="200"){
+                            that.signTypeList=data.result;
+                        }
+                    }
+                })
+            },
+            //            获取部门列表
+            getDepartment(){
+//                DEPT_ID   获取部门
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/searchDeptAndMeAllLst`,
+                    data:"",
+                    success:function(data){
+                        console.log(data);
+                        if(data.msg=="200"){
+                            that.moreAlloatArr1=data.result;
+                        }
+                    }
+                })
+            },
+//            改变部门选择人员
+            handleChangeMore(value){
+                this.soMoreUserIpt.DEPT_LAYERORDER_SEA=(value[value.length-1]).DEPT_LAYERORDER;
+                let DEPT_ID=(value[value.length-1]).DEPT_ID;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/deptAndUserLst`,
+                    data:{DEPT_ID:DEPT_ID},
+                    success:function(data){
+                        that.moreAlloatArr2=data.result;
+                    }
+                })
+            },
+
+//            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                if(rowIndex==1){
+
+                }else if (rowIndex%2 == 0) {
+                    return 'odd-row';
+                }
+                return 'even-row';
+            },
+//            选中表格中的行
+            selCusRows(val){
+                console.log(val)
+            },
+//            查询搜索客户
+            checkUser(){
+                if(this.time){
+                    if(this.time.length !=0){
+                        this.soMoreUserIpt.dateStart=this.time[0];
+                        this.soMoreUserIpt.dateEnd=this.time[1];
+                    }
+                }else{
+                    delete this.soMoreUserIpt.dateStart;
+                    delete this.soMoreUserIpt.dateEnd;
+                }
+                if(this.selMana !=""){
+                    this.soMoreUserIpt.USER_ID_SEA=this.selMana.toString();
+                }
+                this.handleCurrentChange(1);
+            },
+//            清空搜索条件，并回到初始状态
+            clearCheck(){
+                this.selParment=[];
+                this.selMana=[];
+                this.soMoreUserIpt={};
+                this.time=[];
+                this.handleCurrentChange(1);
+            },
+//            当前页翻页
+            handleCurrentChange(val){
+                this.loading=true;
+                this.soMoreUserIpt.currentPage=val;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cnt_sign_and_meb/getSignCnt`,
+                    data:that.soMoreUserIpt,
+                    success:function(data){
+                        if(data.msg="200"){
+                            that.cusTableLstInit=data.rows;
+                            that.pageInit.totalResult=data.total;
+                            that.pageInit.currentPage=val;
+                            that.loading=false;
+                        }
+                    }
+                })
+            }
+
+        }
+    })
+
+</script>
+</html>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.count.CntSignAndMebMapper">
+
+	<!--会员统计-->
+	<select id="getPageMembershipList" resultType="com.dbsun.entity.system.PageData">
+		SELECT
+		y.YBC002 ,
+		(CASE y.YBC036_TP WHEN '1' THEN '准会员' WHEN '2' THEN '正式会员' ELSE '' END)
+		AS YBC036,
+		(SELECT
+		(CASE WHEN (v.VIPT003_TP IS NOT NULL) THEN CONCAT(v.VIPT002,'-',v.VIPT003_TP,'-',v.VIPT004,'元') ELSE CONCAT(v.VIPT002,'-',v.VIPT004,'元') END)
+		FROM vip_type v WHERE v.VIPT001 = y.VIPT001)
+		AS VIPGRADE,<!--会员等级-->
+		y.YBC039_TM,<!--会员有效期-->
+		(SELECT sys_user.NAME  FROM sys_user  WHERE (sys_user.USER_ID = y.USER_ID)) AS NAME,
+		(SELECT sys_dept.DEPT_NAME  FROM sys_dept WHERE (sys_dept.DEPT_LAYERORDER = y.DEPT_LAYERORDER)) AS DEPTNAME,
+		(SELECT (CASE sys_user.STATUS WHEN '1' THEN '离职' WHEN '0' THEN '在职' ELSE '' END)  FROM sys_user  WHERE (sys_user.USER_ID = y.USER_ID)) AS STATUS
+		FROM ybc y
+		WHERE y.YBC036_TP IN (1,2)
+
+		<if test=" pd.YBC002 != '' and pd.YBC002 != null"><!--客户姓名-->
+			AND y.YBC002 like concat(#{pd.YBC002}, "%")
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and y.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, '%')
+		</if>
+		<if test=" pd.YBC036_TP != '' and pd.YBC036_TP != null"><!--会员状态-->
+			AND y.YBC036_TP = #{pd.YBC036_TP}
+		</if>
+		<if test=" pd.VIPT001 != null and pd.VIPT001!= '' "><!--会员级别筛选-->
+			And y.VIPT001 = #{pd.VIPT001}
+		</if>
+		<if test=" pd.USER_ID_Sea != '' and pd.USER_ID_Sea != null"><!--客户经理-->
+			AND y.USER_ID = #{pd.USER_ID_Sea}
+		</if>
+		<if test=" pd.STATUS != null and pd.STATUS != '' "><!--员工状态 1离职 0在职-->
+			AND (SELECT STATUS FROM sys_user WHERE USER_ID = y.USER_ID) = #{pd.STATUS}
+		</if>
+		<if test=" pd.dateStart != '' and pd.dateStart != null"><!--会员有效期-->
+			AND y.YBC039_TM <![CDATA[>=]]> #{pd.dateStart}
+		</if>
+		<if test=" pd.dateEnd != '' and pd.dateEnd != null"><!--会员有效期-->
+			AND y.YBC039_TM <![CDATA[<=]]> #{pd.dateEnd}
+		</if>
+		ORDER BY y.YBC039_TM DESC
+	</select>
+
+
+	<select id="getPageSignCntLst" parameterType="page" resultType="pd" useCache="false">
+		SELECT
+			s.ybcs001 as sign_id,
+			(SELECT ybc002 from ybc where ybc001 = s.ybc001) as cus_name, /*客户姓名*/
+			(SELECT ybct002 from ybc_type WHERE YBCT001 = s.YBCS009_TP) as loan_type, /*贷款类型*/
+			s.YBCS049_TM as sign_date, /*签单日期*/
+			s.YBCS038 as cus_manager_name, /*客户经理*/
+			(SELECT DEPT_NAME FROM sys_dept WHERE DEPT_LAYERORDER = s.DEPT_LAYERORDER) as dept,
+			(
+				SELECT
+					case STATUS
+						when 1 then '离职'
+						when 0 then '在职'
+					END
+				from sys_user WHERE USER_ID = s.USER_ID) as status,
+			s.YBCS016_TM as fiance_confi_date
+		FROM
+			ybc_sign s
+		WHERE 1 = 1
+		and s.YBCS049_TM <![CDATA[ >= ]]> #{pd.dateStart}
+		and s.YBCS049_TM <![CDATA[ <= ]]> #{pd.dateEnd}
+		and
+			(
+				s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+				and
+				s.POSITION	= #{pd.POSITION}
+			)
+		<if test="pd.DEPT_LAYERORDER_SEA != null and pd.DEPT_LAYERORDER_SEA != ''"> /*部门搜索*/
+			and s.DEPT_LAYERORDER = #{pd.DEPT_LAYERORDER_SEA}
+		</if>
+		<if test="pd.USER_ID_SEA != null and pd.USER_ID_SEA != ''"> /*人员搜索*/
+			and s.USER_ID = #{pd.USER_ID_SEA}
+		</if>
+		<if test="pd.YBCS009_TP != null and pd.YBCS009_TP != ''"> /*贷款类型*/
+			and s.YBCS009_TP = #{pd.YBCS009_TP}
+		</if>
+		order by s.YBCS049_TM desc
+	</select>
+
+
+
+
+
+
+</mapper>

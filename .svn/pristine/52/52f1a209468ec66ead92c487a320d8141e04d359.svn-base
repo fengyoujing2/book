@@ -1,0 +1,27 @@
+package com.dbsun.mapper;
+
+import com.dbsun.entity.system.PageData;
+
+/**
+ * 个人资料表
+ * @author DongZai
+ *
+ */
+public interface YwDataMapper {
+	
+	/**根据账号ID获取个人资料*/
+	public PageData getYwDataByYwu001(PageData pd);
+	
+	/**新增个人资料表*/
+	public int addYwData(PageData pd);
+	
+	/**更新个人资料*/
+	public int updateYwDataByYwu001(PageData pd);
+	
+	/**资质认证*/
+	public int updateIdenByYwu001(PageData pd);
+	
+	/**根据账号ID获取个人资料*/
+	public PageData getYwDataByYwu010(PageData pd);
+	
+}

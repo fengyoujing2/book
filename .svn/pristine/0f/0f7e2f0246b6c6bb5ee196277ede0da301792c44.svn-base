@@ -1,0 +1,149 @@
+package com.dbsun.util;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 通过短信接口发送短信
+ */
+public class SmsUtil {
+	
+	/**存放获取验证码的手机号、次数、时间、ip等值*/
+	public static Map<String, String> SmsMap = new HashMap<String, String>();
+	
+	public static Map<String, String> IPMap = new HashMap<String, String>();
+	
+	public static Map<String, String> phoneToCodeMap = new HashMap<String, String>();
+	
+	/**
+	 * 生成验证码
+	 * @return
+	 * @throws Exception
+	 */
+	public static String madeCode() throws Exception{
+		return String.valueOf(Tools.getRandomNum());
+	}
+	
+	/**
+	 * 同一手机号一天内的获取验证码次数上限
+	 * @return
+	 */
+	public static boolean sameTelsendSmsTopLimit(String tel){
+		//同一手机号发送的次数
+		Integer sendCount = 1;
+		Long firstSendSmsTime = 1L;
+		String value = SmsUtil.SmsMap.get(tel);
+		if(Tools.notEmpty(value)){
+			String [] strAry = value.split("\\|");
+			firstSendSmsTime = Long.valueOf(strAry[0]);
+			sendCount = Integer.valueOf(strAry[1]);
+			
+			//24小时内同一手机号只能发送三次
+			if((DateUtil.getSysTime() - firstSendSmsTime)/(1000*60*60*24) < 1 && sendCount >= Const.MAXSENDSMSLIMITFROMSAMETEL){
+				return false;
+			}
+			
+			//允许发送短信
+			sendCount ++;
+			
+		}
+		
+		//把获取验证码的信息放入map中
+		SmsUtil.SmsMap.put(tel, String.valueOf(DateUtil.getSysTime()) + "|" + sendCount + "|");
+		return true;
+	}
+	
+	/**
+	 * 同一IP地址在一天内获取验证码次数的上限控制
+	 * @return
+	 */
+	public static boolean iPTopLimit(String ip){
+		//获取本次ip对应的值
+		String ipValue = SmsUtil.IPMap.get(ip);
+		Long firstIpVisitTime = 1L;
+		Integer ipCount = 1;
+		//ip池中包含该ip
+		if(Tools.notEmpty(ipValue)){
+			String [] ipAry = ipValue.split("\\|");
+			firstIpVisitTime = Long.parseLong(ipAry[0]);
+			ipCount = Integer.parseInt(ipAry[1]);
+			if((DateUtil.getSysTime() - firstIpVisitTime)/(1000*60*60*24) < 1 && ipCount >= Const.MAXSENDSMSLIMITFROMSAMEIP ){
+				System.out.println("ip访问次数已达上限");
+				return false;
+			}
+			
+			ipCount++;
+		}
+		
+		SmsUtil.IPMap.put(ip, String.valueOf(DateUtil.getSysTime()) + "|" + ipCount);
+		return true;
+	}
+	
+	/**
+	 * 验证验证码
+	 * @param tel
+	 * @param code
+	 * @return
+	 */
+	public static String validateCode(String tel, String code){
+		String value = SmsUtil.phoneToCodeMap.get(tel);
+		if(Tools.isEmpty(value)){
+			return "3";//"验证码错误
+		}
+		String [] valueSplitAry = value.split("\\|");
+		String sendCode = valueSplitAry[1];
+		long codeCreateTime = Long.parseLong(valueSplitAry[0]);
+		//判断验证码是否过期
+		System.out.println(DateUtil.getSysTime() + "---"+ codeCreateTime);
+		if(((DateUtil.getSysTime() - codeCreateTime)/1000) > 60){
+			SmsUtil.phoneToCodeMap.remove(tel);
+			return "1";//验证码过期
+		}
+		//判断验证码是否正确
+		if(Tools.notEmpty(sendCode) && code.equals(sendCode)){
+			//移除验证码
+			SmsUtil.phoneToCodeMap.remove(tel);
+			return "2";//success
+		}else{
+			return "3";//"验证码错误
+		}
+	}
+	
+	public static String sendSms(String tel, String ip){
+		System.out.println("smsMap的2个T:"+SmsUtil.SmsMap);
+		System.out.println("IPMap的2个T:"+SmsUtil.IPMap);
+		//判断时间和第几次验证
+		try {
+			//ip限制
+			if(!SmsUtil.iPTopLimit(ip)){
+				return "505";//该IP获取验证码次数已达上限！
+			}
+			
+			//同一手机号发送的次数
+			if(!SmsUtil.sameTelsendSmsTopLimit(tel)){
+				return "501";//今日获取验证码次数已达上限！
+			}
+			
+			//生成验证码
+			String code = SmsUtil.madeCode();
+			
+			System.out.println("你的验证码是："+code);
+			
+			//发送验证码
+			int retCode = JuheSmsPushUtil.getRequest2(tel, code);
+			System.out.println();
+			if(retCode == 205401)return "510";
+			
+			//验证码加入号码池
+			SmsUtil.phoneToCodeMap.put(tel, DateUtil.getSysTime() + "|" +code);
+			
+			System.out.println("短信池"+SmsUtil.phoneToCodeMap);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+				
+		return "200";
+	}
+	
+}
+

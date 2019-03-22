@@ -1,0 +1,42 @@
+package com.dbsun.service.settleAccounts;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.settleAccounts.SettleAccountsInMapper;
+import com.dbsun.util.DateUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * @Description: 业务结账确认单——SERVICEIMPL
+ * @Author: zhao yi
+ * @CreateDate: 2018-11-02 13:32:10
+ * @Version: V1.0
+ */
+@Service
+public class SettleAccountsInService {
+
+    @Autowired
+    public SettleAccountsInMapper settleAccountsInMapper;
+
+    public List<PageData> getPageSettleAccountsInList(Page page) {
+        return settleAccountsInMapper.getPageSettleAccountsInList(page);
+    }
+
+    public int addSettleAccountsIn(PageData pd) {
+        //添加当前操作用户
+        pd.put("YBCACI024", pd.getString("NAME"));
+        pd.put("YBCACI025_TM", DateUtil.getTime());
+        return settleAccountsInMapper.addSettleAccountsIn(pd);
+    }
+
+    public int delSettleAccountsInByPrimaryKey(PageData pd) {
+        return settleAccountsInMapper.delSettleAccountsInByPrimaryKey(pd);
+    }
+
+    public int updSettleAccountsInByPrimaryKey(PageData pd) {
+        return settleAccountsInMapper.updSettleAccountsInByPrimaryKey(pd);
+    }
+}

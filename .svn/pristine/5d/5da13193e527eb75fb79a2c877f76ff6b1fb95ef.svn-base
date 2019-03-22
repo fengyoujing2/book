@@ -1,0 +1,13 @@
+package com.dbsun.mapper.phonesys;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+
+public interface PhoCalMsgMapper {
+	
+	public List<PageData> getPageCallMsgLst(Page page);
+	public PageData getCallMsgSum(PageData pd);
+}

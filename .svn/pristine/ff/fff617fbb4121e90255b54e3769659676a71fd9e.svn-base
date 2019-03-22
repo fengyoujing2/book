@@ -1,0 +1,82 @@
+package com.dbsun.controller.background;
+
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.background.BacLendingService;
+/**
+ * 待放贷
+ * @author DongZai
+ *
+ */
+@Controller
+@RequestMapping("/bac_lending")
+public class BacLendingController extends BaseController {
+	
+	@Autowired
+	private BacLendingService bacLendingService;
+
+	/**
+	 * 跳转到待放贷界面
+	 * @return
+	 */
+	@RequestMapping("/goPageWtLendingIndex")
+	public String goPageWtLendingIndex(ModelMap model){
+		//构建初始数据
+		Page page = this.getPage();
+		PageData pd = this.getPageData();
+		page.setPd(pd);
+		List<PageData> wtLendingLst = null;
+		try {
+			wtLendingLst = bacLendingService.getPageWtLendingLst(this.putUserIdAdDeLAdPosPd(page, pd));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		model.addAttribute("wtLendingTableLst",wtLendingLst);
+		model.addAttribute("page",page);
+		System.out.println("跳转页面返回的****:" + model);
+		return "html/system/background/staylending";
+	}
+	
+	/**
+	 * 待放贷列表数据
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping("/getPageWtLendingLst")
+	@ResponseBody
+	public JSONObject getPageWtLendingLst(){
+		PageData pd = this.getPageData();
+		Page page = this.getPage();
+		page.setPd(pd);
+		List<PageData> wtLendintLst = null;
+		try {
+			wtLendintLst = bacLendingService.getPageWtLendingLst(this.putUserIdAdDeLAdPosPd(page, pd));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return viewReturnPageData(page, wtLendintLst);
+	}
+	
+	/**
+	 * 待放贷列表数据
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping("/updateForAdLending")
+	@ResponseBody
+	public JSONObject updateForAdLending(){
+		PageData pd = this.getPageData();
+		return this.getAddOrUpdJson(bacLendingService.updateForAdLending(this.putUserIdPd(pd)));
+	}
+}

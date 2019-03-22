@@ -1,0 +1,195 @@
+package com.dbsun.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.SysUserMapper;
+import com.dbsun.mapper.customer.CusFollowMapper;
+import com.dbsun.mapper.customer.CusMapper;
+import com.dbsun.mapper.product.ProdectMapper;
+import com.dbsun.util.DateUtil;
+import com.dbsun.util.Util;
+import com.dbsun.util.UuidUtil;
+
+@Service
+public class BaseService {
+	/**
+     * 获取产品类型
+     * */
+    @Autowired
+    private ProdectMapper prodectMapper;
+    @Autowired
+	private CusMapper cusMapper;
+    @Autowired
+    private SysUserMapper sysuserMapper;
+    @Autowired
+    private CusFollowMapper cusFollowMapper;
+    /**
+     * 获得uuid专门用户service使用
+     * */
+    public String getUUID(){
+        return UuidUtil.get32UUID();
+    }
+    /**
+     * 获取产品列表
+     * */
+    public List<PageData> getProductLst(PageData pd){
+        List<PageData>  pdaLst = prodectMapper.getProductByTypeForLst(pd);
+        return pdaLst;
+    }
+
+    /**
+     * 获取产品类型列表
+     * */
+    public JSONArray getProductTypeLst(PageData pd){
+        List<PageData>  pdaLst = prodectMapper.getProductTypeAllLst(pd);
+        //获取当前大类的ID传入组装参数
+        String id = prodectMapper.getProductId(pd);
+        JSONArray lstAry =  Util.productList(pdaLst,id);
+        return lstAry;
+    }
+    /**
+     * 获取产品列表（所有产品明细）
+     * */
+    public List<PageData> getProductByTypeAllLst(Page pd){
+        List<PageData>  pdaLst = prodectMapper.getPageProductTypeAllLst(pd);
+        return pdaLst;
+    }
+
+    /**
+     * 获取产品顶级类型列表
+     * */
+    public List<PageData> getProductTypeOneLst(PageData pd){
+        List<PageData>  pdaLst = prodectMapper.getProductByTypeOneForLst(pd);
+        return pdaLst;
+    }
+    /**
+     * 获取所有客户标签
+     * */
+    public JSONArray getLabelAllLst(PageData pd){
+        pd.put("YBC_LAB004_TP","1");
+        List<PageData>  pdaLst = prodectMapper.getLabelAllLst(pd);
+        JSONArray lstAry =  Util.labelList(pdaLst,"-1");
+        return lstAry;
+    }
+    /**
+     * 获取所有贷款用途数据
+     * */
+    public List<PageData> getLabelAllTpLst(PageData pd){
+        pd.put("YBC_LAB004_TP","2");
+        List<PageData>  pdaLst = prodectMapper.getLabelAllLst(pd);
+        JSONArray lstAry =  Util.labelList(pdaLst,"-2");
+        return lstAry;
+    }
+    /**
+     * 获取产品类型列表(树形tree)
+     * */
+    public JSONArray getProductTreeTypeLst(PageData pd){
+        List<PageData>  pdaLst = prodectMapper.getProductTypeAllLst(pd);
+        //获取当前大类的ID传入组装参数
+        JSONArray lstAry =  Util.productTreeList(pdaLst,"0");
+        return lstAry;
+    }
+    
+    /**
+	 * 得到32位的uuid
+	 * @return
+	 */
+	public String get32UUID(){
+		return UuidUtil.get32UUID();
+	}
+    
+    /**
+	 * 
+	 * @param userPd
+	 * 			当前登录用户pd
+	 * @param flwCont
+	 * 			跟进内容
+	 * @param flwType
+	 * 			跟进类型
+	 * @param cusId
+	 * 			客户ID
+	 * @return
+	 */
+	public int addCusFlw(PageData userPd, String flwCont, int flwType, String cusId) throws Exception{
+		PageData pd = new PageData();
+		pd.put("YBCF001", this.get32UUID());
+		pd.put("YBC001", cusId);
+		pd.put("USER_ID", userPd.get("USER_ID"));
+		pd.put("YBCF006", flwCont);//跟进内容
+		pd.put("DEPT_LAYERORDER", userPd.get("DEPT_LAYERORDER"));
+		pd.put("YBCF007_TP", flwType);//跟进类型
+		return cusFollowMapper.addFollow(pd);
+	}
+	
+	/**
+	 * 更新YBC的最近跟进信息
+	 * @param userPd
+	 * 			当前登录用户Pd
+	 * @param flwCont
+	 * 			跟进内容
+	 * @return
+	 * 		          受影响的行
+	 */
+	public int updateCusFlw(PageData userPd, String flwCont, String cusId) throws Exception{
+		PageData pd = new PageData();
+		pd.put("YBC020", userPd.get("USER_ID"));
+		pd.put("YBC021", flwCont);
+		pd.put("YBC022_TM", DateUtil.getTime());
+		pd.put("YBC028", userPd.get("NAME"));
+		pd.put("YBC001", cusId);
+		
+		return cusMapper.updateCusBasicData(pd);
+	}
+	/**
+	 * 获取操作失败返回的json
+	 * @return
+	 */
+	public JSONObject getFalJson(){
+		JSONObject json = new JSONObject();
+		json.put("msg", "500");
+		json.put("result", "filed");
+		return json;
+	}
+
+    /**
+     * 获取客户进度信息
+     * */
+    public List<PageData> getybcSpeedLst(PageData pd){
+        List<PageData>  pdaLst = cusMapper.getybcSpeedLst(pd);
+        List<PageData>  pdaNewLst = new ArrayList<PageData>();
+        //遍历客户进度列表数据
+        for(PageData pdata :pdaLst){
+            int startLev = 14;//默认表示所有流程都完成的最后一个节点数据
+            for(int i=1;i<=14;i++){//循环12次判定当前处于第几步
+                if(pdata.getString("SPEED"+i).equals("end")){//计算结束坐标
+                    startLev = i-1;//如果当前是end表示不用后面再读取，直接返回标记，并-1记录当前结束坐标
+                    break;
+                }
+            }
+            pdata.put("SPEED015",startLev);//当前行数据所处的进度数值(进度处在第几步)
+            pdaNewLst.add(pdata);
+        }
+        return pdaNewLst;
+    }
+    /**
+     * 获取首页后台部门做单数据
+     *
+     * */
+    public JSONArray getBackDeptJson(PageData pd) {
+        //获取部门列表（包含当前部门数据）
+        List<PageData> pageData = sysuserMapper.getBackDeptLst(pd);
+        //组装json格式数据
+        JSONArray ja = Util.backDeptList(pageData,"54b3d0134929480eaa148933cf2fc0d7");
+        return ja;
+    }
+	
+}

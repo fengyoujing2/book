@@ -1,0 +1,49 @@
+package com.dbsun.service.background;
+
+import java.util.List;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.background.BacCostMapper;
+import com.dbsun.util.Tools;
+
+@Service
+public class BacCostService {
+
+	@Autowired
+	private BacCostMapper bacCostMapper;
+	
+	public List<PageData> getPageWtEtrCostLst(Page page){
+		return bacCostMapper.getPageWtEtrCostLst(page);
+	}
+	public int updateForAdCost(PageData pd){
+		return bacCostMapper.updateForAdCost(pd);
+	}
+	
+	public PageData getCostBySingleId(PageData pd){
+		PageData singlePd = bacCostMapper.getCostBySingleId(pd);
+		if(!Tools.isObjEmpty(singlePd) && !Tools.isObjEmpty(singlePd.get("YBCMA021"))){
+			String costDetail = singlePd.getString("YBCMA021");
+			String [] costAry = costDetail.substring(0, costDetail.length() - 1).split(",");
+			JSONArray loadCostJSNAry = new JSONArray();
+			for (String costUt : costAry) {
+				String [] eachCost = costUt.split("=");
+				
+				JSONObject loadCostJson = new JSONObject();
+				
+				loadCostJson.put(eachCost[0], eachCost[1]);
+				
+				loadCostJSNAry.add(loadCostJson);
+			}
+			singlePd.put("YBCMA021", loadCostJSNAry);
+		}
+		return singlePd;
+	}
+		
+}

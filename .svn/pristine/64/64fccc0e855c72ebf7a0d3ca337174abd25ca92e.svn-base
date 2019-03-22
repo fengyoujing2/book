@@ -1,0 +1,25 @@
+package com.dbsun.util;
+
+import java.util.List;
+
+import com.dbsun.entity.system.PageData;
+
+public class SqlStrChangToJsnUtil {
+	
+	/**
+	 * Sql中的字符串类型转为JSON类型 -- 处理客户标签
+	 * @param wtCallLst
+	 * @return
+	 */
+	public static List<PageData> strChangToJsn(List<PageData> wtCallLst) {
+		for (PageData wtCalPd : wtCallLst) {
+			if(!Tools.isObjEmpty(wtCalPd.get("YBC023"))){
+				//不为空才取
+				String YBC023 = wtCalPd.getString("YBC023");
+				wtCalPd.put("YBC023", YBC023.substring(0, YBC023.length() - 1).split(","));
+			}
+		}
+		
+		return wtCallLst;
+	}
+}

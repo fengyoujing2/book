@@ -1,0 +1,12 @@
+package com.dbsun.mapper.customer;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface CusLikeTitleMapper {
+	
+	public List<PageData> getPageCusLikeTleLst(Page page);
+
+}

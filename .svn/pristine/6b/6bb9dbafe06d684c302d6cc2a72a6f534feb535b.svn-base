@@ -1,0 +1,121 @@
+package com.dbsun.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.CrmMapper;
+import com.dbsun.mapper.YwuMapper;
+import com.dbsun.util.DateUtil;
+import com.dbsun.util.SmsUtil;
+
+@Service
+public class YwuService {
+
+	@Autowired
+	private YwuMapper ywuMapper;
+	@Autowired
+	private CrmMapper crmMapper;
+	@Autowired
+	private YwRewardService ywRewardService;
+	@Autowired
+	private YwDataService ywDataService;
+	@Autowired
+	private YwuService ywuService;
+	@Autowired
+	private YwBindService ywBindService;
+
+	/** 获取所有用户数据 */
+	public List<PageData> getPageYwuLst(Page page) {
+		return ywuMapper.getPageYwuLst(page);
+	}
+
+	/** 添加用户 */
+	public int addYwu(PageData pd) {
+		return ywuMapper.addYwu(pd);
+	}
+
+	/** 修改用户信息 */
+	public int updateYwu(PageData pd) {
+		return ywuMapper.updateYwu(pd);
+	}
+
+	/** 绑定手机号 */
+	public int updateBindTel(PageData pd) {
+		return ywuMapper.updateBindTel(pd);
+	}
+
+	/** 获取用户 */
+	public PageData getYwuByYwu010(PageData pd) {
+		return ywuMapper.getYwuByYwu010(pd);
+	}
+
+	/** 获取crm用户产品信息列表 */
+	public List<PageData> getCrmData(PageData pd) {
+		// 获取用户的绑定手机
+		PageData userWxpd = getYwuByYwu010(pd);
+		// 根据绑定手机去后台crm管理系统获取该手机号码的产品数据
+		// 根据手机号码获取用户的个人基本信息YBC001
+		List<PageData> returnPd = new ArrayList<PageData>();
+		System.out.println(userWxpd);
+		if (userWxpd != null) {
+			pd.put("YBC003", userWxpd.getString("YWU008"));// 电话号码
+			// 数据构成(产品名称(YBT_LST)、做单时间(MACTH)、产品跟进状态(MACTH))
+			returnPd = crmMapper.getCrmData(pd);
+		}
+		return returnPd;
+	}
+
+	/**
+	 * 获取个人资料和资料完整度
+	 * 
+	 * @param pd
+	 * @return
+	 */
+	public PageData getUserAndDataIntegrity(PageData pd) {
+		PageData ywuPD = ywuMapper.getYwuByYwu010(pd);
+		// 我的积分
+		if (ywuPD != null) {
+			pd = ywuPD;// 该对象已包含：YWU007_TP，若YWU007_TP为空则默认为2
+			pd.put("JF", ywRewardService.getJF(pd));
+		} else {
+			pd.put("YWU007_TP", 2);// 新客户手机号默认未绑定
+			pd.put("JF", 0);
+		}
+		// 资料完整度
+		String hundredInfo = ywDataService.getUserHundredInfo(pd);
+		pd.put("HINFO", hundredInfo);// 完整度
+		return pd;
+	}
+
+	/**
+	 * 绑定手机号
+	 */
+	public String updateTel(PageData pd, String openId) {
+		String tel = pd.getString("YWU008");
+		String code = pd.getString("code");
+		String res = SmsUtil.validateCode(tel, code);
+		if (res.equals("2")) {
+			// 添加到数据库
+			pd.put("YWU010", openId);
+			pd.put("YWU008", tel);
+			pd.put("YWU009_TM", DateUtil.get1000ParsedDate());
+			pd.put("YWU007_TP", 1);
+
+			ywuService.updateBindTel(pd);
+
+			// 添加账号绑定历史
+			PageData bdPd = new PageData();
+			bdPd.put("YWU010", openId);
+			bdPd.put("YWBIND002", tel);
+			bdPd.put("YWBIND003_TM", DateUtil.get1000ParsedDate());
+			ywBindService.addYwBind(bdPd);
+		}
+		return res;
+	}
+
+}

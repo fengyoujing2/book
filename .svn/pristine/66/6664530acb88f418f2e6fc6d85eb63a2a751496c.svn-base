@@ -1,0 +1,69 @@
+package com.dbsun.mapper.finance;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface FinSignMapper {
+	
+	public List<PageData> getPageConfSignLst(Page page);
+
+	@Deprecated
+	public int updateConfSign(PageData pd);
+
+
+	public int updateSign(PageData pd);
+
+
+	/*************************************************财务确认签单 + 后台自动确认签单 + 网贷自动编号 2018/11/14 10:07  ***************************************************************/
+
+
+	/**
+	 * 财务确认签单-瑞信版本
+	 * 原有基础上 增加自动完成后台确认签单功能
+	 *
+	 * @Author: zhao yi
+	 * @Date : 2018/11/14 10:07
+	 * @Param : [pd]
+	 * @return: int
+	 */
+	public int updateConfSignAuto(PageData pd);
+
+
+	/**
+	 * 瑞信公司
+	 * 获得财务编号的对应 前缀
+	 *
+	 * @Author: zhao yi
+	 * @Date : 2018/11/14 10:07
+	 * @Param : [pd] YBCS009_TP 贷款类型ID EPT_LAYERORDER 部门
+	 * @return: com.dbsun.entity.system.PageData
+	 */
+	public PageData getGeneratedFinNumCustom(PageData pd);
+
+	/**
+	 * 瑞信公司
+	 * 根据前缀获得 最后的财务编号 例如 :FD10001
+	 *
+	 * @Author: zhao yi
+	 * @Date  : 2018/11/14 10:07
+	 * @Param : [prefix]
+	 * @return: com.dbsun.entity.system.PageData
+	 * @param prefix
+	 */
+	public PageData getFinNumByPrefixCustom(PageData prefix);
+
+	/**
+	 * 财务编号
+	 * @Author: zhao yi
+	 * @Date  : 2018/11/14 10:07
+	 * @Param : [pd]
+	 * @return: int
+	 */
+	public int updateFinNumCustom(PageData pd);
+
+	/*************************************************   	end	 	***************************************************************/
+
+
+}

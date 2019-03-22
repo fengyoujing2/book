@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.background.BacLendingMapper">
+	<!-- 待放贷 -->
+	
+	<select id="getPageWtLendingLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			m.*, 
+			c.YBC002,  
+			c.YBC003, <!-- 客户号码 -->
+			s.YBCS017, <!-- 合同编号 -->
+			s.YBCS007, <!-- 财务编号 -->
+			(select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName, <!-- 产品类型名称 -->
+			s.YBCS010, <!-- 合同金额 -->
+			s.YBCS053_TM, <!-- 组长分配时间 -->
+			s.YBCS054_TM <!-- 分配到做单员的时间 -->
+			
+		from ybc_match m, ybc_sign s, ybc c 
+		where m.ybcs001 = s.ybcs001 
+		and s.ybc001 = c.ybc001  
+		and m.YBCMA005_TP = 10		<!-- 产品跟进状态为已放贷 -->
+		and m.YBCMA029_TM is null 	<!-- 放贷时间为空（未放贷） -->
+	<!-- 权限 start -->
+		and (
+				(
+					m.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+					and 
+					m.POSITION	= #{pd.POSITION}
+				)<!-- 做单员的主管 -->
+				or
+				m.USER_ID = #{pd.USER_ID} <!-- 做单员 -->
+		)
+	<!-- 权限 end -->
+	<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+			and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+		</if>
+		<if test="pd.YBC003 != null and pd.YBC003 != ''">
+			and c.YBC003 like concat_ws(#{pd.YBC003}, "%", "%")
+		</if>
+		<if test="pd.YBCS017 != null and pd.YBCS017 != ''"><!-- 合同编号 -->
+			and s.YBCS017 like concat_ws(#{pd.YBCS017}, "%", "%")
+		</if>
+		<if test="pd.YBCS038 != null and pd.YBCS038 != ''"><!-- 签单客户经理 -->
+			and s.YBCS038 like concat_ws(#{pd.YBCS038}, "%", "%")
+		</if>
+		<if test="pd.signTmStart != null and pd.signTmStart != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[>=]]> #{pd.signTmStart} 
+		</if>
+		<if test="pd.signTmEnd != null and pd.signTmEnd != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[<=]]> #{pd.signTmEnd} 
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and 
+				(
+					s.USER_ID = #{pd.USER_ID_Sea} 
+					or
+					m.USER_ID = #{pd.USER_ID_Sea} 
+			)
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and 
+				(
+					s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+					or
+					m.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+				)
+		</if>
+	<!-- 搜索 end -->
+		order by m.YBCMA035_TM desc<!-- 跟进时间 -->
+	</select>
+
+	<!-- 添加放贷信息 -->
+	<update id="updateForAdLending" parameterType="pd" flushCache="false">
+		update 
+			ybc_match 
+				<set>
+					YBCMA027			= #{USER_ID},<!-- 产品跟进状态 -->
+					YBCMA028			= (select name from sys_user where user_id = #{USER_ID}), <!-- 放贷人姓名 -->
+					YBCMA029_TM			= now(), 
+					YBCMA030			= #{YBCMA030}, <!-- 放贷金额 -->
+					YBCMA031			= #{YBCMA031}, 
+					YBCMA032			= #{YBCMA032}, 
+					YBCMA033			= #{YBCMA033},
+					YBCMA034_TP			= #{YBCMA034_TP}
+					
+				</set>
+			where 
+				YBCMA001 = #{YBCMA001}
+	</update>
+
+</mapper>

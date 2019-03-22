@@ -1,0 +1,63 @@
+package com.dbsun.service.customer;
+
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.customer.CusAptitudeMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.FollowUtil;
+
+@Service
+public class CusAptitudeService extends BaseService {
+
+	@Autowired
+	private CusAptitudeMapper aptitudeMapper;
+	
+	public int addAptitude(PageData pd, PageData userPd, JSONObject json) {
+		int res = 0;
+		
+		//获取当前的用户信息
+		pd.put("YBCDA003", json.get("fileName"));
+		pd.put("YBCDA006", json.get("path"));
+		try {
+			res = aptitudeMapper.addAptitude(pd);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+	
+	public int addAptitudePlu(PageData pd, PageData userPd, JSONObject json) {
+		int ret = 0;
+		try {
+			
+			addAptitude(pd, userPd, json);
+			this.addCusFlw(userPd, FollowUtil.CUS_ADD_APTITUDE_STR, FollowUtil.CUS_ADD_APTITUDE_CODE, pd.getString("YBC001"));
+			this.updateCusFlw(userPd, FollowUtil.CUS_ADD_APTITUDE_STR, pd.getString("YBC001"));
+			
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+
+	public List<PageData> getAptitudesByYBC001(PageData pd){
+		return aptitudeMapper.getAptitudesByYBC001(pd);
+	}
+	
+	public PageData getAptitudeById(PageData pd){
+		return aptitudeMapper.getAptitudeById(pd);
+	}
+	
+	public int updateAptitude(PageData pd){
+		return aptitudeMapper.updateAptitude(pd);
+	}
+	
+}

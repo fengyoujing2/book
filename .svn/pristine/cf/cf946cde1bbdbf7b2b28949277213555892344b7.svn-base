@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+
+    <title> - 主页示例</title>
+
+    <link rel="shortcut icon" href="favicon.ico"> 
+    <link href="static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="static/css/animate.css" rel="stylesheet">
+    <link href="static/css/style.css?v=4.1.0" rel="stylesheet">
+    
+    <link rel="stylesheet" href="static/element-ui/lib/theme-chalk/index.css">
+    
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0]; 
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+    
+    <script src="static/js/echarts.js"></script>
+    <script src="static/js/essos.js"></script>
+    <script src="static/js/vue.js"></script>
+    <script src="static/element-ui/lib/index.js"></script>
+    <script src="static/js/jquery.min.js"></script>
+
+    <style>
+        html,body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        
+        a{
+            text-decoration: none;
+            color: #fff;
+        }
+        .callMenuL{
+            width: 40%;
+            height: 180px;
+            background-color: #54de9e;
+            text-align: center;
+        }
+        .callMenuL img{
+            width: 30px;
+            height: 30px;
+            margin-top: 65px;
+        }
+        .callMenuR{
+            width: 60%;
+            padding: 0 2px;
+            background-color: #fff;
+            text-align: left;
+        }
+        .callMenuR img{
+            width: 20px;
+        }
+        .callMenuR div{
+            padding:20px 5px 15px 5px;
+            border-bottom: 1px solid #ccc;
+        }
+        .callMenuR div:last-child{
+            border-bottom: 0;
+        }
+        .callSpan1{
+            margin-left: 1rem;
+            font-size: 12px;
+        }
+        .callSpan2{
+            color:#000;
+            font-size: 14px;
+            float: right
+        }
+        .selectDiv{
+            margin: 0 10px;
+            line-height: 30px;
+            font-size: 14px;
+        }
+        .tips{
+            display: inline-block;
+            padding: .5rem 1rem;
+            background-color: #54de9e;
+            color: #fff;
+            font-size: 12rem;
+            border-bottom-right-radius: 2rem;
+            border-top-right-radius: 2rem;
+        }
+        .toBeDealt{
+            width: 100%;
+            border-bottom: .1rem solid #ccc;
+            padding-left:1rem;
+            font-size: 14rem;
+            display: flex;
+        }
+        .tipsA{
+            display: none;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            font-size: 12px;
+            
+        }
+        .cusMTable{
+            max-height: 400px;
+            overflow-y: scroll;
+        }
+        .cusMTable .el-table tr{
+            background-color: #4aa5fb;
+            color:#fff;
+        }
+        .el-table .odd-row {
+            background: #f1f7fe !important;
+            color:#878787 !important;
+        }
+        .el-table .even-row {
+            background: #ffffff !important;
+            color:#878787 !important;
+        }
+        .tipsA:hover{
+        	color:#4aa5fb;
+        }
+        .dealtText{
+            width:20rem;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            padding:1rem 0;
+            font-size: 12rem;
+        }
+        .toBeDealt:hover .tipsA{
+            display: inline-block;
+        }
+        .toBeDealt:hover .dealtText{
+            width:13rem;
+        }
+        
+        .completed{
+            padding: 1rem 0 1rem 1rem;
+            border-bottom: .1rem solid #ccc;
+        }
+        .completedText{
+            width:16rem;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            font-size: 12rem;
+        }
+        .messageTips{
+            padding: 1rem 0 1rem 1rem;
+            border-bottom: .1rem solid #ccc;
+            font-size: 12rem;
+            display: flex;
+        }
+        .messageTips div:first-child{
+            flex-grow:1;
+            width:14rem;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+        }
+        .messageTips div:last-child{
+            color:#ccc;
+            font-size:6rem;
+        }
+        .el-tabs__header{
+    		margin-bottom:0 !important;
+    	}
+        .callMenuText{
+            color: #fff;
+            font-size: 16px;
+        }
+        .unComplete{
+            position: absolute;
+            left: 40px;
+            top: 40px;
+            font-size: 30px;
+            color:#DEDDDE;
+        }
+        .vComplete{
+            position: absolute;
+            left: 65px;
+            top: 25px;
+            transform: rotate(20deg);
+            font-size: 80px;
+            color:#DEDDDE;
+        }
+        .nComplete{
+            position: absolute;
+            left: 80px;
+            top: 75px;
+            font-size: 30px;
+            color:#C825FD;
+        }
+        .backlog .el-tabs__nav-scroll{
+            margin-left: 20px;
+        }
+        .el-dialog__header {
+            padding: 15px 0px 10px !important;
+        }
+        .el-dialog__title{
+            border-left: 4px solid #4BA5FD;
+            padding-left: 10px;
+        }
+/*        // 去掉input[type=number]默认的加减号*/
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .small-font{    
+　　　       font-size:12px; 
+            -webkit-transform-origin-x: 0;
+            -webkit-transform: scale(0.90);
+        }
+        .smallsize-font {
+ 　　　　       font-size:10.8px;
+       　}
+        
+        .collapseDIV .el-collapse-item__header{
+            margin-left: 10px !important;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:0;">
+    <div id="index_v1App">
+        <el-row>
+            <el-col :span="20">
+            <el-row>
+                <el-col :span="8" style="display:flex;padding:1rem;">
+                    <div class="callMenuL">
+                        <div v-if="callSeat">
+                            <a href="javascript:" @click="toCallWb" style="display: inline-block;width: 100%;">
+                                <img src="static/img/call.png">
+                            </a>
+                            <div style="margin-top:5px;"><span class="callMenuText">电话</span></div>
+                            <div v-if="seatSate"><span style="color:#fff;font-size:12px;">坐席已登录</span></div>
+                            <div v-else>
+                                <div><span style="color:orange;font-size:12px;"><i class="el-icon-warning" style="color:orange;font-size:12px;"></i>坐席登录失败</span></div>
+                                <div>
+                                    <a href="https://192.168.1.241" target="view_window" class="small-font smallsize-font" style="text-decoration: underline;" title="请尝试点此链接,确认信任前往后,重新刷新页面！">请尝试点此链接</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else>
+                            <img src="static/img/call.png">
+                            <div style="margin-top:5px;"><span class="callMenuText">电话</span></div>
+                        </div>
+                    </div>
+                    <div class="callMenuR">
+                        <div><img src="static/img/call_1.png"><span class="callSpan1" style="color:#4AA5FB">外呼</span><span class="callSpan2">{{callNumTotal}}通</span></div>
+                        <div><img src="static/img/call_2.png"><span class="callSpan1" style="color:#54DE9E">时长</span><span class="callSpan2">{{callTimeTotal}}</span></div>
+                        <div><img src="static/img/call_3.png"><span class="callSpan1" style="color:#FC5C7E">接通率</span><span class="callSpan2">{{callDone}}</span></div>
+                    </div>
+                </el-col>
+                <el-col :span="8" style="display:flex;padding:1rem;">
+                    <a class="callMenuL" style="background-color:#fc5c7e" @click="searchCustomer = true">
+                        <img src="static/img/user_search.png">
+                        <div style="margin-top:5px;"><span class="callMenuText">搜索</span></div>
+                    </a>
+                    <div class="callMenuR">
+                        <div @click="addNewCustomer = true">
+                            <a style="display:block;width:100%;">
+                                <img src="static/img/user_add.png"><span class="callSpan1" style="color:#4AA5FB">新增</span><span class="callSpan2">{{userNewNum}}个</span>
+                            </a>
+                        </div>
+                        <div><img src="static/img/user_3.png"><span class="callSpan1" style="color:#FC5C7E">待跟进</span><span class="callSpan2">{{userNewTreated}}个</span></div>
+                        <div @click="toCusM">
+                            <a style="display:block;width:100%;">
+                                <img src="static/img/user_4.png"><span class="callSpan1" style="color:#54DE9E">客户池</span><span class="callSpan2">{{userNumTotal}}个</span>
+                            </a>
+                        </div>
+                    </div>
+                </el-col>
+                <el-col :span="8" style="padding:1rem;font-size:12rem;">
+                    <div style="height:180px;overflow-y:scroll;with:100%;background-color:#fff;">
+                        <div v-for="(item,index) in getCtForMonth" style="display:flex;margin:10px 5px">
+                            <div>
+                                <div v-if="item.YBT009_TP=='2'">个人</div>
+                                <div v-else>{{item.deptName}}</div>
+                                <div>{{item.taskType}}</div>
+                            </div>
+                            <div style="flex-grow:1;margin-left:20px;">
+                                <div>
+                                    <span v-if="item.YBT003_TP=='1' && item.YBT009_TP=='1'">完成：{{item.doSTotalNumdept}}</span>
+                                    <span v-else-if="item.YBT003_TP=='1' && item.YBT009_TP=='2'">完成：{{item.doSTotalNum}}</span>
+                                    <span v-else-if="item.YBT003_TP=='2' && item.YBT009_TP=='1'">完成：{{item.doIncomeTolNumdept}}</span>
+                                    <span v-else-if="item.YBT003_TP=='2' && item.YBT009_TP=='2'">完成：{{item.doIncomeTolNum}}</span>
+                                    <span style="margin-left:30px;">目标值：{{item.YBT012}}</span>
+                                </div>
+                                <div>
+                                    <el-progress v-if="item.YBT003_TP=='1' && item.YBT009_TP=='1'" :text-inside="true" :stroke-width="18" :percentage="item.doSTotaldept"></el-progress>
+                                    <el-progress v-else-if="item.YBT003_TP=='1' && item.YBT009_TP=='2'" :text-inside="true" :stroke-width="18" :percentage="item.doSTotal"></el-progress>
+                                    <el-progress v-else-if="item.YBT003_TP=='2' && item.YBT009_TP=='1'" :text-inside="true" :stroke-width="18" :percentage="item.doIncomeToldept"></el-progress>
+                                    <el-progress v-else-if="item.YBT003_TP=='2' && item.YBT009_TP=='2'" :text-inside="true" :stroke-width="18" :percentage="item.doIncomeTol"></el-progress>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    <!--
+                    <div style="display:flex;">
+                        <div class="callMenuL" style="background-color:#fff;width:30%;">
+                            <div style="margin-top:2rem;"><span>未完成：</span><i style="display:inline-block;padding:.2rem 1rem;background-color:#ccc;"></i></div>
+                            <div><span>已完成：</span><i style="display:inline-block;padding:.2rem 1rem;background-color:#c825fd;"></i></div>
+                            <div style="position:relative;">
+                                <div class="unComplete">20</div>
+                                <div class="vComplete">/</div>
+                                <div class="nComplete">40</div>
+                            </div>
+                        </div>
+                        <div style="background-color:#fff;width:70%;">
+                            <div id="complete" style="width: 100%;height:16rem;text-align:center;"></div>
+                            <div style="margin-top:1rem;text-align:center;">本月完成比（万元）</div>
+                        </div>
+                    </div>
+    -->
+                </el-col>
+            </el-row>
+            <el-row style="margin:10px 0;">
+                <el-col :span="12" style="display:flex;">
+                    <div class="selectDiv">统计周期</div>
+                    <el-date-picker
+                      v-model="cycleTime"
+                      type="daterange"
+                      align="right"
+                      size="mini"
+                      unlink-panels
+                                    value-format="yyyy-MM-dd"
+                      range-separator="至"
+                      start-placeholder="开始日期"
+                      end-placeholder="结束日期"
+                      :picker-options="pickerOptions">
+                    </el-date-picker>
+                </el-col>
+                <el-col :span="8" style="display:flex;">
+                    <div class="selectDiv">统计范围</div>
+                    <el-cascader
+                        change-on-select
+                        size="mini"
+                        :show-all-levels="false"
+                        :options="options"
+                        v-model="selectedOptions"
+                        @change="handleChange">
+                      </el-cascader>
+                </el-col>
+                <el-col :span="4">
+                    <el-button type="warning" size="mini" style="background-color:#fd8c12;color:#fff;border-color: #fd8c12;" @click="check">查询</el-button>
+                </el-col>
+            </el-row>
+            <el-row style="padding:1rem;">
+                <el-col :span="24">
+                    <el-tabs type="border-card">
+                        <el-tab-pane>
+                            <span slot="label"><i class="fa fa-circle" style="font-size:16px;margin-right:10px;"></i>签单排行榜</span>
+                            <div style="width:100%;overflow:scroll;">
+                                <div id="main0" style="width:1000px;height:350px;text-align:center;"></div>
+                            </div>
+                        </el-tab-pane>
+                        <el-tab-pane>
+                            <span slot="label"><i class="fa fa-circle" style="font-size:16px;margin-right:10px;"></i>业绩排行榜</span>
+                            <div  style="width:100%;overflow:scroll;">
+                                <div id="main" style="width:1000px;height:350px;text-align:center;"></div>
+                            </div>
+                        </el-tab-pane>
+                    </el-tabs>
+                </el-col>
+            </el-row>
+            </el-col>
+            <el-col :span="4">
+                <div style="min-height:800px;background-color:#fff;">
+                    <div>
+                        <div><span class="tips" style="margin-bottom:1rem;">待办事项</span></div>
+                        <el-tabs class="backlog">
+                            <el-tab-pane label="待办">
+                                <div style="max-height:400px;overflow-y:auto;">
+                                    <div v-for="(item,index) in toBeDealt" class="toBeDealt" >
+                                        <div class="dealtText" :title="item.YBC_NEE003">{{index+1}}.{{item.YBC_NEE003}}</div>
+                                        <div style="display:flex;margin-left:10px;">
+                                            <div>
+                                                <a href="javascript:" class="tipsA" style="background-color:#ccc;" @click="toCompeleted(item.YBC_NEE001)">处理</a>
+                                            </div>
+                                            <div>
+                                                <a href="javascript:" class="tipsA" style="background-color:#fc5c7e;"  @click="toDel(item.YBC_NEE001)">删除</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="margin-top:2rem;text-align:center;">
+                                    <el-button type="text" icon="el-icon-plus" @click="addMatter=true">添加事项</el-button>
+
+                                </div>
+                            </el-tab-pane>
+                            <el-tab-pane label="已处理">
+                                <div v-for="(item,index) in completed" class="toBeDealt">
+                                    <div class="dealtText"  :title="item">{{index+1}}.{{item.YBC_NEE003}}</div>
+                                    <div style="margin-left:55px;">
+                                        <a href="javascript:" class="tipsA" style="background-color:#fc5c7e;"  @click="toDel(item.YBC_NEE001)">删除</a>
+                                    </div>
+                                </div>
+                            </el-tab-pane>
+                        </el-tabs>
+                    </div>
+                    <div style="margin-top:30px;" class="collapseDIV">
+                        <div style="margin-bottom:1rem;"><span class="tips">做单情况</span></div>
+                        <div style="max-height:600px;overflow-y:auto;">
+                            <el-collapse accordion>
+                                <el-collapse-item v-for="(item,index) in signList" :title="item.label" :name="index+1" :key="index">
+                                    <div style="margin-left:30px;">
+                                        <el-collapse accordion>
+                                            <el-collapse-item v-for="(t,i) in item.children" :title="t.label" :name="i+1" :key="i">
+                                                <div>
+                                                    <div v-for="(m,n) in t.backUserLst" style="margin-left:30px;">
+                                                        <i class="fa fa-user" style="font-size=:16px;color:#4BA5FD;"></i>
+                                                        <span>{{m.NAME}}：</span>
+                                                        <span><label style="color:#54de9e;">{{m.COTNUM}}</label>个</span>
+                                                    </div>
+                                                </div>
+                                            </el-collapse-item>
+                                        </el-collapse>
+                                    </div>
+                                </el-collapse-item>
+                            </el-collapse>
+                        </div>
+                    </div>
+                </div>
+            </el-col>
+        </el-row>
+
+            
+        
+<!--        搜索框-->
+        <el-dialog title="搜索客户" :visible.sync="searchCustomer" top="5vh" width="50%" :before-close="closeSoCus">
+            <el-input placeholder="请输入客户姓名" v-model="inputSearchCustomer" class="input-with-select">
+                <el-button slot="append" icon="el-icon-search" @click="soCus"></el-button>
+            </el-input>
+            <div v-if="soCusFg" class="cusMTable">
+                <el-table
+                v-loading="loading"
+                :data="cusTableLstInit"
+                style="width: 100%"
+                :row-class-name="tableRowClassName">
+                    <el-table-column
+                      prop="YBC002"
+                      label="客户姓名" min-width="80">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBC003"
+                      label="联系电话" min-width="160">
+                    </el-table-column>
+                    <el-table-column label="操作"  fixed="right" width="100">
+                      <template slot-scope="scope">
+                        <el-button
+                          size="mini"
+                          @click="toCusInfo(scope.$index, scope.row)">查看详情</el-button>
+                      </template>
+                    </el-table-column>
+                </el-table>
+                <div style="text-align:right;">
+                    <el-pagination
+                      @current-change="soCusPage"
+                      :current-page="pageInit.currentPage"
+                      :page-size="10"
+                      layout="total, prev, pager, next, jumper"
+                      :total="pageInit.totalResult">
+                    </el-pagination>
+                </div>
+            </div>
+        </el-dialog>
+<!--        添加事项-->
+        <el-dialog title="添加事项" :visible.sync="addMatter" width="35%" top="2vh">
+            <el-form :model="addMtt" label-width="80px">
+                <el-form-item label="事项内容">
+                    <el-input
+                      v-model="addMtt.text" style="width:90%;">
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="是否提醒">
+                    <el-switch v-model="addMtt.remind"></el-switch>
+                </el-form-item>
+                <el-form-item v-if="addMtt.remind" label="提醒时间">
+                    <el-radio-group v-model="addMtt.timeType">
+                        <el-radio :label="1">半小时后</el-radio>
+                        <el-radio :label="2">1小时后</el-radio>
+                        <el-radio :label="3">自定义</el-radio>
+                    </el-radio-group>
+                    <el-row v-if="addMtt.timeType=='3'">
+                        <el-date-picker
+                          v-model="addMtt.time"
+                          type="datetime"
+                          placeholder="选择日期时间">
+                        </el-date-picker>
+                    </el-row>
+                </el-form-item>
+                <div style="text-align:center;">
+                    <el-button type="primary" @click="sureAddMatter">保存</el-button>
+                </div>
+            </el-form>
+        </el-dialog>
+<!--        新增客户-->
+        <el-dialog title="新增客户" :visible.sync="addNewCustomer" width="60%" top="5vh">
+            <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+                <div style="display:flex;">
+                    <el-form-item label="姓名" style="width:50%;">
+                        <el-input v-model="ruleForm.YBC002"  style="width:80%;"></el-input>
+                    </el-form-item>
+                    <el-form-item label="性别" style="width:50%;">
+                      <el-radio-group v-model="ruleForm.YBC004_TP">
+                          <el-radio-button label="男"></el-radio-button>
+                          <el-radio-button label="女"></el-radio-button>
+                      </el-radio-group>
+                    </el-form-item>
+                </div>
+                <div style="display:flex;">
+                    <el-form-item label="电话" prop="YBC003" style="width:50%;">
+                        <el-input type="number" v-model="ruleForm.YBC003" placeholder="请输入客户电话号码"  style="width:80%;"></el-input>
+                    </el-form-item>
+                    <el-form-item label="婚姻" style="width:50%;">
+                      <el-radio-group v-model="ruleForm.YBC009_TP">
+                          <el-radio-button label="未婚" value="1"></el-radio-button>
+                          <el-radio-button label="已婚" value="2"></el-radio-button>
+                      </el-radio-group>
+                    </el-form-item>
+                </div>
+                <div style="display:flex;">
+                    <el-form-item label="职务" style="width:50%;">
+                        <el-input v-model="ruleForm.occupation" style="width:80%;"></el-input>
+                    </el-form-item>
+                    <el-form-item label="客户等级" style="width:50%;">
+                      <el-radio-group v-model="ruleForm.YBC018_TP">
+                          <el-radio-button label="A" value="A"></el-radio-button>
+                          <el-radio-button label="B" value="B"></el-radio-button>
+                          <el-radio-button label="C" value="C"></el-radio-button>
+                          <el-radio-button label="D" value="D"></el-radio-button>
+                      </el-radio-group>
+                    </el-form-item>
+                </div>
+                <div style="display:flex;">
+                    <el-form-item label="生日" style="width:50%;">
+                        <el-date-picker
+                          v-model="ruleForm.birthday"
+                          value-format="yyyy-MM-dd"
+                          type="date"
+                          placeholder="选择日期"
+                          style="width:80%;">
+                        </el-date-picker>
+                    </el-form-item>
+                    <el-form-item label="年龄" style="width:50%;">
+                        <el-input type="number" v-model="ruleForm.YBC005"></el-input>
+                    </el-form-item>
+                </div>
+                <div style="display:flex;">
+                    <el-form-item label="身份证号" style="width:50%;">
+                        <el-input v-model="ruleForm.YBC010" style="width:80%;"></el-input>
+                    </el-form-item>
+                    <el-form-item label="月收入" style="width:50%;">
+                        <el-input type="number" v-model="ruleForm.YBC011">
+                        <template slot="append">元</template></el-input>
+                    </el-form-item>
+                </div>
+                <el-form-item label="当前地址">
+                    <el-input v-model="ruleForm.YBC012"></el-input>
+                </el-form-item>
+                <el-form-item label="备注">
+                    <el-input type="textarea" :rows="2" v-model="ruleForm.YBC013"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" style="margin-left:35%" @click="submitForm">立即保存</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+
+    </div>
+</body>
+<script  th:inline="javascript">
+    
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+    
+    new Vue({
+        el:"#index_v1App",
+        data(){
+            return {
+                seatSate:false,
+                callNumTotal:0,
+                callTimeTotal:"0",
+                callDone:"0%",
+                userNewNum:0,
+                userNewTreated:0,
+                userNumTotal:0,
+                pickerOptions: {
+                  shortcuts: [{
+                    text: '最近一周',
+                    onClick(picker) {
+                      const end = new Date();
+                      const start = new Date();
+                      start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                      picker.$emit('pick', [start, end]);
+                    }
+                  }, {
+                    text: '最近一个月',
+                    onClick(picker) {
+                      const end = new Date();
+                      const start = new Date();
+                      start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                      picker.$emit('pick', [start, end]);
+                    }
+                  }, {
+                    text: '最近三个月',
+                    onClick(picker) {
+                      const end = new Date();
+                      const start = new Date();
+                      start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                      picker.$emit('pick', [start, end]);
+                    }
+                  }]
+                },
+                cycleTime:[],
+                options: [],
+                selectedOptions:[],
+                toBeDealt:[],
+                completed:[],
+                message:[],
+//                添加事项
+                addMatter:false,
+                addMtt:{text:'',remind:false,timeType:1,time:''},
+                inputDealtValue:"",
+                searchCustomer:false,
+                inputSearchCustomer:"",
+//                新增客户
+                addNewCustomer:false,
+//                新增客户表单
+                ruleForm: {
+                    YBC004_TP:"男",
+                    YBC018_TP:"A",
+                    YBC009_TP:"未婚"
+                },
+//                新增客户表单验证
+                rules: {
+                  YBC003: [
+                    { required: true, message: '请输入手机号码', trigger: 'blur' },
+                    { min: 11, max: 13, message: '长度在 11 到 13 个字符', trigger: 'blur' }
+                  ]
+                },
+//                添加新客户号码存在，阻止新增客户
+                newCusPhoneFg:false,
+                yjName:[],
+                yjNum:[],
+                qdName:[],
+                qdNum:[],
+                getCtForMonth:[],
+                signList:[],
+                
+//                查询排行榜
+                checkPd:{DEPT_LAYERORDER_Sea:"",startTm:"",endTm:""},
+                callSeat:false,
+                cusTableLstInit:[],
+                pageInit:{},
+                soCusFg:false,
+                loading:false
+            }
+        },
+        mounted(){
+            
+            this.getRankForSign();
+            this.getCtForMonths();
+            this.getRankForAchi();
+            
+            this.getCallInfo();
+            if(app.$data.lgSeatFlag){
+                this.seatSate=true;
+            }else{
+                this.seatSate=false;
+            }
+            if(app.$data.callSeat){
+                this.callSeat=true;
+            }else{
+                this.callSeat=false;
+            }
+            
+            console.log("——————————第四个是否是坐席————————————————");
+            console.log(this.callSeat);
+            console.log("是否登录");
+            console.log(this.seatSate);
+            
+            this.doMattereds();
+            this.doMatters();
+            this.getOptions();
+            this.getCusNums();
+            
+            this.getsignList();
+            
+        },
+        methods:{
+            soCus(){
+                if(this.inputSearchCustomer.length>0){
+                    this.soCusPage(1);
+                    this.soCusFg=true;
+                }else{
+                    this.$message({
+                      message: '请输入搜索内容！',
+                      type: 'warning'
+                    });
+                }
+            },
+            closeSoCus(){
+                this.inputSearchCustomer="";
+                this.soCusFg=false;
+                this.searchCustomer=false;
+            },
+//            跳转到客户管理
+            toCusM(){
+                let url=`${basePath}/cus_/goCusPage`
+                let newTabs={
+                    name:"客户管理",
+                    url
+                }
+                let tabsFlag=false;
+                for(let index in app.$data.editableTabs){
+                    if(app.$data.editableTabs[index].name=="客户管理"){
+                        app.$data.editableTabs.splice(index,1)
+                    }
+                }
+                app.$data.editableTabs.push(newTabs);
+                app.$data.editableTabsValue="客户管理";
+            },
+//            查询客户翻页
+            soCusPage(val){
+                this.loading=true;
+                let soCusObj={
+                    YBC002:this.inputSearchCustomer,
+                    currentPage:val
+                }
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:basePath+"/cus_/getPageCusLst",
+                    data:soCusObj,
+                    success:function(data){
+                        if(data.msg="200"){
+                            console.log("搜索客户结果")
+                            console.log(data);
+                            
+                            that.cusTableLstInit=data.rows;
+                            that.pageInit.totalResult=data.total;
+                            that.pageInit.currentPage=val;
+                            that.loading=false;
+                        }
+                    }
+                })
+            },
+            toCusInfo(index,row){
+                let url=`${basePath}/cus_/goUpdateCusBasicPage?YBC001=${row.YBC001}`
+                let newTabs={
+                    name:"客户详情",
+                    url
+                }
+                for(let index in app.$data.editableTabs){
+                    if(app.$data.editableTabs[index].name=="客户详情"){
+                        app.$data.editableTabs.splice(index,1)
+                    }
+                }
+                app.$data.editableTabs.push(newTabs);
+                setTimeout(function(){
+                    app.$data.editableTabsValue="客户详情";
+                },500);
+            },
+            
+//            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                if(rowIndex==1){
+                    
+                }else if (rowIndex%2 == 0) {
+                    return 'odd-row';
+                }
+                return 'even-row';
+            },
+            
+//            查询榜单
+            check(){
+                if(this.cycleTime){
+                    if(this.cycleTime.length !=0){
+                        this.checkPd.startTm=this.cycleTime[0]+' 00:00:00';
+                        this.checkPd.endTm=this.cycleTime[1]+' 23:59:59';
+                    }
+                }else{
+                    delete this.checkPd.startTm;
+                    delete this.checkPd.endTm;
+                }
+                this.checkPd.DEPT_LAYERORDER_Sea=(this.selectedOptions[this.selectedOptions.length-1]).DEPT_LAYERORDER;
+                
+                this.getRankForAchi();
+                this.getRankForSign();
+            },
+//            获取后台做单情况
+            getsignList(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:basePath+"/pubSys/getIndexBackNum",
+                    data:"",
+                    success:function(data){
+                        if(data.msg="200"){
+                            that.signList=data.result;
+                        }
+                    }
+                })
+            },
+//            获取完成率
+            getCtForMonths(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:basePath+"/hmp_cusDb/getCtForMonth",
+                    data:"",
+                    success:function(data){
+                        if(data.msg="200"){
+                            console.log("_________获取任务__________");
+                            console.log(data);
+                            that.getCtForMonth=data.result;
+                        }
+                    }
+                })
+            },
+//            获取客户池数据
+            getCusNums(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:basePath+"/hmp_cusDb/getCusDb",
+                    data:"",
+                    success:function(data){
+                        if(data.msg="200"){
+                            that.userNewNum=data.result.newCusLimitTdNum;
+                            that.userNewTreated=data.result.wtFlwNum;
+                            that.userNumTotal=data.result.poolSize;
+                        }
+                    }
+                })
+            },
+//            获取当前部门（角色）范围
+            getOptions(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:basePath+"/user/searchDeptAndMeLst",
+                    data:"",
+                    success:function(data){
+                        if(data.msg="200"){
+                            that.options=data.result;
+                        }
+                    }
+                })
+            },
+//            新增客户提交事件
+            submitForm(){
+                let YBC003=this.ruleForm.YBC003;
+                let that = this;
+                $.ajax({
+                    type:"GET",
+                    url:basePath+"/pho_rec/getNameByTel",
+                    data:{YBC003:YBC003},
+                    success:function(data){
+                        if(data.msg="200"){
+                            if(data.result.YBC001){
+                                that.newCusPhoneFg=false;
+                                that.$confirm(`此号码已存在, 客户所属${data.result.deptName} ${data.result.YBC029}`, '提示', {
+                                  confirmButtonText: '确定',
+                                  cancelButtonText: '取消',
+                                  type: 'warning'
+                                }).then(() => {
+
+                                }).catch(() => {
+
+                                });
+                            }else{
+                                let phoneReg=/^[1][0-9]{10}$/;  
+                                if(phoneReg.test(that.ruleForm.YBC003)){
+                                    let newUser=that.ruleForm;
+                                    if(newUser.YBC004_TP=="男"){
+                                        newUser.YBC004_TP=1
+                                    }else if(newUser.YBC004_TP=="女"){
+                                        newUser.YBC004_TP=2
+                                    }
+                                    if(newUser.YBC018_TP=="A"){
+                                        newUser.YBC018_TP=1
+                                    }else if(newUser.YBC018_TP=="B"){
+                                        newUser.YBC018_TP=2
+                                    }else if(newUser.YBC018_TP=="C"){
+                                        newUser.YBC018_TP=3
+                                    }else if(newUser.YBC018_TP=="D"){
+                                        newUser.YBC018_TP=4
+                                    }
+                                    if(newUser.YBC009_TP=="已婚"){
+                                        newUser.YBC009_TP=2
+                                    }else if(newUser.YBC009_TP=="未婚"){
+                                        newUser.YBC009_TP=1
+                                    }
+
+                                    $.ajax({
+                                        type:"GET",
+                                        url:basePath+"/cus_/addCus",
+                                        data:newUser,
+                                        success:function(data){
+                                            if(data.msg=="200"){
+                                                let row={};
+                                                row.YBC001=data.result;
+                                                that.$confirm('是否进入客户详情页继续添加客户信息?', '提示', {
+                                                    confirmButtonText: '确定',
+                                                    cancelButtonText: '取消',
+                                                    type: 'warning'
+                                                }).then(() => {
+                                                    that.handleUserInfo("",row);
+                                                    that.addNewCustomer=false;
+                                                    that.ruleForm={YBC004_TP:"男",YBC018_TP:"A",YBC009_TP:"未婚"}
+                                                }).catch(() => {
+                                                    that.addNewCustomer=false;
+                                                    that.ruleForm={YBC004_TP:"男",YBC018_TP:"A",YBC009_TP:"未婚"}
+                                                });
+                                            }else{
+                                                that.$message({
+                                                    showClose: true,
+                                                    message: '添加客户失败，请重新添加',
+                                                    type: 'warning'
+                                                });   
+                                            }
+                                        }
+                                    })
+                                }else{
+                                    that.$message({
+                                      showClose: true,
+                                      message: '请将客户信息填写完整（电话为必填且正确格式的11位手机号码!）',
+                                      type: 'warning'
+                                    });
+                                }
+                            }
+                        }
+                    }
+                })
+            },
+//            如有客户管理标签页的处理
+            userMana(){
+                this.addNewCustomer=false;
+                let userTabs={
+                    name:"客户管理",
+                    url:"cus_/goCusPage"
+                }
+                for(let index in app.$data.editableTabs){
+                    if(app.$data.editableTabs[index].name=="客户管理"){
+                        app.$data.editableTabs.splice(index,1)
+                    }
+                }
+            },
+//            统计范围
+            handleChange(value) {
+                console.log(value);
+            },
+//            事项处理
+            toCompeleted(mid){
+                let that=this;
+                this.$confirm('此操作将处理事项, 是否继续?', '提示', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                }).then(() => {
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/notice_/updateNeedForone`,
+                        data:{YBC_NEE001:mid},
+                        success:function(data){
+                            if(data.msg=="200"){
+                                that.doMatters();
+                                that.doMattereds();
+                            }
+                        }
+                    })
+                }).catch(() => {
+                  that.$message({
+                    type: 'info',
+                    message: '已取消处理'
+                  });          
+                });
+            },
+//            事项删除
+            toDel(mid){
+                let that=this;
+                this.$confirm('此操作将删除事项, 是否继续?', '提示', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                }).then(() => {
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/notice_/delNeedForone`,
+                        data:{YBC_NEE001:mid},
+                        success:function(data){
+                            if(data.msg=="200"){
+                                that.doMatters();
+                                that.doMattereds();
+                            }
+                        }
+                    })
+                }).catch(() => {
+                  that.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                  });          
+                });
+            },
+//            添加事项
+            sureAddMatter(){
+                let that=this;
+                if(this.addMtt.text.length>0){
+                    console.log(this.addMtt)
+                    let addNewMtt={};
+                    addNewMtt.YBC_NEE003=this.addMtt.text;
+//                    判断是否提醒
+                    if(this.addMtt.remind){
+                        addNewMtt.YBC_NEE010_TP=1
+                    }else{
+                        addNewMtt.YBC_NEE010_TP=2
+                    }
+                    if(this.addMtt.remind){
+
+    //                    判断选择时间类型
+                        let date;
+                        if(this.addMtt.timeType=="3"){
+                            date=this.addMtt.time;
+                        }else if(this.addMtt.timeType=="1"){
+                            let now = new Date();
+                            let time = now.getTime() + 1000*60*30;
+                            date=new Date(time)
+                        }else if(this.addMtt.timeType=="2"){
+                            let now = new Date();
+                            let time = now.getTime() + 1000*60*60;
+                            date=new Date(time)
+                        }
+                        let year=date.getFullYear();
+                        let month=date.getMonth()+1;
+                        let day=date.getDate();
+                        let hours=date.getHours();
+                        let min=date.getMinutes();
+                        let s=date.getSeconds();
+                        addNewMtt.YBC_NEE011_TM=`${year}-${month}-${day} ${hours}:${min}:${s}`;
+                    }else{
+                        addNewMtt.YBC_NEE011_TM=""
+                    }
+                    
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/notice_/addNeedForone`,
+                        data:addNewMtt,
+                        success:function(data){
+                            if(data.msg=="200"){
+                                that.$message({
+                                  message: '添加提醒事项成功！',
+                                  type: 'success'
+                                });
+                                that.doMatters();
+                                that.addMatter=false;
+                                that.addMtt={text:'',remind:false,timeType:1,time:''}
+                            }
+                        }
+                    })
+                }else{
+                    that.$message({
+                      message: '请输入提醒事项内容！',
+                      type: 'warning'
+                    });
+                }
+                
+            },
+//            获取登陆者的待办事项
+            doMatters(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/notice_/getNoticeLst`,
+                    data:'',
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.toBeDealt=data.result;
+                        }
+                    }
+                })
+            },
+//            获取登陆者的已处理事项
+            doMattereds(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/notice_/getNoticeHandleLst`,
+                    data:'',
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.completed=data.result;
+                        }
+                    }
+                })
+            },
+//            修改待办事项是否提醒
+            getMatters(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/notice_/updateNeedForone`,
+                    data:'',
+                    success:function(data){
+                        console.log(data)
+                    }
+                })
+            },
+//            去外呼工作台
+            toCallWb(){
+//                如有本地session，先将其清除
+                
+                if(sessionStorage.calloutPhone){
+                    sessionStorage.clear();
+                }
+                if(this.seatSate){
+                    let url=`${basePath}/pho_calOut/goWorkBench?YBC008_TP=0`
+                    let newTabs={
+                        name:"呼叫工作台",
+                        url
+                    }
+                    let tabsFlag=false;
+                    for(let item of app.$data.editableTabs){
+                        if(url==item.url){
+                            tabsFlag=true
+                        }
+                    }
+                    if(tabsFlag){
+                        let ifms=window.parent.document.getElementById(url);
+                        ifms.src=url;
+                        setTimeout(function(){
+                            app.$data.editableTabsValue="呼叫工作台";
+                        },1500);
+                    }else{
+                        app.$data.editableTabs.push(newTabs);
+                        app.$data.editableTabsValue="呼叫工作台";
+                    }
+                }else{
+                    this.$message({
+                      message: '坐席登录失败，无法进入呼叫工作台！请点击尝试链接~',
+                      type: 'warning'
+                    });
+                }
+                
+            
+            },
+//            获取呼叫信息
+            getCallInfo(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pho_dtaCont/getContDB`,
+                    data:'',
+                    success:function(data){
+                        console.log("获取的呼叫信息");
+                        console.log(data);
+                        that.callNumTotal=data.result.callOutCount;
+                        that.callTimeTotal=that.secondToDate(data.result.totalDialBridgeDuration)
+                        that.callDone=data.result.conRate;
+                    }
+                })  
+            },
+//            获取业绩榜
+            getRankForAchi(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/hmp_rank/getRankForAchi`,
+                    data:that.checkPd,
+                    success:function(data){
+                        that.yjName=[];
+                        that.yjNum=[];
+                        if(data.msg=="200"){
+                            for(let item of data.result){
+                                that.yjName.push(item.name);
+                                that.yjNum.push(item.incSum);
+                            }
+                            that.markEcharts();
+                        }
+                    }
+                }) 
+            },
+//            获取签单排行榜
+            getRankForSign(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/hmp_rank/getRankForSign`,
+                    data:that.checkPd,
+                    success:function(data){
+                        that.qdName=[];
+                        that.qdNum=[];
+                        if(data.msg=="200"){
+                            for(let item of data.result){
+                                that.qdName.push(item.name);
+                                that.qdNum.push(item.finishNum);
+                            }
+                            that.markEcharts0();
+                        }
+                    }
+                }) 
+            },
+//            秒转换为时分秒//秒转化成 时分秒
+            secondToDate(result) {
+                var h = Math.floor(result / 3600);
+                var m = Math.floor((result / 60 % 60));
+                var s = Math.floor((result % 60));
+                if(h>0){
+                    return result = h + "h" + m + "min" + s + "s";
+                }
+                return result = m + "min" + s + "s";
+            },
+            
+//            查看客户详情
+            handleUserInfo(index,row){
+                let url=`${basePath}/cus_/goUpdateCusBasicPage?YBC001=${row.YBC001}`
+                let newTabs={
+                    name:"客户详情",
+                    url
+                }
+                let tabsFlag=false;
+                for(let index in app.$data.editableTabs){
+                    if(app.$data.editableTabs[index].name=="客户详情"){
+                        app.$data.editableTabs.splice(index,1)
+                    }
+                }
+                app.$data.editableTabs.push(newTabs);
+                app.$data.editableTabsValue="客户详情";
+            },
+            
+//            圆柱图
+            markEcharts(){
+//**************只显示前十的数据柱形图************************************
+                // 基于准备好的dom，初始化echarts实例
+                let myChart = echarts.init(document.getElementById('main'),"essos");
+                let dataAxis = this.yjName;
+                let data = this.yjNum;
+                
+                option = {
+                    color: ['#4aa5fb'],
+                    tooltip : {
+                        trigger: 'axis',
+                        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+                            type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                        }
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis : [
+                        {
+                            type : 'category',
+                            data : dataAxis,
+                            axisTick: {
+                                alignWithLabel: true
+                            },
+                            axisLabel: {
+                                show: true,
+                                textStyle: {
+                                    color: '#4aa5fb'
+                                }
+                            }
+                        }
+                    ],
+                    yAxis : [
+                        {
+                            type : 'value',
+                            axisLabel : {
+                                formatter: '{value}',
+                                textStyle: {
+                                    color: '#53DD9D'
+                                }
+                            }
+                        }
+                    ],
+                    series : [
+                        {
+                            name:'业绩',
+                            type:'bar',
+                            barWidth: '50%',
+                            data:data
+                        }
+                    ]
+                };
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+            },
+            
+//            圆柱图
+            markEcharts0(){
+//**************只显示前十的数据柱形图************************************
+                // 基于准备好的dom，初始化echarts实例
+                let myChart0 = echarts.init(document.getElementById('main0'),"essos");
+                
+                let dataAxis0 = this.qdName;
+                let data0 = this.qdNum;
+                
+                
+                option0 = {
+                    color: ['#4aa5fb'],
+                    tooltip : {
+                        trigger: 'axis',
+                        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+                            type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                        }
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis : [
+                        {
+                            type : 'category',
+                            data : dataAxis0,
+                            axisTick: {
+                                alignWithLabel: true
+                            }
+                        }
+                    ],
+                    yAxis : [
+                        {
+                            type : 'value'
+                        }
+                    ],
+                    series : [
+                        {
+                            name:'签单',
+                            type:'bar',
+                            barWidth: '50%',
+                            data:data0
+                        }
+                    ]
+                };
+                // 使用刚指定的配置项和数据显示图表。
+                myChart0.setOption(option0);
+            }
+        }
+    })
+    
+</script>
+</html>

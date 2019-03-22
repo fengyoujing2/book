@@ -1,0 +1,57 @@
+package com.dbsun.controller.count;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.background.BacAllotService;
+import com.dbsun.service.count.CntSignAndMebService;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
+
+/**
+ * 签单和会员统计
+ * @author DongZai
+ *
+ */
+@Controller
+@RequestMapping("/cnt_sign_and_meb")
+public class CntSignAndMebController extends BaseController {
+	
+	@Autowired
+	private CntSignAndMebService cntSignAndMebService;
+
+	@RequestMapping({"/goSignCnt"})
+	public String goEquPage() {
+		return "html/system/hrManage/signStatistics";
+	}
+
+	/**
+	 * 签单统计
+	 * @param
+	 * 			必选：dateStart--开始时间、dateEnd--结束时间
+	 * 		    可选：DEPT_LAYERORDER_SEA--部门搜索、USER_ID_SEA--客户经理搜索、YBCS009_TP--贷款类型
+	 * @return
+	 */
+	@RequestMapping("/getSignCnt")
+	@ResponseBody
+	public JSONObject getSignCnt(){
+
+		PageData pd = this.getPageData();
+		Page page = this.getPage();
+		page.setPd(pd);
+		List<PageData> signLst = null;
+		try {
+			signLst = cntSignAndMebService.getSignCnt(this.putUserIdAdDeLAdPosPd(page, pd));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return viewReturnPageData(page, signLst);
+		
+	}
+}

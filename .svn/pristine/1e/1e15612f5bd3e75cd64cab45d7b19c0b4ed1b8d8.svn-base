@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.count.CntSignAndMebMapper">
+
+	<select id="getSignCnt" parameterType="pd" resultType="pd" useCache="false">
+		SELECT
+			(SELECT ybc002 from ybc where ybc001 = s.ybc001) as cus_name, /*客户姓名*/
+			(SELECT ybct002 from ybc_type WHERE YBCT001 = s.YBCS009_TP) as loan_type, /*贷款类型*/
+			YBCS049_TM as sign_date, /*签单日期*/
+			YBCS038 as cus_manager_name, /*客户经理*/
+			(SELECT DEPT_NAME FROM sys_dept WHERE DEPT_LAYERORDER = s.DEPT_LAYERORDER) as dept,
+			(
+				SELECT
+					case STATUS
+						when 1 then '禁用'
+						when 0 then '启用'
+					END
+				from sys_user WHERE USER_ID = s.USER_ID) as status,
+			YBCS016_TM as fiance_confi_date
+
+		FROM
+		ybc_sign s
+		WHERE 1 = 1
+		and s.YBCS049_TM >= #{dateStart}
+		and s.YBCS049_TM >= #{dateEnd}
+		and s.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, '%')
+	</select>
+
+
+	
+
+</mapper>

@@ -1,0 +1,58 @@
+package com.dbsun.controller.system;
+
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.service.YbcDoAllotService;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+@Controller
+@RequestMapping("/wx_doAllot")
+public class YbcDoAllotController extends BaseController {
+	
+	@Autowired
+	private YbcDoAllotService ybcDoAllotService;
+
+	/**
+	 * 跳转到用户列表主页
+	 * @return
+	 */
+	@RequestMapping("/ybcDoAllotIndex")
+	public String ybcDoAllotIndex() {
+		ModelAndView mv = new ModelAndView();
+		PageData pd = new PageData();
+		Page page = getPage();
+		page.setPd(pd);
+		List<PageData> ybcDoAllotLst = ybcDoAllotService.getYbcDoAllotLst(page);
+		mv.addObject("ybcDoAllotLst", ybcDoAllotLst);
+		mv.addObject("page",page);
+		return "/html/system/do_allot/do_allot_list";
+	}
+
+	/**
+	 * 用户列表数据
+	 * 
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping("/doAllotLst")
+	@ResponseBody
+	public JSONObject doAllotLst() {
+		// 构建初始数据
+		PageData pd = getPageData();// 前端传入数据
+		Page page = getPage();// 分页需要用到这个数据
+		page.setPd(pd);
+		List<PageData> userLst = ybcDoAllotService.getYbcDoAllotLst(page);
+		return viewReturnPageData(page, userLst);
+	}
+	
+}

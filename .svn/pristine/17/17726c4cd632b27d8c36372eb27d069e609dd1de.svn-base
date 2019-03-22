@@ -1,0 +1,23 @@
+package com.dbsun.service.imgmsg;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.mapper.ImgmsgMapper;
+import com.dbsun.entity.system.PageData;
+
+
+@Service("imgmsgService")
+public class ImgmsgService {
+
+	@Autowired
+    private ImgmsgMapper imgmsgMapper;
+	
+	/*
+	* 匹配关键词
+	*/
+	public PageData getByKw(PageData pd)throws Exception{
+		return imgmsgMapper.findByKw(pd);
+	}
+}
+

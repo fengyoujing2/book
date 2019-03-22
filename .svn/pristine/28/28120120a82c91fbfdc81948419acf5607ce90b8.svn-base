@@ -1,0 +1,189 @@
+package com.dbsun.controller;
+
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.SysImpService;
+import com.dbsun.service.BaseService;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+
+@RestController
+@Component 
+@RequestMapping("/api")
+public class TestController extends BaseController{
+    @Autowired
+    private SysImpService sysImpService;
+
+    @Autowired
+    private BaseService baseService;
+	 /*@Autowired
+	 private DicTypeService dicTypeService;
+	 @Autowired
+	 private BaseService baseService;
+	 @Autowired
+	 private  RedisUtil redisutil;
+	 
+  
+	 @Autowired
+    private JobDetail jobDetail;  
+  
+	 @Autowired
+    private CronTrigger cronTrigger;  
+  
+	 @Autowired
+    private Scheduler scheduler;  
+	 
+	
+	@RequestMapping(value = "/testredis",method=RequestMethod.GET)
+    public String testredis() {
+		
+		Object obj = redisutil.getCacheObject("13678776556");
+		return "redis=="+obj;
+    }
+	@RequestMapping(value = "/testJob",method=RequestMethod.GET)
+	public void testJob() throws SchedulerException {  
+//        CronTrigger trigger = (CronTrigger) scheduler.getTrigger(cronTrigger.getKey());  
+//        String currentCron = trigger.getCronExpression();// 当前Trigger使用的  
+//        String searchCron = "0/1 * * * * ?";// 从数据库查询出来的  
+//        System.out.println(currentCron);  
+//        System.out.println(searchCron);
+//        String cron=getCron(new Date());  
+//        System.out.println("==="+cron);
+//        if (currentCron.equals(searchCron)) {  
+//            // 如果当前使用的cron表达式和从数据库中查询出来的cron表达式一致，则不刷新任务  
+//        	System.out.println("11111111111");
+//        } else {  
+//            // 表达式调度构建器  
+//            CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(searchCron);  
+//            // 按新的cronExpression表达式重新构建trigger  
+//            trigger = (CronTrigger) scheduler.getTrigger(cronTrigger.getKey());  
+//            trigger = trigger.getTriggerBuilder().withIdentity(cronTrigger.getKey())  
+//                    .withSchedule(scheduleBuilder).build();  
+//            // 按新的trigger重新设置job执行  
+//            scheduler.rescheduleJob(cronTrigger.getKey(), trigger);  
+//            currentCron = searchCron;  
+//        }  
+		System.out.println("=========");
+		WebSocketController.broadcast("231231");
+		System.out.println("=========");
+    }  
+	
+	*//***
+     *  
+     * @param date 
+     * @param dateFormat : e.g:yyyy-MM-dd HH:mm:ss 
+     * @return 
+     *//*
+    public  String formatDateByPattern(Date date,String dateFormat){  
+        SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);  
+        String formatTimeStr = null;  
+        if (date != null) {  
+            formatTimeStr = sdf.format(date);  
+        }  
+        return formatTimeStr;  
+    }  
+*//***
+     * convert Date to cron ,eg.  "0 06 10 15 1 ? 2014" 
+     * @param
+     * @return 
+     *//*
+    public  String getCron(java.util.Date  date){  
+        String dateFormat="ss mm HH dd MM ? yyyy";  
+        return formatDateByPattern(date, dateFormat);  
+    }*/
+    @RequestMapping(value = "/testupload",method=RequestMethod.POST)
+    @ResponseBody
+    public String testupload(@RequestParam("file") MultipartFile file){
+        PageData pd = getPageData();
+        System.out.println(pd.toString());
+        System.out.println(pd.get("ybc001"));
+        System.out.println("进入...............");
+        if (file.isEmpty()) {
+            return "文件为空";
+        }
+        // 获取文件名
+        String fileName = file.getOriginalFilename();
+        // 获取文件的后缀名
+        String suffixName = fileName.substring(fileName.lastIndexOf("."));
+        String path = uploadAndWriteImg(file);
+        System.out.println(getUserPd().get("USERNAME"));
+        System.out.println("path"+path);
+        System.out.println("fileName"+fileName);
+        System.out.println("suffixName"+suffixName);
+//        if (request instanceof MultipartHttpServletRequest) {
+//            MultipartHttpServletRequest mr = (MultipartHttpServletRequest) request;
+//            Iterator iter = mr.getFileMap().values().iterator();
+//
+//            if (iter.hasNext()) {
+//                MultipartFile file = (MultipartFile) iter.next();
+//                String oname = file.getOriginalFilename();
+//                // 保存文件
+//                String filepath = FsUtils.saveFile(file.getInputStream(),"/version",oname, null);
+//                fpath = filepath;
+//            }
+//        }
+        return path;
+    }
+
+    @RequestMapping(value = "/testimp",method=RequestMethod.POST)
+    @ResponseBody
+    public JSONObject testimp(@RequestParam("file") MultipartFile file){
+        PageData pd = getPageData();
+        pd.putAll(getUserPd());//获取当前操作人
+        String uploadPath = "C:/ProgramData/MySQL/MySQL Server 5.7/Uploads/";
+        JSONObject json = this.uploadPhoto(file,uploadPath);
+        //文件不能为空
+        if(json.get("msg").equals(500)) {
+            return this.getFalJson();
+        }else{
+            String filename = json.getString("path");//获取文件名
+            int num = sysImpService.addImp(uploadPath+filename,pd);
+            JSONObject successJson = new JSONObject();
+            successJson.put("successNum",num);//成功条数
+            System.out.println(this.getSucJson(successJson));
+            return this.getSucJson(successJson);
+        }
+    }
+    /**
+     * 获取类型列表
+     * */
+    @RequestMapping(value = "/testTypeLst",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject testTypeLst(){
+        PageData pd = getPageData();
+        JSONArray productLst =  baseService.getProductTypeLst(pd);
+        return getSucJson(productLst);
+    }
+    /**
+     * 获取产品列表传入产品类型ID
+     * YBCT001传入参数
+     * */
+    @RequestMapping(value = "/testAllLst",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject testAllLst(){
+        PageData pd = getPageData();
+        List<PageData>  pdLst =  baseService.getProductLst(pd);
+        return getSucJson(pdLst);
+    }
+    /**
+     * 获取产品列表传入产品类型ID
+     * YBCT001传入参数
+     * */
+    @RequestMapping(value = "/testTypeOneLst",method=RequestMethod.GET)
+    @ResponseBody
+    public JSONObject testTypeOneLst(){
+        PageData pd = getPageData();
+        List<PageData>  pdLst =  baseService.getProductTypeOneLst(pd);
+        return getSucJson(pdLst);
+    }
+
+
+}

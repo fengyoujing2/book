@@ -1,0 +1,31 @@
+package com.dbsun.service.finance;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.finance.FinSignMapper;
+
+@Service
+public class FinSignService {
+
+	@Autowired
+	private FinSignMapper finSignMapper;
+	
+	
+	public List<PageData> getPageConfSignLst(Page page){
+		return finSignMapper.getPageConfSignLst(page);
+	}
+	
+	public int updateConfSign(PageData pd){
+		return finSignMapper.updateConfSign(pd);
+	}
+	
+	public int updateSign(PageData pd){
+		return finSignMapper.updateSign(pd);
+	}
+	
+}

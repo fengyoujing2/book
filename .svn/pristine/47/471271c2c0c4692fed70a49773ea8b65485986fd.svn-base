@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.WbYbcMapper">
+
+	<sql id="WYColumns">
+		w.YBWY0001,
+		w.YBWY0002,
+		w.YBWY0003,
+		w.YBWY0004,
+		w.YBWY0005,
+		w.YBWY0006_TM,
+		w.YBWY0007_TP,
+		w.YBWY0008_TP,
+		w.YBWY0009, 
+		w.YBWY0010
+	</sql>
+
+	<insert id="addWbYbc" parameterType="pd" flushCache="false">
+		insert into wb_ybc
+			(
+				YBWY0002,
+				YBWY0003, 
+				YBWY0005,
+				YBWY0006_TM, 
+				YBWY0007_TP, 
+				YBWY0010, 
+				YBWY0012
+			)
+		values
+			(
+				#{YBWY0002},
+				#{YBWY0003}, 
+				<!-- #{YBWY0004},  -->
+				#{YBWY0005}, 
+				(SELECT UNIX_TIMESTAMP()),
+				#{YBWY0007_TP}, <!-- , 
+				#{YBWY0008_TP}, 
+				#{YBWY0009} -->
+				#{YBWY0010}, 
+				#{YBWY0012}
+			 )
+	</insert>
+	
+	<!-- 从网页获取的客户信息列表 -->
+	<select id = "getPageWbYbcLst" parameterType="page" resultType="pd" useCache="false">
+		SELECT 
+			w.YBWY0001,
+			w.YBWY0002,
+			w.YBWY0003,
+			w.YBWY0004,
+			w.YBWY0005,
+			(SELECT FROM_UNIXTIME(w.YBWY0006_TM, '%Y-%m-%d %H:%i:%S')) as time, 
+			w.YBWY0007_TP,
+			w.YBWY0008_TP,
+			w.YBWY0009, 
+			w.YBWY0010	
+		FROM WB_YBC w
+		WHERE 1 = 1 
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+			and 
+				(
+					w.YBWY0002 like CONCAT(CONCAT('%', #{pd.YBC002}),'%')
+					or
+					w.YBWY0003 like CONCAT(CONCAT('%', #{pd.YBC002}), '%')
+				)
+			
+		</if>
+		<if test="pd.startDate != null and pd.startDate != ''">
+			and YBWY0006_TM <![CDATA[>=]]> #{pd.startDate}
+		</if>
+		<if test="pd.endDate != null and pd.endDate != ''">
+			and YBWY0006_TM <![CDATA[<=]]> #{pd.endDate}
+		</if>
+		group by w.YBWY0001
+		order by w.YBWY0006_TM desc
+	</select>
+	
+	<update id="updateWY" parameterType="pd">
+		update wb_ybc 
+			set
+				YBWY0012			= #{YBWY0012}
+				<if test="YBWY0010 != null and YBWY0010 != ''">
+				,YBWY0010			= #{YBWY0010}
+				</if>
+				<if test="YBWY0011 != null and YBWY0011 != ''">
+				,YBWY0011			= #{YBWY0011}
+				</if>
+				<if test="YBWY0013 != null and YBWY0013 != ''">
+				,YBWY0013			= #{YBWY0013}
+				</if>
+				<if test="YBWY0014 != null and YBWY0014 != ''">
+				,YBWY0014			= #{YBWY0014}
+				</if>
+				<if test="YBWY0015 != null and YBWY0015 != ''">
+				,YBWY0015			= #{YBWY0015}
+				</if>
+				<if test="YBWY0016 != null and YBWY0016 != ''">
+				,YBWY0016			= #{YBWY0016}
+				</if>
+				<if test="YBWY0017 != null and YBWY0017 != ''">
+				,YBWY0017			= #{YBWY0017}
+				</if>
+				
+		where 
+				YBWY0001 			= #{YBWY0001}
+	</update>
+	
+	<insert id="addWXUser" parameterType="pd" flushCache="false">
+		insert into wx_user
+			(
+				YBWY0008_TP,
+				YBWY0009, 
+				YBWY0010,
+				YBWY0011, 
+				YBWY0012, 
+				YBWY0013, 
+				YBWY0014, 
+				YBWY0015, 
+				YBWY0016, 
+				YBWY0017
+			)
+		values
+			(
+				#{YBWY0008_TP},
+				#{YBWY0009}, 
+				#{YBWY0010}, 
+				#{YBWY0011}, 
+				#{YBWY0012}, 
+				#{YBWY0013}, 
+				#{YBWY0014}, 
+				#{YBWY0015}, 
+				#{YBWY0016}, 
+				#{YBWY0017}
+				
+			 )
+	</insert>
+	
+	
+	
+	<select id = "getWbYbcByOpenId" parameterType="pd" resultType="pd" useCache="false">
+		SELECT 
+			* 		
+		FROM wx_user w 
+		where 
+			w.YBWY0010 			= #{YBWY0010}
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+</mapper>

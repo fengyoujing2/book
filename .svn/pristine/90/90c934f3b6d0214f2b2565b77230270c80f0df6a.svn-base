@@ -1,0 +1,27 @@
+package com.dbsun.service.finance;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.finance.FinNumMapper;
+
+@Service
+public class FinNumService {
+
+	@Autowired
+	private FinNumMapper finNumMapper;
+	
+	
+	public List<PageData> getPageConfNumLst(Page page){
+		return finNumMapper.getPageConfNumLst(page);
+	}
+	
+	public int updateFinNum(PageData pd){
+		return finNumMapper.updateFinNum(pd);
+	}
+	
+}

@@ -1,0 +1,99 @@
+
+/****/  
+.information_box {
+	z-index: 59999;
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: none;
+	/*z-index: 10000;*/
+	/*background: black;*/
+	/*opacity: 0.75;*/
+}
+
+.information_Info {
+	color: #fff;
+	background: black;
+	line-height: 25px;
+	font-size: 15px;
+	padding: 7px 5px;
+	border-radius: 8px;
+	text-align: center;
+	/*border: 1px solid #848484;*/
+	font-weight: normal;
+}
+.information_border {
+	width: 220px;
+	margin: 50% auto 0px;
+}
+/*import pay password*/
+
+
+.information_box1 {
+	z-index: 59999;
+	position: fixed;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	display: none;
+
+	/*background: black;*/
+	/*opacity: 0.75;*/
+}
+
+.information_Info1 {
+	color: #fff;
+	background: black;
+	line-height: 25px;
+	font-size: 15px;
+	padding: 7px 5px;
+	border-radius: 10px;
+	text-align: center;
+	/*border: 1px solid #848484;*/
+	font-weight: normal;
+}
+.information_border1 {
+	width: 220px;
+	margin: 50% auto 0px;
+}
+
+
+
+
+
+.information_box2 {
+    z-index: 59999;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+
+    /*background: black;*/
+    /*opacity: 0.75;*/
+}
+
+.information_Info2 {
+    color: #fff;
+    background: black;
+    line-height: 25px;
+    font-size: 15px;
+    padding: 7px 5px;
+    border-radius:10px;
+    text-align: center;
+    /*border: 1px solid #848484;*/
+    font-weight: normal;
+}
+.information_border2 {
+    width: 220px;
+    margin: 50% auto 0px;
+    background: #000000;
+    border-radius:10px;
+}
+
+
+#btn10{
+    display: none;
+}

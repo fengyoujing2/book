@@ -1,0 +1,41 @@
+package com.dbsun.service.background;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.background.BacSituationMapper;
+import com.dbsun.service.BaseService;
+
+@Service
+public class BacSituationService extends BaseService {
+
+	@Autowired
+	private BacSituationMapper bacSituationMapper;
+	
+	public List<PageData> getPageBacSituationLst(Page page){
+		return bacSituationMapper.getPageBacSituationLst(page);
+	}
+	
+	/**
+	 * 
+	 * @param pd
+	 * 			YBCMA001 -- 做单ID	
+	 * @return
+	 */
+	public PageData getBacSitDetaBySingID(PageData pd){
+		return bacSituationMapper.getBacSitDetaBySingID(pd);
+	}
+	
+	/**
+	 * 客户做单情况
+	 * @param pd
+	 * @return
+	 */
+	public List<PageData> getSinglesForCus(PageData pd){
+		return bacSituationMapper.getSinglesForCus(pd);
+	}
+}

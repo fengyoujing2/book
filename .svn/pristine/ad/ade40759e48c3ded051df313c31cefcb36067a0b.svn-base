@@ -1,0 +1,24 @@
+package com.dbsun.service.background;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.background.BacSingleFlwIsOverMapper;
+
+@Service
+public class BacSingleFlwIsOverService {
+
+	@Autowired
+	private BacSingleFlwIsOverMapper bacSingleFlwIsOverMapper;
+	
+	public List<PageData> getPageSinFlwIsOverLst(Page page){
+		return bacSingleFlwIsOverMapper.getPageSinFlwIsOverLst(page);
+	}
+	
+	
+	
+}

@@ -1,0 +1,25 @@
+package com.dbsun.controller.system;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.dbsun.base.BaseController;
+
+/**
+ * 用户账号
+ * 
+ * @author DongZai
+ * 
+ */
+@Controller
+@RequestMapping("/wx_set")
+public class SetController extends BaseController {
+
+	/**去设置页面*/
+	@RequestMapping("/goSet")
+	public String goSet(Model model) {
+		return wxReturnvalidataPage("/html/wechat/set/shezhi");
+	}
+	
+}

@@ -1,0 +1,62 @@
+package com.dbsun.service.versions;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.versions.VersionsMessageMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author zhao yi
+ * @create 2018-06-25 9:52
+ * @desc 版本消息
+ **/
+@Service
+public class VersionsMessageService {
+
+    @Autowired
+    private VersionsMessageMapper versionsMessageMapper;
+
+    public List<PageData> getPageVersionsMsgLst(Page page) {
+        List<PageData> lst = versionsMessageMapper.getPageVersionsMsgLst(page);
+        List<PageData> rslst = new ArrayList<>();
+        for (PageData data : lst) {//转换为数组
+            String[] split = data.getString("VERM002").split("#");
+            data.put("VERM002", split);
+            rslst.add(data);
+        }
+        return rslst;
+    }
+
+    public PageData getVersionsMsgById(PageData pd) {
+        PageData newPd = versionsMessageMapper.getVersionsMsgById(pd);
+        String[] split = newPd.getString("VERM002").split("#");
+        newPd.put("VERM002", split);
+        return newPd;
+    }
+
+    public int updateVersionsMsg(PageData pd) {
+        return versionsMessageMapper.updateVersionsMsg(pd);
+    }
+
+    public int delVersionsMsg(PageData pd) {
+        return versionsMessageMapper.delVersionsMsg(pd);
+    }
+
+    public int addVersionsMsg(PageData pd) throws DuplicateKeyException, RuntimeException {
+        try {
+            return versionsMessageMapper.addVersionsMsg(pd);
+        } catch (DuplicateKeyException e) {
+            throw new DuplicateKeyException("版本号冲突");
+        } catch (RuntimeException t) {
+            t.printStackTrace();
+            throw new RuntimeException();
+        }
+    }
+
+
+}

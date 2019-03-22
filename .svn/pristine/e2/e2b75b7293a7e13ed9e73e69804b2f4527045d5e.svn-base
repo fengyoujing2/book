@@ -1,0 +1,25 @@
+package com.dbsun.mapper.customer;
+
+import java.util.List;
+
+import com.dbsun.entity.system.PageData;
+
+public interface CusSignMapper {
+	
+	/**
+	 * 获取客户的签单信息
+	 * @param pd
+	 * 			YBC001
+	 * @return
+	 */
+	public List<PageData> getSignsByYBC001(PageData pd);
+	public PageData getSignByYBCS001(PageData pd);
+	
+	/**
+	 * 
+	 * @param pd
+	 * 			包含：YBC001
+	 * @return
+	 */
+	public int addSign(PageData pd);
+}

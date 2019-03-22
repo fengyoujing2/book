@@ -1,0 +1,306 @@
+package com.dbsun.service.customer;
+
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.customer.CusDoorMapper;
+import com.dbsun.mapper.customer.CusMapper;
+import com.dbsun.mapper.customer.CusSignMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.DateUtil;
+import com.dbsun.util.FollowUtil;
+import com.dbsun.util.Tools;
+
+@Service
+public class CusService extends BaseService {
+
+	@Autowired
+	private CusMapper cusMapper;
+	@Autowired
+	private CusSignMapper signMapper;
+	@Autowired
+	private CusDoorMapper doorMapper;
+	
+	/**
+	 * 返回主键ID -- 这是个意外
+	 * @param pd
+	 * @param userPd
+	 * @return
+	 */
+	public JSONObject addCus(PageData pd, PageData userPd) {
+		JSONObject json = new JSONObject();
+		json.put("msg", "500");
+		json.put("result", "filed");
+		
+		String cusId = this.get32UUID();
+		pd.put("YBC001", cusId);
+		pd.put("YBC029", userPd.get("NAME"));
+		//添加客户
+		try {
+			cusMapper.addCus(pd);
+			//添加跟进记录
+			this.addCusFlw(userPd, FollowUtil.CUS_ADD_STR, FollowUtil.CUS_ADD_CODE, cusId);
+			//跟新客户跟进人
+			this.updateCusFlw(userPd, FollowUtil.CUS_ADD_STR, cusId);
+			
+			json.put("msg", "200");
+			json.put("result", cusId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return json;
+	}
+	
+	public List<PageData> getPageCusLst(Page page){
+		List<PageData> cusList = null;
+		try {
+			cusList = cusMapper.getPageCusLst(page);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return cusList;
+	}
+	
+	public PageData getCusById(PageData pd){
+		//从数据库查询
+		PageData cusPd = null;
+		try {
+			cusPd = cusMapper.getCusById(pd);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//cusPd对象不能为空，再判断标签不为空
+		if(!Tools.isObjEmpty(cusPd) && !Tools.isObjEmpty(cusPd.get("YBC023"))){
+			//不为空才取
+			String YBC023 = cusPd.getString("YBC023");
+			cusPd.put("YBC023", YBC023.substring(0, YBC023.length() - 1).split(","));
+		}
+		return cusPd;
+	}
+	
+	public int updateCusBasicData(PageData pd){
+		return cusMapper.updateCusBasicData(pd);
+	}
+	
+	public int updateCusBasicDataPlu(PageData pd, PageData userPd){
+		int ret = 0;
+		try {
+			cusMapper.updateCusBasicData(pd);
+			this.addCusFlw(userPd, FollowUtil.CUS_UPDATE_STR, FollowUtil.CUS_UPDAT_CODE, pd.getString("YBC001"));
+			this.updateCusFlw(userPd, FollowUtil.CUS_UPDATE_STR, pd.getString("YBC001"));
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	
+	/**
+	 * 更新客户标签
+	 * @param pd
+	 * @param userPd
+	 * @return
+	 */
+	public int updateCusForLabel(PageData pd, PageData userPd){
+		int ret = 0;
+		try {
+			cusMapper.updateCusLabel(pd);
+			this.addCusFlw(userPd, FollowUtil.CUS_UPDAT_LABEL_STR, FollowUtil.CUS_UPDAT_LABEL_CODE, pd.getString("YBC001"));
+			this.updateCusFlw(userPd, FollowUtil.CUS_UPDAT_LABEL_STR, pd.getString("YBC001"));
+			
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	
+	
+	/*public int updateCusToRecovery(PageData pd){
+		return cusMapper.updateCusToRecovery(pd);
+	}*/
+	
+	/*public int updateCusToRecoveryPlu(PageData pd, PageData userPd){
+		int ret = 0;
+		try {
+			cusMapper.updateCusToRecovery(pd);
+			//批量回收
+			//this.addCusFlw(userPd, FollowUtil.CUS_TOREC_STR, FollowUtil.CUS_TOREC_CODE, FollowUtil.BATCH_RECOVERY);
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}*/
+	
+	public int updateCusToTempOrThink(PageData pd, int cusAttr) throws Exception{
+		int ret = 0;
+		//客户属性不能为3
+		try {
+			if(!cusMapper.getCusById(pd).get("YBC008_TP").equals(3)){
+				pd.put("YBC008_TP", cusAttr);
+				ret = cusMapper.updateCusBasicData(pd);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+			
+		return ret;
+	}
+	
+	public int updateCusToTempOrThinkPlu(PageData pd, int cusAttr, PageData userPd){
+		int ret = 0;
+		try {
+			//转为意向客户的时候需要更新YBC035_TM，写在SQL不安全，就用service赋值
+			if(cusAttr == 1)pd.put("YBC035_TM", DateUtil.getTime());
+			updateCusToTempOrThink(pd, cusAttr);
+			String flwCont = "";
+			int flwType = 0;
+			//临时客户
+			if(cusAttr == 0){
+				flwType = FollowUtil.CUS_TOTEMP_CODE;
+				flwCont = FollowUtil.CUS_TOTEMP_STR;
+			}else if(cusAttr == 1){
+				//意向客户
+				flwType = FollowUtil.CUS_TOTHINK_CODE;
+				flwCont = FollowUtil.CUS_TOTHINK_STR;
+			}
+			this.addCusFlw(userPd, flwCont, flwType, pd.getString("YBC001"));
+			
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+	public int updateCusToDoor(PageData pd){
+		int ret = 0;
+		try {
+			//至少有一条上门数据，客户属性不能为3
+			if(doorMapper.getDoorsByYbc001(pd).size() > 0 
+					&& !cusMapper.getCusById(pd).get("YBC008_TP").equals(3)){
+				pd.put("YBC008_TP", 2);
+				ret = cusMapper.updateCusBasicData(pd);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+	public int updateCusToDoorPlu(PageData pd, PageData userPd){
+		int ret = 0;
+		try {
+			updateCusToDoor(pd);
+			this.addCusFlw(userPd, FollowUtil.CUS_TODOOR_STR, FollowUtil.CUS_TODOOR_CODE, pd.getString("YBC001"));
+			this.updateCusFlw(userPd, FollowUtil.CUS_TODOOR_STR, pd.getString("YBC001"));
+			
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+	public int updateCusToSign(PageData pd){
+		int ret = 0;
+		//至少有一条签单数据
+		try {
+			if(signMapper.getSignsByYBC001(pd).size() > 0){
+				pd.put("YBC008_TP", 3);
+				cusMapper.updateCusBasicData(pd);
+			}
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+	public int updateCusToSignPlu(PageData pd, PageData userPd){
+		int ret = 0;
+		try {
+			updateCusToSign(pd);
+			this.addCusFlw(userPd, FollowUtil.CUS_TOSIGN_STR, FollowUtil.CUS_TOSIGN_CODE, pd.getString("YBC001"));
+			this.updateCusFlw(userPd, FollowUtil.CUS_TOSIGN_STR, pd.getString("YBC001"));
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+	public int updateCusToScrap(PageData pd){
+		
+		try {
+			//不为签单客户
+			if(!cusMapper.getCusById(pd).get("YBC008_TP").equals(3)){
+				pd.put("YBC026_TP", 1);
+				return cusMapper.updateCusBasicData(pd);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return 0;
+	}
+	
+	public int updateCusToScrapPlu(PageData pd, PageData userPd){
+		int ret = 0;
+		try {
+			updateCusToScrap(pd);
+			this.addCusFlw(userPd, FollowUtil.CUS_TOSCRAP_STR, FollowUtil.CUS_TOSCRAP_CODE, pd.getString("YBC001"));
+			this.updateCusFlw(userPd, FollowUtil.CUS_TOSCRAP_STR, pd.getString("YBC001"));
+			
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+	/**
+	 * 查询客户的介绍人信息
+	 * @param pd
+	 * 			YBC001
+	 * @return
+	 */
+	public List<PageData> getIntroducerByCusId(PageData pd){
+		return cusMapper.getIntroducerByCusId(pd);
+	}
+	
+	/**
+	 * 通过号码获取客户名称
+	 * @param pd
+	 * @return
+	 */
+	public PageData getCusNameByPhone(PageData pd){
+		return cusMapper.getCusNameByPhone(pd);
+	}
+	
+	/**
+	 * 修改客户标签
+	 * @param pd
+	 * @return
+	 */
+	public int updateCusLabel(PageData pd){
+		return cusMapper.updateCusLabel(pd);
+	}
+	
+}

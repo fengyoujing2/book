@@ -1,0 +1,31 @@
+package com.dbsun.controller.system;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.util.SessionUtil;
+
+/**
+ * 用户账号
+ * 
+ * @author DongZai
+ * 
+ */
+@Controller
+@RequestMapping("/wx_login")
+public class WXLoginController extends BaseController {
+
+	/**
+     * 微信退出方法
+     */
+    @RequestMapping("/logout")
+    @ResponseBody
+    public String weLogout() {
+    	//移除OpenId
+    	this.getSession().removeAttribute(SessionUtil.SESSION_OPENID);
+    	return "success";
+	}
+	
+}

@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.task.TaskBelongToMeMapper">
+	<!-- 属于我的任务 -->
+	
+	<!-- 我的任务列表 -->
+	<select id="getPageBelToMeLst" parameterType="page" resultType="pd" useCache="false">
+		select
+		t.*,
+		(select DEPT_NAME from sys_dept where DEPT_LAYERORDER = t.DEPT_LAYERORDER) as deptName,
+		(
+		case t.YBT003_TP
+		when 1 then "签单任务"
+		when 2 then "利润任务"
+		when 3 then "放款任务"
+		end
+		) as taskType,
+		(
+		case t.YBT009_TP
+		when 1 then "部门任务"
+		when 2 then "个人任务"
+		end
+		) as orderType,
+		(
+		case t.ybt014_tp
+		when 'b1251ef4b74c4046966dc2125e6513ee' then "房贷"
+		when 'bb6718447a5a4db596417d5f8b621046' then "信贷"
+		end
+		) as loanType,
+		<!-- 个人 start -->
+		(
+		select left (COUNT(s.YBCS001) / t.YBT012 *100,5)
+		from ybc_sign s
+		where 1 = 1
+		and s.user_id = t.user_id
+		AND s.ybcs009_tp = t.ybt014_tp<!-- 2018-6-29 增加 贷款类型的统计-->
+		AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 任务开始时间 -->
+		AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005 <!-- 任务结束时间 -->
+		) as doSTotal, <!-- 签单率 -->
+		(
+		select count(s.YBCS001)
+		from ybc_sign s
+		where 1 = 1
+		and s.user_id = t.user_id
+		AND s.ybcs009_tp = t.ybt014_tp<!-- 2018-6-29 增加 贷款类型的统计-->
+		AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM
+		AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005
+		) as doSTotalNum, <!-- 签单数 -->
+		(
+		select
+		left (IFNULL(sum(m.YBCMA022), 0) / t.YBT012 *100,5) as 完成率
+		from ybc_match m,ybc_sign s <!-- 2018-6-29 增加 贷款类型的统计-->
+		where m.ybcs001=s.ybcs001 <!-- 2018-6-29 增加 贷款类型的统计-->
+		<!--AND s.ybcs009_tp = t.ybt014_tp&lt;!&ndash; 2018-6-29 增加 贷款类型的统计&ndash;&gt;-->
+		and m.user_id2 = t.user_id
+		and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+		and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+		) as doIncomeTol, <!-- 利润率 -->
+		(
+		select
+		IFNULL(sum(m.YBCMA022), 0) as 完成额
+		from ybc_match m,ybc_sign s <!-- 2018-6-29 增加 贷款类型的统计-->
+		where m.ybcs001=s.ybcs001 <!-- 2018-6-29 增加 贷款类型的统计-->
+		<!--AND s.ybcs009_tp = t.ybt014_tp&lt;!&ndash; 2018-6-29 增加 贷款类型的统计&ndash;&gt;-->
+		and m.user_id2 = t.user_id
+		and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+		and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+		) as doIncomeTolNum,<!-- 利润额 -->
+		(<!-- 2018-7-2 增加 放款金额的统计-->
+		select
+		IFNULL(sum(m.YBCMA030), 0) as 放款金额
+		from ybc_match m,ybc_sign s
+		where m.ybcs001=s.ybcs001
+		AND s.ybcs009_tp = t.ybt014_tp
+		and m.user_id = t.user_id <!-- 做单人员ID -->
+		and m.YBCMA029_TM <![CDATA[ >= ]]> t.YBT008_TM <!--放贷时间 -->
+		and m.YBCMA029_TM <![CDATA[ <= ]]> t.YBT005
+		)as doLendingSum,<!-- 放款额 -->
+		(<!-- 2018-7-2 增加 放款金额的统计-->
+		select
+		left (IFNULL(sum(m.YBCMA030), 0) / t.YBT012 *100,5) as 完成率
+		from ybc_match m,ybc_sign s
+		where m.ybcs001=s.ybcs001
+		AND s.ybcs009_tp = t.ybt014_tp
+		and m.user_id = t.user_id <!-- 做单人员ID -->
+		and m.YBCMA029_TM <![CDATA[ >= ]]> t.YBT008_TM <!--放贷时间 -->
+		and m.YBCMA029_TM <![CDATA[ <= ]]> t.YBT005
+		)as doLendingRate,<!-- 放款完成率 -->
+		<!-- 个人 end -->
+		<!-- 部门 start -->
+		(
+		select 	left (count(s.YBCS001) / t.YBT012 *100,5) as 部门签单完成率
+		from ybc_sign s
+		where 1 = 1
+		and s.DEPT_LAYERORDER like concat(t.DEPT_LAYERORDER, '%')
+		AND s.ybcs009_tp = t.ybt014_tp<!-- 2018-6-29 增加 贷款类型的统计-->
+		AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM
+		AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005
+		) as doSTotaldept, <!-- 部门签单率 -->
+		(
+		select count(s.YBCS001)
+		from ybc_sign s
+		where 1 = 1
+		and s.DEPT_LAYERORDER like concat(t.DEPT_LAYERORDER, '%')
+		AND s.ybcs009_tp = t.ybt014_tp<!-- 2018-6-29 增加 贷款类型的统计-->
+		AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM
+		AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005
+		) as doSTotalNumdept, <!-- 部门签单量 -->
+		(
+		select
+		left (IFNULL(sum(m.YBCMA022), 0) / t.YBT012 *100,5) as 完成率
+		from ybc_match m,ybc_sign s <!-- 2018-6-29 增加 贷款类型的统计-->
+		where m.ybcs001=s.ybcs001 <!-- 2018-6-29 增加 贷款类型的统计-->
+		<!--AND s.ybcs009_tp = t.ybt014_tp&lt;!&ndash; 2018-6-29 增加 贷款类型的统计&ndash;&gt;-->
+		and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+		and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+		and m.DEPT_LAYERORDER2 like concat(t.DEPT_LAYERORDER, '%')
+		) as doIncomeToldept, <!-- 部门利润完成率 -->
+		(
+		select
+		sum(IFNULL(m.YBCMA022, 0)) as 完成利润额
+		from ybc_match m,ybc_sign s <!-- 2018-6-29 增加 贷款类型的统计-->
+		where m.ybcs001=s.ybcs001 <!-- 2018-6-29 增加 贷款类型的统计-->
+		<!--AND s.ybcs009_tp = t.ybt014_tp&lt;!&ndash; 2018-6-29 增加 贷款类型的统计&ndash;&gt;-->
+		and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+		and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+		and m.DEPT_LAYERORDER2 like concat(t.DEPT_LAYERORDER, '%')
+		) as doIncomeTolNumdept, <!-- 部门利润完成利润额 -->
+
+		(<!-- 2018-7-2 增加 放款金额的统计-->
+		select
+		IFNULL(sum(m.YBCMA030), 0) as 放款金额
+		from ybc_match m,ybc_sign s
+		where m.ybcs001=s.ybcs001
+		AND s.ybcs009_tp = t.ybt014_tp
+		and m.YBCMA029_TM <![CDATA[ >= ]]> t.YBT008_TM <!--放贷时间 -->
+		and m.YBCMA029_TM <![CDATA[ <= ]]> t.YBT005
+		and m.DEPT_LAYERORDER like concat(t.DEPT_LAYERORDER, '%')
+		)as doLendingDeptSum,<!-- 放款额 -->
+		(<!-- 2018-7-2 增加 放款金额的统计-->
+		select
+		left (IFNULL(sum(m.YBCMA030), 0) / t.YBT012 *100,5) as 完成率
+		from ybc_match m,ybc_sign s
+		where m.ybcs001=s.ybcs001
+		AND s.ybcs009_tp = t.ybt014_tp
+		and m.YBCMA029_TM <![CDATA[ >= ]]> t.YBT008_TM <!--放贷时间 -->
+		and m.YBCMA029_TM <![CDATA[ <= ]]> t.YBT005
+		and m.DEPT_LAYERORDER like concat(t.DEPT_LAYERORDER, '%')
+		)as doLendingDetpRate,<!-- 放款完成率 -->
+		<!-- 部门 end -->
+		<!-- 完成率 Start -->
+		(
+		case
+		when (t.YBT003_TP = 1 and t.YBT009_TP = 1) then
+		(
+		<!-- ( -->
+		select 	left (count(s.YBCS001) / t.YBT012 *100,5) as 部门签单完成率
+		from ybc_sign s
+		where 1 = 1
+		and s.DEPT_LAYERORDER like concat(t.DEPT_LAYERORDER, '%')
+		AND s.ybcs009_tp = t.ybt014_tp<!-- 2018-6-29 增加 贷款类型的统计-->
+		AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM
+		AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005
+		<!-- ) as doSTotaldept,  --><!-- 部门签单率 -->
+		)
+		when (t.YBT003_TP = 1 and t.YBT009_TP = 2) then
+		(
+		<!-- ( -->
+		select left (COUNT(s.YBCS001) / t.YBT012 *100,5)
+		from ybc_sign s
+		where 1 = 1
+		and s.user_id = t.user_id
+		AND s.ybcs009_tp = t.ybt014_tp<!-- 2018-6-29 增加 贷款类型的统计-->
+		AND s.YBCS002_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 任务开始时间 -->
+		AND s.YBCS002_TM <![CDATA[ <= ]]> t.YBT005 <!-- 任务结束时间 -->
+		<!-- ) as doSTotal,  --><!-- 个人签单率 -->
+		)
+		when (t.YBT003_TP = 2 and t.YBT009_TP = 1) then
+		(
+		<!-- ( -->
+		select
+		left (IFNULL(sum(m.YBCMA022), 0) / t.YBT012 *100,5) as 完成率
+		from ybc_match m,ybc_sign s <!-- 2018-6-29 增加 贷款类型的统计-->
+		where m.ybcs001=s.ybcs001 <!-- 2018-6-29 增加 贷款类型的统计-->
+		<!--AND s.ybcs009_tp = t.ybt014_tp&lt;!&ndash; 2018-6-29 增加 贷款类型的统计&ndash;&gt;-->
+		and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+		and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+		and m.DEPT_LAYERORDER2 like concat(t.DEPT_LAYERORDER, '%')
+		<!-- ) as doIncomeToldept, --> <!-- 部门利润完成率 -->
+		)
+		when (t.YBT003_TP = 2 and t.YBT009_TP = 2) then
+		(
+		<!-- ( -->
+		select
+		left (IFNULL(sum(m.YBCMA022), 0) / t.YBT012 *100,5) as 完成率
+		from ybc_match m,ybc_sign s <!-- 2018-6-29 增加 贷款类型的统计-->
+		where m.ybcs001=s.ybcs001 <!-- 2018-6-29 增加 贷款类型的统计-->
+		<!--AND s.ybcs009_tp = t.ybt014_tp&lt;!&ndash; 2018-6-29 增加 贷款类型的统计&ndash;&gt;-->
+		and m.user_id2 = t.user_id
+		and m.YBCMA025_TM <![CDATA[ >= ]]> t.YBT008_TM <!-- 财务结账时间 -->
+		and m.YBCMA025_TM <![CDATA[ <= ]]> t.YBT005
+		<!-- ) as doIncomeTol, --> <!-- 利润率 -->
+		)
+		<!-- 2018-7-2 增加 放款金额的统计-->
+		when (t.YBT003_TP = 3 and t.YBT009_TP = 1) then
+		(
+		select
+		left (IFNULL(sum(m.YBCMA030), 0) / t.YBT012 *100,5) as 完成率
+		from ybc_match m,ybc_sign s
+		where m.ybcs001=s.ybcs001
+		AND s.ybcs009_tp = t.ybt014_tp
+		and m.YBCMA029_TM <![CDATA[ >= ]]> t.YBT008_TM <!--放贷时间 -->
+		and m.YBCMA029_TM <![CDATA[ <= ]]> t.YBT005
+		and m.DEPT_LAYERORDER like concat(t.DEPT_LAYERORDER, '%')
+		)
+		when (t.YBT003_TP = 3 and t.YBT009_TP = 2) then
+		(
+		select
+		left (IFNULL(sum(m.YBCMA030), 0) / t.YBT012 *100,5) as 完成率
+		from ybc_match m,ybc_sign s
+		where m.ybcs001=s.ybcs001
+		AND s.ybcs009_tp = t.ybt014_tp
+		and m.user_id = t.user_id <!-- 做单人员ID -->
+		and m.YBCMA029_TM <![CDATA[ >= ]]> t.YBT008_TM <!--放贷时间 -->
+		and m.YBCMA029_TM <![CDATA[ <= ]]> t.YBT005
+		)
+		else 0
+		end
+		) as completionRate
+		<!-- 完成率 End -->
+		from YBT t
+		where 1 = 1
+		<!-- 权限 start -->
+		and
+		(
+		t.USER_ID = #{pd.USER_ID}<!-- 任务执行者-->
+		or
+		(
+		t.DEPT_LAYERORDER LIKE CONCAT(#{pd.DEPT_LAYERORDER},'%')
+		and
+		t.POSITION = #{pd.POSITION}
+		)<!-- 上级 -->
+		)
+		<!-- 权限 end -->
+		<!-- 搜索 start -->
+		<!-- 按照任务开始时间搜索 -->
+		<if test="pd.YBT008_TMStart != null and pd.YBT008_TMStart != ''">
+			and t.YBT008_TM <![CDATA[ >= ]]> #{pd.YBT008_TMStart}
+		</if>
+		<if test="pd.YBT008_TMEnd != null and pd.YBT008_TMEnd != ''">
+			and t.YBT008_TM <![CDATA[ <= ]]> #{pd.YBT008_TMEnd}
+		</if>
+		<!-- 任务类型：签单/利润 -->
+		<if test="pd.YBT003_TP != null and pd.YBT003_TP != ''">
+			and t.YBT003_TP = #{pd.YBT003_TP}
+		</if>
+		<!-- 贷款类型：房贷/信贷 -->
+		<if test="pd.YBT014_TP != null and pd.YBT014_TP != ''">
+			and t.YBT014_TP = #{pd.YBT014_TP}
+		</if>
+		<!-- 任务下达类型：部门/个人 -->
+		<if test="pd.YBT009_TP != null and pd.YBT009_TP != ''">
+			and t.YBT009_TP = #{pd.YBT009_TP}
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and
+			(
+			t.USER_ID = #{pd.USER_ID_Sea}
+			or
+			t.YBT011 = #{pd.USER_ID_Sea}
+			)
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and
+			(
+			t.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+			)
+		</if>
+
+		<!-- 搜索 end -->
+		order by t.YBT008_TM desc <!-- 以任务开始时间排序 -->
+	</select>
+	
+	
+</mapper>

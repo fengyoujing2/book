@@ -1,0 +1,17 @@
+package com.dbsun.mapper.customer;
+
+import java.util.List;
+import java.util.Map;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface CusRecoveryMapper {
+	
+	public List<PageData> getPageRecoveryLst(Page page);
+	/*public int updateReAllot(PageData pd);*/
+	public int updateReAllotOfLimit(PageData pd);
+	public List<PageData> getPreReAllotLst(PageData pd);
+	@SuppressWarnings("rawtypes")
+	public Object backUser_branch(Map map);
+}

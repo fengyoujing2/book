@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+
+    <title>后台客户详情</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0];
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+
+    <style type="text/css">
+
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        [v-cloak] {
+            display: none;
+        }
+        .tips{
+            display: inline-block;
+            padding: .5rem 2rem .5rem 1rem;
+            background-color: #54de9e;
+            color: #fff;
+            font-size: 16px;
+            border-bottom-right-radius: 2rem;
+            border-top-right-radius: 2rem;
+        }
+        .topH{
+            background-color:#fff;
+            min-height: 23rem;
+            overflow: hidden;
+        }
+        .userImg{
+            background-color: #4aa5fb;
+            font-size: 40px;
+            color: #fff;
+            padding: 10px 20px;
+            border-top-right-radius: 6px;
+            border-top-left-radius: 6px;
+        }
+        .userImgG{
+            background-color: #dcdcdc;
+            font-size: 40px;
+            color: #fff;
+            padding: 10px 20px;
+            border-top-right-radius: 6px;
+            border-top-left-radius: 6px;
+        }
+        .cus_row{
+            padding:.5rem 2rem;
+            font-size:14px;
+        }
+        .el-tabs__item.is-active{
+            color:#000 !important;
+        }
+        .el-tabs__active-bar{
+            background-color: #fd8c12 !important;
+        }
+        .el-tabs__header{
+            margin-bottom:2px;
+        }
+        .el-table .odd-row {
+            background: #f1f7fe !important;
+            color:#878787 !important;
+        }
+        .el-table .even-row {
+            background: #ffffff !important;
+            color:#878787 !important;
+        }
+        .cusTable .el-tabs__nav-scroll{
+            padding-left: 2rem;
+        }
+        .cusTable .el-table tr{
+            background-color: #4aa5fb;
+            color:#fff;
+        }
+        .userSel .el-input--mini .el-input__inner {
+            height: 20px;
+            border-top-left-radius:0 !important;
+            border-top-right-radius:0 !important;
+        }
+        .userSel input{
+            color: #fb8b12;
+        }
+/*
+        .el-textarea textarea{
+            border: 0 !important;
+        }
+*/
+        .el-step.is-vertical .el-step__head {
+            -webkit-box-flex: 0;
+            -ms-flex-positive: 0;
+            flex-grow: 0;
+            width: 24px;
+            height: 40px !important;
+        }
+        .homeInfoBtnS{
+            border-radius: 0 !important;
+            margin-left: -5px !important;
+            color:#fff !important;
+            border: 1px solid #4aa5fb !important;
+            background-color: #4aa5fb !important;
+        }
+        .homeInfoBtn{
+            border-radius: 0 !important;
+            margin-left: -5px !important;
+            color:#747474 !important;
+        }
+        .followRCss{
+            display: flex;
+            border: 1px solid #f1f7fe;
+            border-radius: 8px;
+            padding: 4px 8px;
+            justify-content: space-between;
+            font-size: 14px;
+            box-shadow: -2px 0px 5px 1px #f1f7fe,0px -2px 5px 1px #f1f7fe,2px 0px 5px 1px #f1f7fe,0px 2px 5px 1px #f1f7fe;
+        }
+        .followRCss span{
+            color:#4aa5fb;
+        }
+        .followRCssDate{
+            text-align: left;
+            font-size: 12px;
+            color:#aeaeae;
+            margin-top: 8px;
+        }
+        .time {
+            font-size: 13px;
+            color: #999;
+          }
+        .bottom {
+            margin-top: 13px;
+            line-height: 12px;
+        }
+        .button {
+            padding: 0;
+            float: right;
+        }
+        .image {
+            width: 200px;
+            height: 130px;
+            margin: auto;
+            display: block;
+        }
+        .clearfix:before,
+        .clearfix:after {
+            display: table;
+            content: "";
+        }
+        .clearfix:after {
+            clear: both
+        }
+        .addNewPaper{
+            width: 100%;
+            height: 135px;
+            border-radius: 4px;
+            color:#4aa5fb;
+            background-color: #f1f7fe;
+            font-size:88px;
+            text-align: center;
+        }
+        .addNewPaper a{
+            color: #4aa5fb;
+            text-decoration: none;
+        }
+        .el-upload__input {
+            display: none !important;
+        }
+        .newPaperDiv{
+            margin-top: 15px;
+            margin-left: 20px;
+        }
+        .userTag{
+            margin:.5rem;
+            color:#fff;
+            background-color:#4aa5fb;
+            font-size:12px;
+        }
+        .userTag i{
+            display: none;
+        }
+        .userTag:hover{
+            background-color:#FD8B12;
+            border: 1px solid #FD8B12;
+        }
+        .userTag:hover i{
+            display: inline-block;
+            color: #fff !important;
+        }
+        .cus_tabsPl .el-tabs__nav-scroll{
+            padding-left: 10px;
+        }
+        .userInfoHover a{
+            display: none;
+            padding: 0 !important;
+            border: 0 !important;
+        }
+        .userInfoHover:hover a{
+            display: inline-block;
+        }
+        .editIpt{
+            width: 220px !important;
+        }
+        .followDiv{
+            height: 800px;
+            overflow-y: scroll;
+        }
+        .editIpt input{
+            float:left;
+            padding:0;
+            height:20px;
+/*
+            border: 0;
+            border-bottom: 1px solid #ccc;
+            border-radius: 0;
+*/
+        }
+        .el-dialog__header {
+            padding: 15px 0px 10px !important;
+        }
+        .el-dialog__title{
+            border-left: 4px solid #4BA5FD;
+            padding-left: 10px;
+        }
+/*        // 去掉input[type=number]默认的加减号*/
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .el-table td{
+            padding: 4px 0 !important;
+        }
+        .el-message-box {
+            margin-top: -300px;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:0;">
+    <div id="bg_CusDetailsApp" v-cloak>
+<!--        左边-->
+        <el-row>
+            <el-col :span="20">
+            <el-row>
+                <el-col :span="18" style="padding:0 0 .5rem 1rem;">
+                    <div class="topH">
+                        <el-row>
+                            <el-col :span="20">
+                                <div style="display:flex;padding:2rem;">
+                                    <div>
+                                        <div v-if="customerInfo.YBC008_TP=='4'" class="userImgG fa fa-trash-o"></div>
+                                        <div v-else :class="userImgInit"></div>
+                                        <div class="userSel">
+                                            <el-select v-model="customerInfo.state" size="mini" disabled style="width:71px;margin-top:-1px;">
+                                                <el-option
+                                                  v-for="item in customerState"
+                                                  :key="item.value"
+                                                  :label="item.label"
+                                                  :value="item.value">
+                                                </el-option>
+                                            </el-select>
+                                        </div>
+                                    </div>
+                                    <div style="margin-left:2rem;">
+                                        <h1 v-if="editFlag">{{customerInfo.YBC002}}</h1>
+                                        <el-input v-else v-model="customerInfo.YBC002" :palceholder="customerInfo.YBC002" class="editIpt" style="height:20px;"></el-input>
+                                        <h6>跟进人：{{customerInfo.name}}</h6>
+                                    </div>
+                                </div>
+                            </el-col>
+                            <el-col :span="4">
+<!--                                <el-button icon="fa fa-phone" style="margin-top:2rem;color:#fff;background-color:#54de9e;border:0;padding:5px 30px;font-size:30px;border-radius:4px;"></el-button>-->
+                            </el-col>
+                        </el-row>
+                        <el-row class="cus_row">
+                            <el-col :span="8" style="display:flex;">
+                                <span>性别：</span>
+                                <span v-if="editFlag">{{customerInfo.sex}}</span>
+                                <el-select v-else v-model="customerInfo.YBC004_TP" :placeholder="customerInfo.sex" size="mini">
+                                    <el-option label="男" value="1"></el-option>
+                                    <el-option label="女" value="2"></el-option>
+                                </el-select>
+                            </el-col>
+                            <el-col :span="8" style="display:flex;">
+                                <span>电话：</span>
+                                <span>{{customerInfo.YBC003}}</span>
+                            </el-col>
+                            <el-col :span="8" style="display:flex;">
+                                <span>年龄：</span>
+                                <span v-if="editFlag">{{customerInfo.YBC005}}</span>
+                                <el-input v-else v-model="customerInfo.YBC005" :palceholder="customerInfo.YBC005" class="editIpt"></el-input>
+                            </el-col>
+                        </el-row>
+                        <el-row class="cus_row">
+                            <el-col :span="8" style="display:flex;">
+                                <span>婚姻状况：</span>
+                                <span v-if="editFlag">{{customerInfo.maritalStatus}}</span>
+                                <el-select v-else v-model="customerInfo.YBC009_TP" :placeholder="customerInfo.maritalStatus"  size="mini">
+                                    <el-option label="未婚" value="1"></el-option>
+                                    <el-option label="已婚" value="2"></el-option>
+                                </el-select>
+                            </el-col>
+                            <el-col :span="8" style="display:flex;">
+                                <span>身份证号：</span>
+                                <span v-if="editFlag">{{customerInfo.YBC010}}</span>
+                                <el-input type="number" v-else v-model="customerInfo.YBC010" :palceholder="customerInfo.YBC010" class="editIpt"></el-input>
+                            </el-col>
+                            <el-col :span="8" style="display:flex;">
+                                <span>月收入：</span>
+                                <span v-if="editFlag">{{customerInfo.YBC011}}</span>
+                                <el-input type="number" v-else v-model="customerInfo.YBC011" :palceholder="customerInfo.YBC011" class="editIpt"></el-input>
+                            </el-col>
+                        </el-row>
+                        <el-row class="cus_row">
+                            <el-col :span="8" style="display:flex;">
+                                <span>客户等级：</span>
+                                <span v-if="editFlag">{{customerInfo.level}}</span>
+                                <el-select v-else v-model="customerInfo.YBC018_TP" :placeholder="customerInfo.level" size="mini">
+                                    <el-option
+                                      v-for="item in customerLevel"
+                                      :key="item.value"
+                                      :label="item.label"
+                                      :value="item.value">
+                                    </el-option>
+                                </el-select>
+                            </el-col>
+                            <el-col :span="16" style="display:flex;">
+                                <span>当前住址：</span>
+                                <span v-if="editFlag">{{customerInfo.YBC012}}</span>
+                                <el-input v-else v-model="customerInfo.YBC012" :palceholder="customerInfo.YBC012" style="width:90%"  size="mini"></el-input>
+                            </el-col>
+                        </el-row>
+                        <el-row class="cus_row">
+                            <el-col :span="24" style="display:flex;">
+                                <span>备注：</span>
+                                <span v-if="editFlag">{{customerInfo.YBC013}}</span>
+                                <el-input v-else type="textarea" autosize  v-model="customerInfo.YBC013" :palceholder="customerInfo.YBC013" style="width:80%"  size="mini"></el-input>
+                            </el-col>
+                        </el-row>
+                        <el-row v-if="editFlag" class="cus_row" style="height:0;"></el-row>
+                        <el-row v-else class="cus_row">
+                            <div style="text-align:right;">
+                                <el-button size="mini" round style="padding:5px 20px;" @click="noEdits">取消</el-button>
+                                <el-button size="mini" type="primary" round style="padding:5px 20px;" @click="changeEditS">保存</el-button>
+                            </div>
+                        </el-row>
+<!--
+                        <el-row class="cus_row">
+                            <el-col :span="2" style="text-align:right;">
+                                地区：
+                            </el-col>
+                            <el-col :span="6">
+                                <span v-if="editFlag">没有该字段</span>
+                                <el-input v-else v-model="customerInfo.area" :palceholder="customerInfo.area" class="editIpt"></el-input>
+                            </el-col>
+                            <el-col :span="2" style="text-align:right;">
+                                职务：
+                            </el-col>
+                            <el-col :span="6">
+                                <span v-if="editFlag">没有该字段</span>
+                                <el-input v-else v-model="customerInfo.occupation" :palceholder="customerInfo.occupation" class="editIpt"></el-input>
+                            </el-col>
+                            <el-col :span="2" style="text-align:right;">
+                                生日：
+                            </el-col>
+                            <el-col :span="6">
+                                <span v-if="editFlag">没有该字段</span>
+                                <el-input v-else v-model="customerInfo.birthday" :palceholder="customerInfo.birthday" class="editIpt"></el-input>
+                            </el-col>
+                        </el-row>
+-->
+                    </div>
+                </el-col>
+                <el-col :span="6"  style="padding:0 1rem .5rem 1rem;">
+                    <div class="topH" style="height:270px;overflow-y: scroll;">
+                        <div><span class="tips" style="margin:1rem 0;background-color:#fd8c12;">客户标签</span></div>
+                        <div style="">
+                            <el-tag
+                              :key="tag"
+                              v-for="tag in customerTags"
+                              closable
+                              size="small"
+                              :disable-transitions="false"
+                              @close="handleClose(tag)"
+                              class="userTag">
+                                {{tag}}
+                            </el-tag>
+<!--
+                        <el-input
+                          class="input-new-tag"
+                          v-if="inputVisible"
+                          v-model="inputValue"
+                          ref="saveTagInput"
+                          size="mini"
+                          @keyup.enter.native="handleInputConfirm"
+                          @blur="handleInputConfirm"
+                        </el-input>
+                        >
+-->
+<!--
+                        <div v-if="addCusTag">
+                            <el-select  v-model="newTags" multiple placeholder="请选择客户标签">
+                                <el-option-group
+                                  v-for="group in TagOptions"
+                                  :key="group.label"
+                                  :label="group.label">
+                                  <el-option
+                                    v-for="item in group.options"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.label">
+                                  </el-option>
+                                </el-option-group>
+                            </el-select>
+                            <el-button @click="sureAddTag">确认</el-button>
+                        </div>
+
+                        <el-button v-else class="button-new-tag fa fa-plus" style="color:#fff;background-color:#e5e5e5;border:0;boder-radius:.6rem;padding:6px 20px;margin-left:.5rem;" size="small" @click="showInput"></el-button>
+-->
+                    </div>
+                    </div>
+                </el-col>
+            </el-row>
+            <el-row style="padding:.2rem 1rem;">
+                <el-tabs v-model="tabsActiveName" @tab-click="handleClick" style="background-color:#fff;" class="cus_tabsPl">
+                    <el-tab-pane label="跟进记录" name="followRecord">
+                        <el-input
+                          type="textarea"
+                          :autosize="{ minRows: 2, maxRows: 4}"
+                          placeholder="请输入客户跟进记录，不超过1000个字~"
+                          border="0"
+                          v-model="cusTextarea">
+                        </el-input>
+                        <div style="text-align: right;">
+                            <el-button type="primary" size="mini" style="margin:10px 15px;" @click="sureAddFollow">确认添加</el-button>
+                        </div>
+                        <div style="height:10px;background-color:#f1f7fe;"></div>
+                        <div style="text-align:center;padding:15px 0;">
+                            <el-button :class="followBtnIndex==1 ? 'homeInfoBtnS' : 'homeInfoBtn'" @click="followIndex(1)">历史记录</el-button>
+                            <el-button :class="followBtnIndex==2 ? 'homeInfoBtnS' : 'homeInfoBtn'" @click="followIndex(2)">呼叫记录</el-button>
+                            <el-button :class="followBtnIndex==3 ? 'homeInfoBtnS' : 'homeInfoBtn'" @click="followIndex(3)">文本记录</el-button>
+                        </div>
+                        <div v-if="followBtnIndex==1" style="text-align:center;" class="followDiv">
+                            <div v-for="(item,index) in followRecordAll" style="padding:5px 5rem;">
+                                <div class="followRCss">
+                                    <div>
+                                        <div><span>{{item.YBCF008}}</span>：{{item.YBCF006}}</div>
+                                        <div class="followRCssDate">{{item.YBCF002_TM}}</div>
+                                    </div>
+                                    <div>
+                                        <el-button v-if="item.YBCF007_TP=='2'" type="text" class="fa fa-volume-up"  @click="listenR(item.YBCF0013)"></el-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else-if="followBtnIndex==2" style="text-align:center;" class="followDiv">
+                            <div v-for="(item,index) in followRecordCall" style="padding:5px 5rem;">
+                                <div class="followRCss">
+                                    <div>
+                                        <div><span>{{item.YBCF008}}</span>：{{item.YBCF006}}</div>
+                                        <div class="followRCssDate">{{item.YBCF002_TM}}</div>
+                                    </div>
+                                    <div>
+                                        <el-button type="text" class="fa fa-volume-up"  @click="listenR(item.YBCF0013)"></el-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else-if="followBtnIndex==3" style="text-align:center;" class="followDiv">
+                            <div v-for="(item,index) in followRecordText" style="padding:5px 5rem;">
+                                <div class="followRCss">
+                                    <div>
+                                        <div><span>{{item.YBCF008}}</span>：{{item.YBCF006}}</div>
+                                        <div class="followRCssDate">{{item.YBCF002_TM}}</div>
+                                    </div>
+                                    <div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </el-tab-pane>
+                    <el-tab-pane label="签单信息" name="signingInfo" class="cusTable">
+                        <el-table
+                        :data="tableSigningInfo"
+                        style="width: 100%"
+                        height="400"
+                        :row-class-name="tableRowClassName">
+                            <el-table-column
+                              prop="YBCS049_TM"
+                              label="签单时间" min-width="120">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCS017"
+                              label="合同编号" min-width="120">
+                            </el-table-column>
+                            <el-table-column
+                              prop="proTypeName"
+                              label="贷款类型" min-width="100">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCS010"
+                              label="签单金额" min-width="100">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCS011"
+                              label="贷款期数" min-width="100">
+                            </el-table-column>
+                            <el-table-column
+                              prop="payment"
+                              label="付款方式" min-width="100">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCS006"
+                              label="贷后管理费(‰)" min-width="120">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCS003"
+                              label="服务费(％)" min-width="100">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCS051"
+                              label="包干服务费" min-width="120">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCS018_TP"
+                              label="贷款用途" min-width="200">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCS038"
+                              label="跟进人" min-width="120">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCS002_TM"
+                              label="跟进时间" min-width="160">
+                            </el-table-column>
+                        </el-table>
+                    </el-tab-pane>
+                    <el-tab-pane label="客户资料" name="paperInfo">
+                              <div class="followDiv" style="width:100%;">
+                          <el-col :span="4" v-for="(item, index) in paperInfo" :key="index" style="padding: 15px 10px;">
+                                  <el-card :body-style="{ padding: '0px' }">
+                                      <img :src="item.YBCDA006" class="image" @click="previewImg(item.YBCDA006)">
+                                      <div style="padding: 14px;">
+                                        <span>类型：{{item.aptitudeType}}</span>
+                                        <div class="bottom clearfix">
+                                          <time class="time">{{ item.YBCDA005_TM }}</time>
+                                        </div>
+                                      </div>
+                                    </el-card>
+                          </el-col>
+<!--                        不予上传，统一由后台人员上传-->
+                          <el-col :span="4" style="padding: 15px 10px;">
+                              <div class="addNewPaper"><a href="javascript:" @click="dialogNewPaperImg=true">+</a></div>
+                          </el-col>
+                              </div>
+                    </el-tab-pane>
+                    <el-tab-pane label="产品信息" name="contact" class="cusTable">
+                        <el-table
+                        :data="tableProductInfo"
+                        style="width: 100%"
+                        height="400"
+                        :row-class-name="tableRowClassName">
+                            <el-table-column
+                              prop="proName"
+                              label="产品名称" min-width="120">
+                            </el-table-column>
+                            <el-table-column
+                              prop="singleFlwState"
+                              label="跟进状态" min-width="100">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCMA037"
+                              label="过件金额" min-width="100">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCMA039_TM"
+                              label="过件时间" min-width="160">
+                            </el-table-column>
+                            <el-table-column
+                              prop="passState"
+                              label="过件状态" min-width="80">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCMA030"
+                              label="放贷金额" min-width="100">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCMA033"
+                              label="放贷期数" min-width="80">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCMA032"
+                              label="还款金额" min-width="80">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCMA029_TM"
+                              label="放贷时间" min-width="160">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCMA012"
+                              label="实收金额" min-width="120">
+                            </el-table-column>
+                        </el-table>
+                    </el-tab-pane>
+<!--
+                    <el-tab-pane label="介绍人" name="introducer" class="cusTable">
+                        <el-table
+                        :data="tableIntroInfo"
+                        style="width: 100%"
+                        height="400"
+                        :row-class-name="tableRowClassName">
+                            <el-table-column
+                              prop="YBCCO002"
+                              label="姓名">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCCO003"
+                              label="电话">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCCO004"
+                              label="所属关系">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCCO005"
+                              label="录入人">
+                            </el-table-column>
+                            <el-table-column
+                              prop="YBCCO006_TM"
+                              label="录入时间">
+                            </el-table-column>
+                        </el-table>
+                    </el-tab-pane>
+-->
+                </el-tabs>
+            </el-row>
+
+        </el-col>
+<!--        右边-->
+            <el-col :span="4">
+        <div style="height:800px;background-color:#fff;">
+            <div><span class="tips" style="margin:1rem 0;">客户进度</span></div>
+            <div style="height: 58rem;padding: 2rem 0rem 2rem 0rem;margin-bottom: 4rem;">
+                <el-collapse v-model="cusSSS" accordion>
+                    <el-collapse-item v-for="(item,index) in cusSchedule" :title="item.SPEED1=='end' ? '' : `进度流程(${index+1})`" :name="index+1" :key="index">
+                        <div style="margin-left: 3rem;">
+                            <el-steps direction="vertical" :active="item.SPEED015"  finish-status="success" class="stepDiv">
+                                <el-step title="新增客户"></el-step>
+                                <el-step title="客户跟进"></el-step>
+                                <el-step title="客户签单"></el-step>
+                                <el-step title="财务签单确认"></el-step>
+                                <el-step title="后台确认做单"></el-step>
+                                <el-step title="财务编号"></el-step>
+                                <el-step title="做单分配"></el-step>
+                                <el-step title="做单"></el-step>
+                                <el-step title="做单跟进"></el-step>
+                                <el-step title="放贷"></el-step>
+                                <!-- <el-step title="收款"></el-step>
+                                <el-step title="确认收款"></el-step>
+                                <el-step title="成本录入"></el-step>
+                                <el-step title="已结账"></el-step> -->
+                            </el-steps>
+                        </div>
+                    </el-collapse-item>
+                </el-collapse>
+            </div>
+        </div>
+        </el-col>
+    </el-row>
+<!--        添加客户资质资料  暂-->
+        <el-dialog title="新增纸质资料" :visible.sync="dialogNewPaperImg" width="30%">
+          <el-form :model="newPaperform">
+            <el-form-item label="请选择图片类型" :label-width="formLabelWidth">
+              <el-radio-group v-model="newPaperform.YBCDA002_TP">
+                <div class="newPaperDiv"><el-radio :label="1">身份证</el-radio></div>
+                <div class="newPaperDiv"><el-radio :label="2">房产证</el-radio></div>
+                <div class="newPaperDiv"><el-radio :label="3">行驶证</el-radio></div>
+                <div class="newPaperDiv"><el-radio :label="4">其他</el-radio></div>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="" :label-width="formLabelWidth">
+                <el-upload
+                  class="upload-demo"
+                  :action="basePathUpdate"
+                  :data="{YBC001:customerInfo.YBC001,YBCDA002_TP:newPaperform.YBCDA002_TP}"
+                  :on-success="handlePreview"
+                  :on-remove="handleRemove"
+                  :on-error="hanleError"
+                  list-type="picture">
+                  <el-button type="primary">选择图片</el-button>
+                </el-upload>
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogNewPaperImg = false">取 消</el-button>
+            <el-button type="primary" @click="dialogNewPaperImg = false">确 定</el-button>
+          </div>
+        </el-dialog>
+<!--        图片预览-->
+        <el-dialog title="图片预览" :visible.sync="dialogPreviewImg" width="80%"  top="2vh">
+            <div style="width:100%;height:600px;overflow-y: scroll;">
+                <img :src="dialogPreviewImgSrc" style="width:100%;"/>
+            </div>
+        </el-dialog>
+<!--        添加上门信息-->
+        <el-dialog title="添加上门信息" :visible.sync="dialogAddDoor" width="30%">
+          <el-form :model="addDoorform" :rules="addDoorRules" ref="addDoorform" class="demo-ruleForm">
+                <el-form-item label="贷款类型" :label-width="formLabelWidth" prop="YBCD005_TP">
+                <el-select v-model="addDoorform.YBCD005_TP" placeholder="请选择" style="width:80%;">
+                    <el-option
+                      v-for="item in productTs"
+                      :key="item.YBCT004_ID"
+                      :label="item.label"
+                      :value="item.value">
+                    </el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="意向贷款金额" :label-width="formLabelWidth" prop="YBCD004">
+                 <el-input type="number" v-model="addDoorform.YBCD004" palceholder="请输入金额" style="width:80%;"></el-input>
+            </el-form-item>
+            <el-form-item label="上门时间" :label-width="formLabelWidth">
+                <el-date-picker
+                  v-model="addDoorform.YBCD002_TM"
+                  type="date"
+                  placeholder="选择日期"
+                          value-format="yyyy-MM-dd"
+                  style="width:80%;">
+                </el-date-picker>
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogAddDoor = false">取 消</el-button>
+            <el-button type="primary" @click="sureAddDoors('addDoorform')">确 定</el-button>
+          </div>
+        </el-dialog>
+<!--        添加签单信息-->
+        <el-dialog title="添加签单信息" :visible.sync="dialogAddSign" width="60%">
+          <el-form :model="addSignform" :rules="addSignRules" ref="addSignform" class="demo-ruleForm">
+            <div style="display:flex;">
+                <el-form-item label="贷款类型" :label-width="formLabelWidth"  style="width:50%;" prop="YBCS009_TP">
+                    <el-select v-model="addSignform.YBCS009_TP" placeholder="请选择" style="width:80%;">
+                        <el-option
+                          v-for="item in productTs"
+                          :key="item.YBCT004_ID"
+                          :label="item.label"
+                          :value="item.value">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="签单金额" :label-width="formLabelWidth" style="width:50%;" prop="YBCS010">
+                    <el-input type="number" v-model="addSignform.YBCS010" placeholder="请输入金额" style="width:80%;"></el-input>
+                </el-form-item>
+            </div>
+            <div style="display:flex;">
+                <el-form-item label="贷款期数" :label-width="formLabelWidth" style="width:50%;" prop="YBCS011">
+                    <el-input type="number" v-model="addSignform.YBCS011" placeholder="请输入年限" style="width:80%;"></el-input>
+                </el-form-item>
+                <el-form-item label="付款方式" :label-width="formLabelWidth"  style="width:50%;">
+                    <el-radio-group v-model="addSignform.YBCS050_TP" size="mini">
+                        <el-radio-button label="1">按比例</el-radio-button>
+                        <el-radio-button label="2">包干制</el-radio-button>
+                    </el-radio-group>
+                </el-form-item>
+            </div>
+            <div v-if="addSignform.YBCS050_TP==2">
+                <el-form-item label="包干服务费" :label-width="formLabelWidth" style="width:50%;" prop="YBCS051">
+                    <el-input type="number" v-model="addSignform.YBCS051" placeholder="请输入金额" style="width:80%;"></el-input>
+                </el-form-item>
+            </div>
+            <div v-else style="display:flex;">
+                <el-form-item label="贷后管理费" :label-width="formLabelWidth" prop="YBCS006" style="width:50%;">
+                    <el-input type="number" v-model="addSignform.YBCS006" placeholder="请输入千分比" style="width:80%;">
+                        <template slot="append">‰</template>
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="服务费" :label-width="formLabelWidth" prop="YBCS003" style="width:50%;">
+                    <el-input type="number" v-model="addSignform.YBCS003" placeholder="请输入百分比" style="width:80%;">
+                        <template slot="append">％</template>
+                    </el-input>
+                </el-form-item>
+            </div>
+            <div style="display:flex;">
+                <el-form-item label="签单时间" :label-width="formLabelWidth" style="width:50%;">
+                    <el-date-picker
+                      v-model="addSignform.YBCS049_TM"
+                      type="date"
+                      placeholder="选择日期"
+                          value-format="yyyy-MM-dd"
+                      style="width:80%;">
+                    </el-date-picker>
+                </el-form-item>
+                <el-form-item label="合同编号" :label-width="formLabelWidth"  style="width:50%;">
+                    <el-input v-model="addSignform.YBCS017" placeholder="请输入合同编号" style="width:80%;"></el-input>
+                </el-form-item>
+            </div>
+            <div>
+              <el-form-item label="贷款用途" :label-width="formLabelWidth">
+                    <el-select v-model="addSignform.YBCS018_TP" multiple placeholder="请选择贷款用途" style="width:92%;">
+                        <el-option
+                          v-for="item in lendingTabs"
+                          :key="item.value"
+                          :label="item.label"
+                          :value="item.label">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+            </div>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogAddSign = false">取 消</el-button>
+            <el-button type="primary" @click="sureAddSign('addSignform')">确 定</el-button>
+          </div>
+        </el-dialog>
+<!--        添加联系人-->
+        <el-dialog title="添加联系人" :visible.sync="dialogAddTel" width="30%">
+          <el-form :model="addTelForm" class="demo-ruleForm">
+            <el-form-item label="姓名" label-width="100px">
+                <el-input v-model="addTelForm.YBCCO002" palceholder="请输入姓名" style="width:90%;"></el-input>
+            </el-form-item>
+            <el-form-item label="电话" label-width="100px" prop="YBCCO003" :rules="[{ required: true, message: '手机号码不能为空'}]">
+                <el-input type="YBCCO003" v-model="addTelForm.YBCCO003" palceholder="请输入号码" style="width:90%;"></el-input>
+            </el-form-item>
+            <el-form-item label="所属关系" label-width="100px">
+                <el-input v-model="addTelForm.YBCCO004" palceholder="请输入关系信息" style="width:90%;"></el-input>
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogAddTel = false">取 消</el-button>
+            <el-button type="primary" @click="sureAddTel">确 定</el-button>
+          </div>
+        </el-dialog>
+<!--        添加介绍人-->
+        <el-dialog title="添加介绍人" :visible.sync="dialogAddIntro" width="30%">
+          <el-form :model="addIntroForm">
+            <el-form-item label="姓名" label-width="100px">
+                <el-input v-model="addIntroForm.YBCCO002" palceholder="请输入姓名" style="width:90%;"></el-input>
+            </el-form-item>
+            <el-form-item label="电话" label-width="100px">
+                <el-input type="number" v-model="addIntroForm.YBCCO003" palceholder="请输入号码" style="width:90%;"></el-input>
+            </el-form-item>
+            <el-form-item label="所属关系" label-width="100px">
+                <el-input v-model="addIntroForm.YBCCO004" palceholder="请输入关系信息" style="width:90%;"></el-input>
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogAddIntro = false">取 消</el-button>
+            <el-button type="primary" @click="sureAddIntro">确 定</el-button>
+          </div>
+        </el-dialog>
+<!--        呼叫录音-->
+        <el-dialog title="通话录音" :visible.sync="listenFlag" width="30%">
+            <div style="text-align:center;">
+                <audio :src="listenSrc" controls="controls" style="width:90%;">
+                </audio>
+            </div>
+        </el-dialog>
+    </div>
+</body>
+
+<script src="../static/js/vue.js"></script>
+<script src="../static/element-ui/lib/index.js"></script>
+<script src="../static/js/jquery.min.js"></script>
+
+<script  th:inline="javascript">
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+
+    new Vue({
+        el:"#bg_CusDetailsApp",
+        data(){
+            return {
+                basePathUpdate:`${basePath}/cus_aptitude/addAptitude`,
+                customerInfo:[[${json.result}]],
+//                编辑状态-可编辑（初始状态）
+                editFlag:true,
+//                添加客户标签
+                addCusTag:false,
+//                添加上门信息状态
+                dialogAddDoor:false,
+//                添加签单信息
+                dialogAddSign:false,
+//                添加联系人
+                dialogAddTel:false,
+//                添加介绍人
+                dialogAddIntro:false,
+//                客户进度
+                cusSchedule:[],
+                cusSSS:1,
+//                客户标签
+                customerTags:[[${json.result}]].YBC023,
+//                可选标签
+                TagOptions:[],
+//                添加的新标签
+                newTags:[],
+//                跟进记录
+                tabsActiveName:"followRecord",
+                customerState:[{
+                    value: '0',
+                    label: '临时'
+                }, {
+                    value: '1',
+                    label: '意向'
+                }, {
+                    value: '2',
+                    label: '上门'
+                }, {
+                    value: '3',
+                    label: '签单'
+                }],
+//                客户等级
+                customerLevel:[{
+                    value: '1',
+                    label: 'A'
+                }, {
+                    value: '2',
+                    label: 'B'
+                }, {
+                    value: '3',
+                    label: 'C'
+                }, {
+                    value: '4',
+                    label: 'D'
+                }],
+//                产品类型
+                productTs:[],
+//                初始化客户头像
+                userImgInit:"userImg fa fa-user",
+//                上门信息
+                tableHomeInfo:[],
+//                上门信息记录
+                cusTextarea:"",
+//                添加上门信息表单
+                addDoorform:{},
+//                添加上门表单验证
+                addDoorRules:{
+                    YBCD005_TP:[{ required: true, message: '必须选择贷款类型',trigger: 'change'}],
+                    YBCD004:[{ required: true, message: '必须输入贷款金额',trigger: 'blur'},
+                            { min: 1, max: 9, message: '长度在 1 到 9 个字符', trigger: 'blur' }]
+                },
+//                跟进信息-选项卡按钮样式
+                followBtnIndex:1,
+//                跟进信息-历史记录
+                followRecordAll:[],
+//                跟进信息-呼叫记录
+                followRecordCall:[],
+//                跟进信息-文本记录
+                followRecordText:[],
+//                签单信息
+                tableSigningInfo:[],
+//                新增签单信息-表单
+                addSignform:{YBCS050_TP:1},
+//                新增签单信息-表单验证
+                addSignRules:{
+                    YBCS009_TP:[{ required: true, message: '必须选择贷款类型',trigger: 'change'}],
+                    YBCS010:[{ required: true, message: '必须输入贷款金额',trigger: 'blur'}],
+                    YBCS011:[{ required: true, message: '期限不能为空',trigger: 'blur'}],
+                    YBCS006:[{ required: true, message: '必须输入贷后管理费(千分比)',trigger: 'blur'}],
+                    YBCS003:[{ required: true, message: '必须输入服务费(百分比)',trigger: 'blur'}],
+                    YBCS051:[{ required: true, message: '必须输入包干服务费',trigger: 'blur'}]
+                },
+//                资质资料
+                paperInfo:[],
+//                弹出窗标题宽度
+                formLabelWidth:"120px",
+//                新增纸质资料
+                dialogNewPaperImg:false,
+                newPaperform:{
+                    YBCDA002_TP:1
+                },
+//                图片预览
+                dialogPreviewImg:false,
+                dialogPreviewImgSrc:"",
+//                联系人
+                tableContactInfo:[],
+//                添加联系人表单
+                addTelForm:{},
+//                介绍人信息列表
+                tableIntroInfo:[],
+//                添加介绍人表单
+                addIntroForm:{},
+//                贷款用途标签
+                lendingTabs:[],
+//                  产品信息
+                tableProductInfo:[],
+                listenFlag:false,
+                listenSrc:""
+            }
+        },
+//        DOM渲染前执行
+        mounted(){
+
+            console.log("客户信息");
+            console.log([[${json.result}]]);
+//            先获取跟进信息内容进行显示
+            this.getFollow();
+//            获取签单信息和上门以便判断是否可以变为签单
+            this.getSigns();
+            this.getDoorsInfo();
+//            获取产品类型
+            this.productType();
+
+//            获取客户标签可选项
+            this.getUserTabs();
+//            获取贷款用途标签
+            this.getLdTabs();
+//            获取客户订单进度
+            this.getSchedule();
+
+        },
+        methods:{
+
+//            呼叫记录——在线听
+            listenR(src){
+                console.log("在线试听")
+                this.listenFlag=true;
+                this.listenSrc=src;
+            },
+//            获取客户进度
+            getSchedule(){
+                let YBC001=this.customerInfo.YBC001;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pubSys/getybcSpeed`,
+                    data:{YBC001:YBC001},
+                    success:function(data){
+                        if(data.msg=="200"){
+                            console.log(data)
+                            that.cusSchedule=data.result;
+                        }
+                    }
+                })
+            },
+//            获取客户标签可选项
+            getUserTabs(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pubSys/getLabelLst`,
+                    data:"",
+                    success:function(data){
+                        console.log(data)
+                        if(data.msg=="200"){
+                            that.TagOptions=data.result;
+                        }
+                    }
+                })
+            },
+//            获取贷款用途标签可选项
+            getLdTabs(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pubSys/getLabelTpLst`,
+                    data:"",
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.lendingTabs=data.result;
+                        }
+                    }
+                })
+            },
+//            获取产品信息
+            getProducInfos(){
+                let YBC001=this.customerInfo.YBC001;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/bac_situ/getSinglesForCus`,
+                    data:{YBC001:YBC001},
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.tableProductInfo=data.result;
+                        }
+                    }
+                })
+            },
+//            改变编辑状态
+            changeEditE(){
+                this.customerInfo.YBC004_TP=this.customerInfo.sex;
+                this.customerInfo.YBC009_TP=this.customerInfo.maritalStatus;
+                this.customerInfo.YBC018_TP=this.customerInfo.level;
+                this.editFlag=false;
+            },
+//            保存编辑后的资料
+            changeEditS(){
+                let cusE=this.customerInfo;
+                this.toTrueData(this.customerInfo);
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_/updateCusBasicData`,
+                    data:cusE,
+                    success:function(data){
+                        console.log(data)
+                        if(data.msg=="200"){
+                            that.$message({
+                              message: '您已成功修改',
+                              type: 'success'
+                            });
+                        }else{
+                            that.customerInfo=[[${json.result}]];
+                            that.$message({
+                              message: '修改失败！',
+                              type: 'warning'
+                            });
+                        }
+                    }
+                })
+                this.editFlag=true;
+            },
+//            取消保存
+            noEdits(){
+                this.customerInfo=[[${json.result}]];
+                this.editFlag=true;
+            },
+//            删除客户标签
+            handleClose(tag) {
+                let cusTags=this.customerTags;
+                cusTags.splice(cusTags.indexOf(tag), 1);
+                let str='';
+                for(let i=0;i<cusTags.length;i++){
+                    str+=cusTags[i] + ","
+                }
+                let YBC001=this.customerInfo.YBC001;
+                let cusTTag={
+                    YBC001:YBC001,
+                    YBC023:str
+                }
+                let that =this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_/updateCusForLabel`,
+                    data:cusTTag,
+                    success:function(data){
+                        console.log(data)
+                        if(data.msg=="200"){
+                            that.$message({
+                              message: '标签删除成功',
+                              type: 'success'
+                            });
+                            that.customerTags=cusTags;
+                            that.addCusTag = false;
+                            that.newTags=[];
+                        }else{
+                            that.$message({
+                              message: '删除失败！',
+                              type: 'warning'
+                            });
+                        }
+                    }
+                })
+            },
+//            显示添加标签输入框
+            showInput() {
+                this.addCusTag = true;
+            },
+//            确定添加的客户标签
+            sureAddTag() {
+                let cusTags=this.customerTags;
+                if(!cusTags){
+                    cusTags=[];
+                }
+                let newTags=this.newTags;
+                function tab(arr1,arr2){
+                    var arr = arr1.concat(arr2);
+                    var lastArr = [];
+                    for(var i = 0;i<arr.length;i++){
+                        if(! unique(arr[i],lastArr)){
+                            lastArr.push(arr[i]);
+                        }
+                    }
+                    return lastArr;
+                }
+                function unique(n,arr){
+                    for(var i=0;i<arr.length;i++){
+                        if(n==arr[i]){
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                cusTags=tab(cusTags,newTags);
+                let str='';
+                for(let i=0;i<cusTags.length;i++){
+                    str+=cusTags[i] + ","
+                }
+
+                let YBC001=this.customerInfo.YBC001;
+                let cusTTag={
+                    YBC001:YBC001,
+                    YBC023:str
+                }
+                console.log(cusTTag);
+                let that =this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_/updateCusForLabel`,
+                    data:cusTTag,
+                    success:function(data){
+                        console.log(data);
+                        if(data.msg=="200"){
+                            that.$message({
+                              message: '标签添加成功',
+                              type: 'success'
+                            });
+                            that.customerTags=cusTags;
+                            that.addCusTag = false;
+                            that.newTags=[];
+                        }else{
+                            that.$message({
+                              message: '添加失败！',
+                              type: 'warning'
+                            });
+                        }
+                    }
+                })
+            },
+//            客户身份变更
+            cusChange8(){
+                let YBC001=this.customerInfo.YBC001;
+                let YBC008_TP=this.customerInfo.state;
+                let that=this;
+//                临时身份变更
+                if(YBC008_TP=="0"){
+                    updateCusBD();
+                    updateCusZT("cus_/updateCusToTemp");
+                }
+//                意向身份变更
+                else if(YBC008_TP=="1"){
+                    updateCusBD();
+                    updateCusZT("cus_/updateCusToThink");
+                }
+//                上门身份变更
+                else if(YBC008_TP=="2"){
+                    if(this.tableHomeInfo.length==0){
+                        this.customerInfo.state="意向";
+                        this.$confirm('该客户没有上门信息, 有上门信息后，才能更改为上门，是否前往添加上门信息?', '提示', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        }).then(() => {
+                            this.tabsActiveName="homeInfo";
+                        }).catch(() => {
+
+                        });
+                    }else{
+                        updateCusBD();
+                        updateCusZT("cus_/updateCusToDoor");
+                    }
+                }else if(YBC008_TP=="3"){
+                    if(this.tableSigningInfo.length==0){
+                        this.customerInfo.state="上门";
+                        this.$confirm('该客户没有签单信息, 有签单信息后，才能更改为签单，是否前往添加签单信息?', '提示', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        }).then(() => {
+                            this.tabsActiveName="signingInfo";
+                        }).catch(() => {
+
+                        });
+                    }else{
+                        updateCusBD();
+                        updateCusZT("cus_/updateCusToSign");
+                    }
+                }
+//                客户本身属性身份变更
+                function updateCusBD(){
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/cus_/updateCusBasicData`,
+                        data:{YBC001:YBC001,YBC008_TP:YBC008_TP},
+                        success:function(data){
+                            console.log(data)
+                            if(data.msg=="200"){
+                                that.$message({
+                                  message: '身份变更成功',
+                                  type: 'success'
+                                });
+                            }else{
+                                that.$message({
+                                  message: '修改失败！',
+                                  type: 'warning'
+                                });
+                            }
+                        }
+                    })
+                }
+//                客户身份变更--请求其他关联
+                function updateCusZT(api){
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/${api}`,
+                        data:{YBC001:YBC001},
+                        success:function(data){
+                            if(data.msg=="200"){
+                                console.log("身份变更成功")
+                            }else{
+
+                            }
+                        }
+                    })
+                }
+            },
+
+//            废弃客户
+            cusToScrap(){
+                let YBC001=this.customerInfo.YBC001;
+                let that=this;
+                if(this.customerInfo.YBC008_TP != "3"){
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/cus_/updateCusToScrap`,
+                        data:{YBC001:YBC001},
+                        success:function(data){
+                            if(data.msg=="200"){
+                                that.$message({
+                                  message: '该客户已废弃',
+                                  type: 'success'
+                                });
+                            }else{
+                                that.$message({
+                                    message: '客户身份变更失败,请重新变更',
+                                    type: 'warning'
+                                });
+                            }
+                        }
+                    })
+
+                }else{
+                    that.$message({
+                        message: '不能废弃，该客户已签单！',
+                        type: 'warning'
+                    });
+                }
+            },
+
+//            点击选项卡获取的值,并请求后台数据
+            handleClick(tab, event){
+                console.log(tab.label)
+                let handleLabel=tab.label;
+                if(handleLabel=="上门信息"){
+                    this.getDoorsInfo();
+                }else if(handleLabel=="客户资料"){
+                    this.getAptitudes();
+                }else if(handleLabel=="签单信息"){
+                    this.getSigns();
+                }else if(handleLabel=="产品信息"){
+                    this.getProducInfos();
+                }else if(handleLabel=="跟进记录"){
+                    this.getFollow();
+                }
+            },
+//            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                if(rowIndex==1){
+
+                }else if (rowIndex%2 == 0) {
+                    return 'odd-row';
+                }
+                return 'even-row';
+            },
+//            是否放弃客户
+            changeUserImgE(){
+                this.userImgInit="userImgG fa fa-trash-o";
+            },
+            changeUserImgL(){
+                this.userImgInit="userImg fa fa-user";
+            },
+//            改变跟进信息选项按钮
+            followIndex(index){
+//                1历史记录，2呼叫记录，3文本记录
+                this.followBtnIndex=index;
+            },
+//            取消图片的回调
+            handleRemove(file, fileList) {
+                console.log(file, fileList);
+            },
+//            上传图片后的回调
+            handlePreview(file) {
+                console.log("上次成功"+file)
+                this.getAptitudes()
+            },
+            hanleError(err, file, fileList){
+                console.log("上次失败"+err, file, fileList)
+            },
+//            预览图片
+            previewImg(src){
+                this.dialogPreviewImg=true;
+                this.dialogPreviewImgSrc=src;
+            },
+//            获取上门信息
+            getDoorsInfo(){
+                let YBC001=this.customerInfo.YBC001;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_door/getDoorsByYbc001`,
+                    data:{YBC001:YBC001},
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.tableHomeInfo=data.result
+                        }
+                    }
+                })
+            },
+//            确定-添加上门信息
+            sureAddDoors(formName){
+                console.log(this.addDoorform.YBCD002_TM);
+
+                let newDoorInfo=this.addDoorform;
+                newDoorInfo.YBC001=this.customerInfo.YBC001;
+
+                let that=this;
+                this.$refs[formName].validate((valid) => {
+                  if (valid) {
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/cus_door/addDoor`,
+                        data:newDoorInfo,
+                        success:function(data){
+                            if(data.msg=="200"){
+                                that.$message({
+                                      message: '添加成功',
+                                      type: 'success'
+                                });
+                                that.addDoorform={};
+                                that.getDoorsInfo();
+                                that.dialogAddDoor=false;
+                            }
+                        }
+                    })
+
+                  } else {
+                    that.$message({
+                        message: '请准确填写表单',
+                        type: 'warning'
+                    });
+                    return false;
+                  }
+                });
+            },
+//            获取资质资料
+            getAptitudes(){
+                let YBC001=this.customerInfo.YBC001;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_aptitude/getAptitudesByYBC001`,
+                    data:{YBC001:YBC001},
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.paperInfo=data.result;
+                        }
+                    }
+                })
+            },
+//            获取签单信息
+            getSigns(){
+                let YBC001=this.customerInfo.YBC001;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_sign/getSignsByYBC001`,
+                    data:{YBC001:YBC001},
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.tableSigningInfo=data.result;
+                        }
+                    }
+                })
+            },
+//            确定-添加签单信息
+            sureAddSign(formName){
+                let YBC001=this.customerInfo.YBC001;
+                this.addSignform.YBC001=YBC001;
+                let str='';
+                for(let i=0;i<this.addSignform.YBCS018_TP.length;i++){
+                    str+=this.addSignform.YBCS018_TP[i] + ",";
+                }
+                this.addSignform.YBCS018_TP=str.substring(0,str.length-1);
+                let that=this;
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        $.ajax({
+                            type:"GET",
+                            url:`${basePath}/cus_sign/addSign`,
+                            data:that.addSignform,
+                            success:function(data){
+                                console.log(data)
+                                if(data.msg=="200"){
+                                    that.addSignform={YBCS050_TP:1,YBCS018_TP:[]};
+                                    that.getSigns();
+                                    that.$message({
+                                      message: '签单添加成功',
+                                      type: 'success'
+                                    });
+                                    that.dialogAddSign = false;
+                                }else{
+                                    that.$message({
+                                        message: '添加失败，请重新添加！',
+                                        type: 'warning'
+                                    });
+                                }
+                            }
+                        })
+                    }else{
+                        console.log('error submit!!');
+                        return false;
+                    }
+                })
+
+            },
+//            获取跟进信息
+            getFollow(){
+                let YBC001=this.customerInfo.YBC001;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_follow/getFollowsByYbc001`,
+                    data:{YBC001:YBC001},
+                    success:function(data){
+                        that.followRecordAll=[];
+                        that.followRecordCall=[];
+                        that.followRecordText=[];
+                        that.followRecordAll=data.result;
+                        for(let item of data.result){
+                            if(item.YBCF007_TP=="2"){
+                                that.followRecordCall.push(item)
+                            }else if(item.YBCF007_TP=="3"){
+                                that.followRecordText.push(item)
+                            }
+                        }
+                    }
+                })
+            },
+//            人工添加跟进信息
+            sureAddFollow(){
+                let YBC001=this.customerInfo.YBC001;
+                let cusText=this.cusTextarea;
+                if(cusText.length>0){
+                    let newFollowInfo={
+                        YBC001:YBC001,
+                        YBCF007_TP:3,
+                        YBCF006:cusText
+                    }
+                    let that=this;
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/cus_follow/addFollow`,
+                        data:newFollowInfo,
+                        success:function(data){
+                            if(data.msg=="200"){
+                                that.getFollow();
+                                that.$message({
+                                  message: '您已成功添加跟进消息',
+                                  type: 'success'
+                                });
+                                that.cusTextarea = "";
+                            }else{
+                                that.$message({
+                                  message: '添加跟进消息失败！',
+                                  type: 'warning'
+                                });
+                            }
+                        }
+                    })
+                }else{
+                    that.$message({
+                      message: '请输入跟进记录内容！',
+                      type: 'warning'
+                    });
+                }
+            },
+//            获取联系人
+            getTel(){
+                let YBC001=this.customerInfo.YBC001;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_tel/getTelsByCusId`,
+                    data:{YBC001:YBC001},
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.tableContactInfo=data.result;
+                        }
+                    }
+                })
+            },
+//            确定-添加联系人
+            sureAddTel(){
+                let YBC001=this.customerInfo.YBC001;
+                this.addTelForm.YBC001=YBC001;
+                let that=this;
+                if(this.addTelForm.YBCCO003.length>0){
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/cus_tel/addTel`,
+                        data:that.addTelForm,
+                        success:function(data){
+                            if(data.msg=="200"){
+                                that.addTelForm={};
+                                that.$message({
+                                  message: '成功添加联系人',
+                                  type: 'success'
+                                });
+                                that.getTel();
+                                that.dialogAddTel = false;
+                            }else{
+                                that.$message({
+                                  message: '添加失败,请重新添加！',
+                                  type: 'warning'
+                                });
+                            }
+                        }
+                    })
+                }else{
+                    that.$message({
+                      message: '请正确填写电话号码！',
+                      type: 'warning'
+                    });
+                }
+
+            },
+//            获取介绍人
+            getIntro(){
+                let YBC001=this.customerInfo.YBC001;
+                let that=this;
+            },
+//            确定-添加介绍人
+            sureAddIntro(){
+                let YBC001=this.customerInfo.YBC001;
+//                PYBC001?
+                this.addIntroForm.YBC001=YBC001;
+                let that=this;
+                console.log(that.addIntroForm)
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_/updateCusBasicData`,
+                    data:that.addIntroForm,
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.$message({
+                                message: '成功添加介绍人',
+                                type: 'success'
+                            });
+                        }
+//                        调用获取联系人函数
+                    }
+                })
+                this.dialogAddIntro = false;
+            },
+//            查找所有产品类型
+            productType(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pubSys/getTypeOneLst`,
+                    data:"",
+                    success:function(data){
+                        if(data.msg="200"){
+                            that.productTs=data.result;
+                        }
+                    }
+                })
+            },
+//            选择产品
+            handleProd(val){
+                console.log(val);
+            },
+//            改变编辑之后的值
+            toTrueData(v){
+                switch(v.YBC004_TP){
+                    case "1":
+                        v.sex="男"
+                    break;
+                    case "2":
+                        v.sex="女"
+                    break;
+                    case "男":
+                        v.YBC004_TP="1"
+                    break;
+                    case "女":
+                        v.YBC004_TP="2"
+                    break;
+                }
+//                switch(v.YBC008_TP){
+//                    case "0":
+//                        v.state="临时"
+//                    break;
+//                    case "1":
+//                        v.state="意向"
+//                    break;
+//                    case "2":
+//                        v.state="上门"
+//                    break;
+//                    case "3":
+//                        v.state="签单"
+//                    break;
+//                    case "4":
+//                        v.state="回收"
+//                    break;
+//                    case "5":
+//                        v.state="再签单"
+//                    break;
+//                }
+                switch(v.YBC009_TP){
+                    case "1":
+                        v.maritalStatus="未婚"
+                    break;
+                    case "2":
+                        v.maritalStatus="已婚"
+                    break;
+                    case "未婚":
+                        v.YBC009_TP="1"
+                    break;
+                    case "已婚":
+                        v.YBC009_TP="2"
+                    break;
+                }
+                switch(v.YBC018_TP){
+                    case "1":
+                        v.level="A"
+                    break;
+                    case "2":
+                        v.level="B"
+                    break;
+                    case "3":
+                        v.level="C"
+                    break;
+                    case "4":
+                        v.level="D"
+                    break;
+                    case "A":
+                        v.YBC018_TP="1"
+                    break;
+                    case "B":
+                        v.YBC018_TP="2"
+                    break;
+                    case "C":
+                        v.YBC018_TP="3"
+                    break;
+                    case "D":
+                        v.YBC018_TP="4"
+                    break;
+                }
+            },
+//            转化时间
+            gshtime(time){
+              var year = time.getFullYear();       //年</span>
+              var month = time.getMonth() + 1;  //月
+              var day = time.getDate();    //日
+              var str= year + "-" + month + "-" + day;
+              return str
+            }
+        }
+    })
+
+</script>
+</html>

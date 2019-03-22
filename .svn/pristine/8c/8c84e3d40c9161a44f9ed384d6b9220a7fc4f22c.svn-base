@@ -1,0 +1,44 @@
+package com.dbsun.mapper.settleAccounts;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+import java.util.List;
+
+/**
+ * @author zhao yi
+ * @create 2018-08-14 10:07
+ * @desc
+ **/
+public interface SettleAccountsMapper {
+
+    /********************************************** 结账处理 ***********************************************/
+
+    public List<PageData> getPageAccountListIsUnsettledAccount(Page page);
+
+    public List<PageData> getPageAccountListIsHasTheInvoicing(Page page);
+
+    public List<PageData> getPageSettledStatement(Page page);
+
+    public PageData getAddCheckoutInitialization(PageData pd);
+
+    public List<PageData> getAllchannels(PageData pd);
+
+    public int addAccount(PageData pd);
+
+    public int updAccount(PageData pd);
+
+    public int updSighYBCS056_TP(PageData pd);
+
+    /********************************************** 退款处理 ***********************************************/
+
+    public List<PageData> getPageRefundListByYBCS001(Page page);
+
+    public PageData getRefundInitializationByYBCS001(PageData pd);
+
+    public int addRefund(PageData pd);
+
+    public int updRefund(PageData pd);
+
+
+}

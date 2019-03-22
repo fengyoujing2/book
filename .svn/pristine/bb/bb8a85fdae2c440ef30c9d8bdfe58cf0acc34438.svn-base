@@ -1,0 +1,110 @@
+package com.dbsun.mapper;
+
+import java.util.List;
+
+import com.dbsun.entity.SysUser;
+import com.dbsun.entity.SysUserq;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+
+
+
+
+/**
+ * 
+ *
+ */
+public interface SysUserMapper {
+	
+	 /**
+   	 * 获取所有用户数据
+   	 * 
+   	 * */
+    public List<PageData> getPageSysUserLst(Page pd);
+    
+    /**
+     * 验证用户账号及密码是否存在
+     * */
+    public PageData getLoginValidation(PageData pd);
+    
+	/**
+	 * 插入新用户
+	 * 
+	 * */
+	 public int addSysUser(PageData pd);
+	 
+	/**
+	 * 获取指定用户数据
+	 * @param pd
+	 * 			USER_ID
+	 * @return
+	 * 			*
+	 */			
+	 public PageData getSysUserById(PageData pd);
+    /**
+   	 * 修改用户信息
+   	 * 
+   	 * */
+     public int updateSysUser(PageData pd);
+	/**
+	 * 修改用户信息(修改密码)
+	 *
+	 * */
+	public int updateSysUserPsw(PageData pd);
+	/**
+	 * 禁用用户
+	 *
+	 * */
+	public int updateDisableSysUser(PageData pd);
+    /**
+  	 * 删除用户
+  	 * 
+  	 * */
+     public int delSysUser(PageData pd);
+
+	/**
+	 * 获取指定部门下的所有用户数据
+	 *
+	 * */
+	public List<PageData> getDeptAllUserLst(PageData pd);
+	/**
+	 * 获取指定部门下的所有部门数据
+	 *
+	 * */
+	public List<PageData> getDeptAllDeptLst(PageData pd);
+	/**
+	 * 获取所有角色信息
+	 *
+	 * */
+	public List<PageData> getRoleAllLst(PageData pd);
+	/**
+	 * 获取当前用户的部门信息
+	 * */
+	public PageData getDeptForUserInfo(PageData pd);
+	/**
+	 * 获取指定部门下的所有员工列表数据
+	 * */
+	public List<PageData> getPageUserForDeptIDLst(Page pd);
+	/**
+	 * 获取指定部门下的用户列表数据（坐席状态统计）
+	 *
+	 * */
+	public List<PageData> getSeatUserLst(PageData pd);
+	/**
+	 * 获取指定部门下的所有部门数据包含当前部门(坐席状态统计)
+	 *
+	 * */
+	public List<PageData> getSeatDeptLst(PageData pd);
+	/**
+	 * 获取后台部门数据(房贷信贷)
+	 *
+	 * */
+	public List<PageData> getBackDeptLst(PageData pd);
+	/**
+	 * 获取后台部门员工做单汇总数据
+	 *需要传入当前部门的组织机构代码
+	 * */
+	public List<PageData> getBackDeptUserLst(PageData pd);
+
+}

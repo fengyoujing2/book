@@ -1,0 +1,126 @@
+package com.dbsun.controller.system;
+
+import java.net.URLEncoder;
+
+import net.sf.json.JSONObject;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.dbsun.controller.WeixinController;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.YwRewardService;
+import com.dbsun.service.YwuService;
+import com.dbsun.util.RedisUtil;
+import com.dbsun.util.Tools;
+
+/**
+ * 个人福利表
+ * 
+ * @author DongZai
+ * 
+ */
+@Controller
+@RequestMapping("/wx_ywReward")
+public class YwRewardController extends WeixinController {
+	
+	private Logger wechatLogger = Logger.getLogger("wechat");
+
+	@Autowired
+	private YwRewardService ywRewardService;
+	
+	@Autowired
+	private YwuService ywuService;
+	
+	@SuppressWarnings("rawtypes")
+	@Autowired
+	private RedisUtil redisUtil;
+	
+	/**去我的邀请码页面*/
+	@RequestMapping("/goYQM")
+	public String goYQM(Model model) {
+		//判定入口，获取参数是否有openid如果有则表示需要根据当前的openid找到对应的二维码
+		PageData  pd = getPageData();
+		if(Tools.isObjEmpty(pd.get("YWU010"))){//等于空重新生成表明是用户自己进入这个页面
+			String scanUrl = getTicket();
+			//写入数据库存储
+			pd.put("YWU010",getYwu010());//openid
+			pd.put("YWU016",scanUrl);//二维码地址
+			ywuService.updateYwu(pd);
+			model.addAttribute("scanUrl", scanUrl);
+		}else{//不等于空表明是从分享入口进入，只有分享入口才会加入当前openid
+			//根据openid获取当前用户的二维码
+			PageData pdata = ywuService.getYwuByYwu010(pd);
+			model.addAttribute("scanUrl", pdata.get("YWU016"));
+		}
+		return "/html/wechat/yw_reward/wodeyaoqingma";
+	}
+	
+	/**邀请明细 -- 谁邀请了谁*/
+	@RequestMapping("/goMyYQ")
+	public String goMyYQ(Model model) {
+		PageData pd = getPageData();
+		pd.put("YWU010", getYwu010());
+		JSONObject json = ywRewardService.getMyYQ(pd);
+		model.addAttribute("json", json);
+		return wxReturnvalidataPage("/html/wechat/yw_reward/wodeyaoqing");
+	}
+	
+	/**去我的邀请好友页面 -- 邀请统计*/
+	@RequestMapping("/goMyFriPg")
+	public String goMyFriPg(Model model) {
+		PageData pd = getPageData();
+		pd.put("YWU010", getYwu010());
+		JSONObject json = ywRewardService.getInvFri(pd);
+		model.addAttribute("json", json);
+		return wxReturnvalidataPage("/html/wechat/yw_reward/yaoqinghaoyou");
+	}
+	
+	/**去奖励规则页面*/
+	@RequestMapping("/goJLRul")
+	public String goJLRul(){
+		return wxReturnvalidataPage("/html/wechat/yw_reward/jiangliguize");
+	}
+	
+	/**去邀请明细页面*/
+	@RequestMapping("/goYQDet")
+	public String goYQDet(){
+		return wxReturnvalidataPage("/html/wechat/yw_reward/yaoqingmingxi");
+	}
+	
+	/**
+	 * 创建二维码ticket
+	 */
+	@SuppressWarnings("static-access")
+	@RequestMapping("/getTick")
+	public String getTicket(){
+		wechatLogger.info("获取ticket");
+		String getSceneUrl = "";
+		try{
+			String requestUrl = redisUtil.GETTKT_URL.replace("TOKEN", redisutil.readWxToken());
+			wechatLogger.info("获取ticket的请求地址为：" + requestUrl);
+
+			JSONObject json = new JSONObject();
+			//二维码类型，QR_SCENE为临时的整型参数值，QR_STR_SCENE为临时的字符串参数值，
+			//QR_LIMIT_SCENE为永久的整型参数值，QR_LIMIT_STR_SCENE为永久的字符串参数值
+			json.put("action_name", "QR_STR_SCENE");//QR_STR_SCENE为临时的字符串参数值
+			json.put("expire_seconds",2592000);//临时二维码需要设置默认过期时间，该二维码有效时间，以秒为单位。 最大不超过2592000（即30天），此字段如果不填，则默认有效期为30秒。
+			JSONObject sceneId = new JSONObject();
+			sceneId.put("scene_str", getYwu010());//二维码参数标识传入当前用户的openid
+			JSONObject scene = new JSONObject();
+			scene.put("scene", sceneId);
+			json.put("action_info", scene);
+			JSONObject jsonObject = httpRequst(requestUrl, "POST", json.toString());
+			wechatLogger.info("获取ticket返回的json为：" + jsonObject);
+			getSceneUrl = redisUtil.GETSCEURL.replace("TICKET", URLEncoder.encode(jsonObject.getString("ticket"), "UTF-8"));
+			
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+		return getSceneUrl;
+	}
+	
+}

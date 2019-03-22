@@ -1,0 +1,5 @@
+package com.dbsun.mapper.phonesys;
+
+public interface PhoSeatStateMapper {
+	
+}

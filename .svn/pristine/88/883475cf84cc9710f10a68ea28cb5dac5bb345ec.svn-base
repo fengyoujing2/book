@@ -1,0 +1,26 @@
+package com.dbsun.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.mapper.YbcDoAllotMapper;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+@Service
+public class YbcDoAllotService {
+	
+	@Autowired
+	private YbcDoAllotMapper ybcDoAllotMapper;
+
+	/**
+	 * 获取所有用户数据
+	 * 
+	 * */
+	public List<PageData> getYbcDoAllotLst(Page pd) {
+		return ybcDoAllotMapper.getPageYbcDoAllotLst(pd);
+	}
+
+}

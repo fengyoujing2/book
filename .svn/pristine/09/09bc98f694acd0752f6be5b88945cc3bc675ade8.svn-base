@@ -1,0 +1,41 @@
+package com.dbsun.service.vip;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.vip.CutVipGiftMapper;
+import com.dbsun.util.UuidUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * @author user
+ * @create 2018-04-08 14:05
+ * @desc 送礼
+ **/
+@Service
+public class CutVipGiftService {
+    @Autowired
+    private CutVipGiftMapper cutVipGiftMapper;
+
+
+    /***
+     * 查询客户的送礼历史记录
+     * @param pd  指定的客户ID  YBC001
+     * @return
+     */
+    public List<PageData> getPageVipGifHistoryLst(Page page) {
+        return cutVipGiftMapper.getPageVipGifHistoryLst(page);
+    }
+
+    /***
+     * 新增送礼记录
+     */
+    public int addYbcVipGif(PageData pd) {
+        pd.put("VIPG001", UuidUtil.get32UUID());
+        return cutVipGiftMapper.addYbcVipGif(pd);
+
+    }
+
+}

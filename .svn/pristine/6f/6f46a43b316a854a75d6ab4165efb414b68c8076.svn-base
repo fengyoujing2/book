@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+    <title>退单统计</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0];
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+
+    <style>
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        .tips{
+            display: inline-block;
+            padding: .5rem 2rem .5rem 1rem;
+            background-color: #53DD9D;
+            color: #fff;
+            font-size: 16px;
+            border-bottom-right-radius: 2rem;
+            border-top-right-radius: 2rem;
+        }
+        .cusMTable{
+            margin-top: 20px;
+        }
+        .cusMTable .el-table tr{
+            background-color: #54DE9E;
+            color:#fff;
+        }
+        .el-table .odd-row {
+            background: #f1f7fe !important;
+            color:#878787 !important;
+        }
+        .el-table .even-row {
+            background: #ffffff !important;
+            color:#878787 !important;
+        }
+        .el-table .orow {
+            background: #fff !important;
+            color:#000 !important;
+        }
+        .el-input-group__append{
+            color: #4aa5fb !important;
+        }
+        .top_divR{
+            margin-right: 20px;
+        }
+        #resL{
+            width:100%;
+            float:left;
+        }
+        #test{
+            display: none;
+            float:right;
+            width: 30%;
+            padding-left:10px;
+            margin-top: 20px;
+            animation:move 1s;
+        }
+        @keyframes move{
+            0%{
+                opacity: 0;
+                transform: translateX(300px);
+            }
+            100%{
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .testDiv{
+            min-height: 600px;
+            background-color: #fff;
+        }
+        .elBtn{
+            border-radius: 30px !important;
+            padding: 6px 20px !important;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:10px;">
+<div id="productApp" v-cloak>
+    <div style="border:1px solid #ccc;">
+        <div style="background-color:#ccc;border-bottom:1px solid #ccc;padding:5px 0;">统计汇总</div>
+        <div style="display:flex;padding:20px 0;">
+            <div style="border-right:1px solid #ccc;text-align:center;width:50%;">
+                <div>退单数量总计</div>
+                <h4>{{infoMsg.sumAllNum}}</h4>
+            </div>
+            <div style="border-right:1px solid #ccc;text-align:center;width:50%;">
+                <div>本月退单数量</div>
+                <h4>{{infoMsg.sumMonthNum}}</h4>
+            </div>
+        </div>
+    </div>
+    <div style="margin:20px 0;text-align:center;">
+                <span style="margin-right:20px">
+                    时间：<el-date-picker
+                        v-model="time" size="mini"
+                        type="daterange"
+                        value-format="yyyy-MM-dd"
+                        range-separator="至"
+                        start-placeholder="开始日期"
+                        end-placeholder="结束日期">
+                </el-date-picker>
+                </span>
+
+        <span>
+                    <el-button size="mini" type="warning" style="background-color:#fd8c12;margin-left:6px;" class="top_divR" @click="searchInfo">查询</el-button>
+                </span>
+    </div>
+    <div style="width:100%;" class="cusMTable"
+            v-loading="loading">
+        <el-table
+                ref="multipleTable"
+                :data="tabledata"
+                tooltip-effect="dark"
+                style="width: 100%"
+                  :row-class-name="tableRowClassName">
+            <el-table-column
+                    prop="YBCS020_TM"
+                    label="接单日期">
+            </el-table-column>
+            <el-table-column
+                    prop="YBCMA035_TM"
+                    label="退单日期">
+            </el-table-column>
+            <el-table-column
+                    prop="YBCS007"
+                    label="财务编号">
+            </el-table-column>
+            <el-table-column
+                    prop="YBC002"
+                    label="客户姓名">
+            </el-table-column>
+            <el-table-column
+                    prop="YBC003"
+                    label="客户电话">
+            </el-table-column>
+            <el-table-column
+                    prop="YBC029"
+                    label="客户经理">
+            </el-table-column>
+            <el-table-column
+                    prop="DEPT_NAME"
+                    label="客户经理所在部门">
+            </el-table-column>
+            <el-table-column
+                    prop="YBCMA041"
+                    label="做单人员">
+            </el-table-column>
+            <el-table-column
+                    prop="YBTL002"
+                    label="进件渠道">
+            </el-table-column>
+
+        </el-table>
+        <div>
+            <div style="float:left">
+            </div>
+            <div style="float:right">
+                <el-pagination
+                        @current-change="handleCurrentChange"
+                        :current-page="page.currentPage"
+                        :page-size="10"
+                        layout="total, prev, pager, next, jumper"
+                        :total="page.totalResult">
+                </el-pagination>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script th:inline="javascript">
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+
+    new Vue({
+        el:"#productApp",
+        data(){
+            return {
+//                从后台模板里面获取
+                tabledata:[[${dataLst}]],//列表数据
+                page:[[${page}]],//分页列表数据
+               infoMsg:[[${infoMsg}]],
+               //搜索时间范围
+                time:[],
+               soMoreIpt:{},
+               search:{time:''},
+                loading:false
+            }
+        },
+//        DOM渲染前执行
+        mounted(){
+
+        },
+        methods:{
+            
+//            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                return 'orow';
+            },
+            
+            // 当前页翻页
+            handleCurrentChange(val){
+                this.loading=true;
+                this.page.startTime =  this.soMoreIpt.startTime;
+                this.page.endTime =  this.soMoreIpt.endTime;
+                this.page.currentPage=val;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/charts/chartBackSignPage`,
+                    data:that.page,
+                    success:function(data){
+                        if(data.msg="200"){
+                            console.log(data);
+                            that.tabledata=data.rows;
+                            that.page.totalResult = data.total;
+                            that.loading=false;
+                        }
+                    }
+                })
+            },
+            //查询数据
+              searchInfo(){
+                if(this.time){
+                    if(this.time.length !=0){
+                        this.soMoreIpt.startTime=this.time[0] +' 00:00:00';
+                        this.soMoreIpt.endTime=this.time[1]+' 23:59:59';
+                    }
+                }else{
+                    delete this.soMoreIpt.startTime;
+                    delete this.soMoreIpt.endTime;
+                }
+                this.handleCurrentChange(1);
+            }
+        }
+    })
+
+</script>
+</html>

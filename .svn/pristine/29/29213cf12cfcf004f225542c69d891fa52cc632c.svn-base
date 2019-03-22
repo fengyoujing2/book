@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.YwDataBindMapper">
+	<!-- 个人资料历史 -->
+
+	<!-- 通过YWDATA_BIND001获取个人资料历史 -->
+	<select id="getYwDataBindByYwData001" parameterType="pd" resultType="pd"
+		useCache="false">
+		select
+		yb.*
+		from ywdata_bind yb 
+		where yb.YWDATA_BIND001 = #{YWDATA_BIND001} 
+	</select>
+
+	<!-- 新增个人资料历史 -->
+	<insert id="addYwDataBind" parameterType="pd" flushCache="false">
+		insert into
+		ywdata_bind (
+			YWDATA_BIND001, 
+			YWDATA001, 
+			YWDATA_BIND002_TM, 
+			YWDATA_BIND003_TP, 
+			YWDATA_BIND004, 
+			YWU010
+		) values (
+			#{YWDATA_BIND001}, 
+			#{YWDATA001}, 
+			#{YWDATA_BIND002_TM}, 
+			#{YWDATA_BIND003_TP}, 
+			#{YWDATA_BIND004}, 
+			#{YWU010}
+		)
+	</insert>
+
+</mapper>

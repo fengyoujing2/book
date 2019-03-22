@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>cancel_bind.html</title>
+	
+    <meta name="keywords" content="keyword1,keyword2,keyword3">
+    <meta name="description" content="this is my page">
+    <meta name="content-type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  </head>
+  
+<body>
+  
+  <input type="hidden" id="YWU001" th:value="${YWU001}"/>
+  <input type="hidden" id="YWU010" th:value="${YWU010}"/>
+  <a onclick="cancelBind();">解除绑定</a>
+ 
+  <div th:include="html/page/contentpublic :: html"></div>
+</body>
+<script type="text/javascript">
+	
+	var basePath = "/"+getContextPath();
+	
+	/* 取消绑定 */
+	function cancelBind(){
+		$.ajax({
+	        type: "POST",
+	        url: basePath+"/wx_ywu/cancelBind",
+	        success: function (data)
+	        {
+	        	if(data != "success"){
+	        		tip("服务器开小差了，请稍后再试(*^▽^*)");
+	        	}
+	        },
+			error:function(result, status){
+                 if(status=="parsererror"){
+                	 tip("解析出错");
+                 }else if(status=="error"){
+                	 tip("信息提交失败");
+                 }else if(status=="timeout"){
+                	 tip("发送超时");
+                 }else{
+                	 tip("发送出错");
+                 }
+		    }
+	     });
+	}
+
+</script>
+</html>

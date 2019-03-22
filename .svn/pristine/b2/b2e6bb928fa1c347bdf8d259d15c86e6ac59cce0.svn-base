@@ -1,0 +1,79 @@
+package com.dbsun.mapper.product;
+
+import java.util.List;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.entity.system.Page;
+
+public interface ProdectMapper {
+	/**
+	 * 添加产品类型
+	 * */
+	public int addProductType(PageData pd);
+	
+	public List<PageData> getProductByLev(PageData pd);
+	/**
+	 * 获取产品类型列表
+	 * */
+	public List<PageData> getProductTypeAllLst(PageData pd);
+	/**
+	 * 获取指定产品类型下的所有产品列表
+	 * */
+	public List<PageData> getProductByTypeForLst(PageData pd);
+	/**
+	 * 获取指定产品类型下的所有产品列表（所有产品明细）
+	 * */
+	public List<PageData> getPageProductTypeAllLst(Page pd);
+
+	/**
+	 * 获取顶级类型列表
+	 * */
+	public List<PageData> getProductByTypeOneForLst(PageData pd);
+
+	/**
+	 * 根据签单ID获取该签单的贷款大类ID
+	 * */
+	public String getProductId(PageData pd);
+
+	/**
+	 * 获取所有的客户标签或贷款用途数据数据
+	 * 传入YBC_LAB004_TP 1标签 2贷款用途 类型获取制定数据
+	 * */
+	public List<PageData> getLabelAllLst(PageData pd);
+
+	/**
+	 * 获取指定产品类型下是否有子类
+	 * */
+	public List<PageData> getProductTypeByYbct007(PageData pd);
+	/**
+	 * 获取指定产品是否有关联业务数据
+	 * */
+	public List<PageData> getProductByYbtl001(PageData pd);
+
+	/**
+	 * 新增产品
+	 *
+	 * */
+	public int addProduct(PageData pd);
+	/**
+	 * 编辑产品
+	 *
+	 * */
+	public int updateProduct(PageData pd);
+	/**
+	 * 删除产品
+	 *
+	 * */
+	public int delProduct(PageData pd);
+
+	/**
+	 * 编辑产品类型
+	 *
+	 * */
+	public int updateProductType(PageData pd);
+	/**
+	 * 删除产品类型
+	 *
+	 * */
+	public int delProductType(PageData pd);
+}

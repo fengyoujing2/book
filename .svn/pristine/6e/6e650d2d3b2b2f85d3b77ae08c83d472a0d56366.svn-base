@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+    <title>客户管理-客户回收池</title>
+
+    <link rel="shortcut icon" href="favicon.ico"> 
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+    
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0]; 
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+    
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+    
+    <style>
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        .tips{
+            display: inline-block;
+            padding: .5rem 2rem .5rem 1rem;
+            background-color: #53DD9D;
+            color: #fff;
+            font-size: 16px;
+            border-bottom-right-radius: 2rem;
+            border-top-right-radius: 2rem;
+        }
+        .cusMTable{
+            margin-top: 20px;
+        }
+        .cusMTable .el-table tr{
+            background-color: #4aa5fb;
+            color:#fff;
+        }
+        .el-table .odd-row {
+            background: #f1f7fe !important;
+            color:#878787 !important;
+        }
+        .el-table .even-row {
+            background: #ffffff !important;
+            color:#878787 !important;
+        }
+        .el-input-group__append{
+            color: #4aa5fb !important;
+        }
+        .top_divR{
+            margin-right:6px;
+        }
+        #resL{
+            width:100%;
+            float:left;
+        }
+        #test{
+            display: none;
+            float:right;
+            width: 30%;
+            padding-left:10px;
+            margin-top: 20px;
+            animation:move 1s;
+        }
+        @keyframes move{
+            0%{
+                opacity: 0;
+                transform: translateX(300px);
+            }
+            100%{
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .testDiv{
+            min-height: 600px;
+            background-color: #fff;
+        }
+        .elBtn{
+            border-radius: 30px !important;
+            padding: 6px 20px !important;
+        }
+        .cus_nameSel{
+            display: inline-block;
+            padding: 5px 12px;
+            margin: 5px 10px;
+            background-color: #4BA5FD;
+            color:#fff;
+            font-size:14px;
+            border-radius: 6px;
+        }
+        .sel_NameList{
+            display: inline-block;
+            font-size: 16px;
+            font-weight: 900;
+            margin-top: 20px;
+            color:#000;
+            padding-left: 10px;
+            border-left: 4px solid #54DE9E;
+        }
+/*        // 去掉input[type=number]默认的加减号*/
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .el-table td{
+            padding: 4px 0 !important;
+        }
+        .el-message-box {
+            margin-top: -300px;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:10px;">
+    <div id="cus_RecovApp" v-cloak>
+        <div>
+            <el-button size="mini" type="primary" icon="fa fa-users" class="top_divR" @click="cusAs">&nbsp;批量回收分配</el-button>
+        </div>
+        <div style="margin-top:20px;">
+            <el-input size="mini" placeholder="客户姓名" v-model="soMoreUserIpt.YBC002" style="width:120px;"  class="top_divR"></el-input>
+                <el-input size="mini" type="number" placeholder="联系电话" v-model="soMoreUserIpt.YBC003" style="width:120px;"  class="top_divR"></el-input>
+                <el-select size="mini" v-model="soMoreUserIpt.YBC008_TP" placeholder="客户状态" style="width:120px;" class="top_divR">
+                    <el-option label="临时(大类)" value="0"></el-option>
+                    <el-option label="临时(小类)" value="10"></el-option>
+                    <el-option label="意向" value="1"></el-option>
+                    <el-option label="上门" value="2"></el-option>
+                    <el-option label="签单" value="3"></el-option>
+                </el-select>
+<!--                <el-input size="mini" placeholder="介绍人" v-model="soMoreUserIpt.introName" style="width:120px;"  class="top_divR"></el-input>-->
+                <el-input size="mini" placeholder="联系人" v-model="soMoreUserIpt.contanName" style="width:120px;"  class="top_divR"></el-input>
+                <el-date-picker
+                  v-model="time"
+                  type="daterange" size="mini"
+                  range-separator="至"
+                          value-format="yyyy-MM-dd"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期">
+                </el-date-picker>
+            <el-button size="mini" type="warning" style="background-color:#fd8c12;margin-left:6px;" class="top_divR" @click="checkUser">查询</el-button>
+            <el-button size="mini" type="primary" class="top_divR btnBGC" @click="clearCheck">清空</el-button>
+        </div>
+        <div style="width:100%">
+            <div class="cusMTable" id="resL"
+            v-loading="loading">
+                <el-table
+                ref="allotTable"
+                :data="cusTableLstInit"
+                style="width: 100%"
+                :row-class-name="tableRowClassName"
+                @selection-change="selCusRows">
+                    <el-table-column
+                      prop="YBC002"
+                      label="客户姓名" min-width="80">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBC003"
+                      label="联系电话" min-width="160">
+                    </el-table-column>
+                    <el-table-column
+                      prop="state"
+                      label="客户状态" min-width="100">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBC028"
+                      label="最近跟进人" min-width="100">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBC022_TM"
+                      label="最近跟进时间"  min-width="200">
+                    </el-table-column>
+                    <el-table-column
+                      prop="recoveryTime"
+                      label="回收时间"  min-width="200">
+                    </el-table-column>
+<!--
+                    <el-table-column label="操作">
+                      <template slot-scope="scope"  fixed="right" width="100">
+                        <el-button
+                          size="mini"
+                          @click="allot(scope.$index, scope.row)">分配</el-button>
+                      </template>
+                    </el-table-column>
+-->
+                </el-table>
+                <div style="text-align:right;">
+                    <el-pagination
+                      @current-change="handleCurrentChange"
+                      :current-page="pageInit.currentPage"
+                      :page-size="10"
+                      layout="total, prev, pager, next, jumper"
+                      :total="pageInit.totalResult">
+                    </el-pagination>
+                </div>
+            </div>
+            <div id="test">
+<!--
+                <div class="testDiv">
+                    <div>
+                        <span class="tips">批量回收分配</span>
+                    </div>
+                    <div>
+                        <span class="sel_NameList">所选名单</span>
+                    </div>
+                    <div style="padding:5px 20px;">
+                        <span v-for="(item,index) in selCusIDs" class="cus_nameSel">{{item.YBC002}}</span>
+                    </div>
+                    <div>
+                        <span class="sel_NameList">分配至</span>
+                    </div>
+                    <div style="margin-top:20px;">
+                        <div style="text-align:center;">
+                            <span>部门：</span>
+                            <el-cascader
+                                change-on-select
+                                :options="moreAlloatArr1"
+                                @change="handleChangeMore">
+                            </el-cascader>
+                        </div>
+                        <div style="text-align:center;margin-top:10px;">
+                            <span>人员：</span>
+                            <el-cascader
+                                change-on-select
+                                :options="moreAlloatArr2"
+                                v-model="selMoreAllot">
+                            </el-cascader>
+                        </div>
+                    </div>
+                    <div style="text-align:center;margin-top:20px;">
+                        <el-button class="elBtn" type="primary" @click="qxSure">取消</el-button>
+                        <el-button class="elBtn" type="primary" @click="submits" style="margin-left:40px;">确定</el-button>
+                    </div>
+                </div>
+-->
+<!--
+                <div v-else  class="testDiv">
+                    <div>
+                        <span class="tips" style="background-color:#fd8c12;">全分配</span>
+                    </div>
+                    <div style="text-align:center;margin-top:30px;">
+                        <div style="text-align:center;">
+                            <el-cascader
+                                change-on-select
+                                :options="moreAlloatArr1"
+                                @change="handleChangeMore">
+                            </el-cascader>
+                        </div>
+                        <div style="text-align:center;margin-top:10px;">
+                            <el-cascader
+                                change-on-select
+                                :options="moreAlloatArr2"
+                                v-model="oldCusMng">
+                            </el-cascader>
+                        </div>
+                    </div>
+                    <div style="text-align:center;font-size:22px;">转</div>
+                    <div>
+                        <div style="text-align:center;margin-top:10px;">
+                            <el-cascader
+                                change-on-select
+                                :options="moreAlloatArr1"
+                                @change="handleChangeMore">
+                            </el-cascader>
+                        </div>
+                        <div style="text-align:center;margin-top:10px;">
+                            <el-cascader
+                                change-on-select
+                                :options="moreAlloatArr2"
+                                v-model="newCusMng">
+                            </el-cascader>
+                        </div>
+                    </div>
+                    <div style="text-align:center;margin-top:20px;">
+                        <el-button type="primary" @click="submitAll">提交</el-button>
+                    </div>
+                </div>
+-->
+                
+            </div>
+        </div>
+        
+<!--        客户分配dialog-->
+        <el-dialog title="客户分配" :visible.sync="cusAllotFg" width="30%">
+            <el-form :model="cusAForm" label-width="120px">
+                <el-form-item label="请选择部门" :rules="[
+                      { required: true, message: '部门不能为空'}
+                    ]">
+                    <el-cascader
+                        change-on-select
+                                 :show-all-levels="false"
+                                 v-model="selma"
+                        :options="moreAlloatArr1"
+                        @change="handleChangeMore"
+                        style="width:80%">
+                    </el-cascader>
+                </el-form-item>
+                <el-form-item label="请选择分配人" :rules="[
+                      { required: true, message: '人员不能为空'}
+                    ]">
+                    <el-cascader
+                        change-on-select
+                        :options="moreAlloatArr2"
+                        v-model="personID"
+                        style="width:80%">
+                    </el-cascader>
+                </el-form-item>
+                <el-form-item label="分配数量">
+                    <el-input type="number" v-model="cusAForm.limitNum"  style="width:80%;">
+                        <template slot="append">条</template></el-input>
+                    <div style="font-size:14px;">共有{{pageInit.totalResult}}条数据可分配</div>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="submitForm">立即保存</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+    </div>
+</body>
+<script th:inline="javascript">
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+    
+    new Vue({
+        el:"#cus_RecovApp",
+        data(){
+            return {
+//                从后台模板里面获取
+                pageInit:[[${page}]],
+                cusTableLstInit:[[${recryTableLst}]],
+//                选中行的客户编号数组
+                selCusIDs:[],
+//                多分配还是全分配
+                allotFlag:true,
+//                单分配和多分配选中的客户经理
+                selMoreAllot:'',
+//                单多分配最终客户编号数组
+                moreArr:[],
+//                搜索客户条件
+                soMoreUserIpt:{},
+//                搜索时间范围
+                time:[],
+                
+                selma:[],
+                cusAllotFg:false,
+                moreAlloatArr1:[],
+                moreAlloatArr2:[],
+//                最终分配的人
+                personID:[],
+                cusAForm:{NewUSER_ID:"",limitNum:0},
+                loading:false
+            }
+        },
+//        DOM渲染前执行
+        mounted(){
+            this.getDepartment();
+        },
+        methods:{
+            
+            submitForm(){
+                let that=this;
+                if(this.personID!=""){
+                    this.cusAForm.NewUSER_ID=this.personID.toString();
+                }
+                this.cusAForm.limitNum=Number(this.cusAForm.limitNum);
+                if(this.cusAForm.NewUSER_ID.length>0 && this.cusAForm.limitNum){
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/cus_recovery/updateReAllotOfLimit`,
+                        data:that.cusAForm,
+                        success:function(data){
+                            console.log(data)
+                            if(data.msg="200"){
+                                that.$message({
+                                    message: '您已成功分配',
+                                    type: 'success'
+                                });
+                                that.selma=[];
+                                that.personID=[];
+                                that.cusAllotFg=false;
+                                that.cusAForm={NewUSER_ID:"",limitNum:0};
+                                that.handleCurrentChange(1); 
+                            }else{
+                                that.$message({
+                                    message: '分配失败，请重新分配',
+                                    type: 'warning'
+                                });
+                            }
+                        }
+                    })
+                }else{
+                    that.$message({
+                        message: '请将表单填写完整',
+                        type: 'warning'
+                    });
+                }
+                
+            },
+//            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                if(rowIndex==1){
+                    
+                }else if (rowIndex%2 == 0) {
+                    return 'odd-row';
+                }
+                return 'even-row';
+            },
+//            选中表格中的行
+            selCusRows(val){
+                this.selCusIDs=val;
+            },
+//            查询搜索客户
+            checkUser(){
+                if(this.time){
+                    if(this.time.length !=0){
+                        this.soMoreUserIpt.YBC015_TMStart=this.time[0]+' 00:00:00';
+                        this.soMoreUserIpt.YBC015_TMEnd=this.time[1]+' 23:59:59';
+                    }
+                }else{
+                    delete this.soMoreUserIpt.YBC015_TMStart;
+                    delete this.soMoreUserIpt.YBC015_TMEnd;
+                }
+                this.handleCurrentChange(1);
+            },
+//            清空搜索条件，并回到初始状态
+            clearCheck(){
+                this.soMoreUserIpt={};
+                this.time=[];
+                this.handleCurrentChange(1);
+            },
+//            当前页翻页
+            handleCurrentChange(val){
+                this.loading=true;
+                this.soMoreUserIpt.currentPage=val;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_recovery/getPageRecoveryLst`,
+                    data:that.soMoreUserIpt,
+                    success:function(data){
+                        that.cusTableLstInit=data.rows;
+                        that.pageInit.totalResult=data.total;
+                        that.pageInit.currentPage=val;
+                            that.loading=false;
+                    }
+                })
+            },
+//            客户分配
+            cusAs(){
+                this.cusAllotFg=true;
+                this.cusAForm.branchNum=this.pageInit.totalResult;
+            },
+//            单独分配
+            allot(index,row){
+                this.$refs.allotTable.clearSelection();
+                this.$refs.allotTable.toggleRowSelection(row);
+                this.selCusIDs=[]
+                this.selCusIDs.push(row);
+                
+//                调用多分配函数
+                this.admeasures();
+            },
+//            重分配
+            admeasures(){
+
+                this.getDepartment();
+                
+                if(this.selCusIDs.length>0){
+//                css展示
+                    $("#resL").animate({width:'70%'},100);
+                    $("#test").css("display","block")
+                    this.allotFlag=true;
+//                取得多选的数组
+                    this.getYCB001Arr(this.selCusIDs,this.moreArr);
+                }else{
+                    this.$message({
+                        message: '请先勾选要进行分配的客户',
+                        type: 'warning'
+                    });
+                }
+            },
+//            全分配
+//            allAdmeasure(){
+//                
+//                this.getDepartment();
+////                css展示
+//                $("#resL").animate({width:'70%'},100);
+//                $("#test").css("display","block")
+//                this.allotFlag=false;
+//
+//
+//            },
+//            取选中行的YBC001组成的数组
+            getYCB001Arr(val,arr){
+                for(let i=0;i<val.length;i++){
+                    if($.inArray(val[i].YBC001,arr)<0){
+                        arr.push(val[i].YBC001)
+                    }
+                }
+            },
+            
+            //            获取部门列表
+            getDepartment(){
+//                DEPT_ID   获取部门
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/deptAndMeLst`,
+                    data:"",
+                    success:function(data){
+                        that.moreAlloatArr1=data.result;
+                    }
+                })
+            },
+//            当多分配时改变产品选择
+            handleChangeMore(value){
+                let DEPT_ID=value[value.length-1];
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/deptAndUserLst`,
+                    data:{DEPT_ID:DEPT_ID},
+                    success:function(data){
+                        that.moreAlloatArr2=data.result;
+                    }
+                })
+            },
+//            单分配和多分配提交
+//            submits(){
+//                let that=this;
+//                let str=''
+//                for(let i=0;i<that.moreArr.length;i++){
+//                    str+=that.moreArr[i]+","
+//                }
+//                let allotUser=that.selMoreAllot.toString();
+//                
+//                $.ajax({
+//                    type:"GET",
+//                    url:`${basePath}/cus_recovery/allotForRecovery`,
+//                    data:{YBC001Str:str,USER_ID:allotUser},
+//                    success:function(data){
+//                        if(data.msg=="200"){
+//                            that.$message({
+//                              message: '恭喜你，客户再分配成功',
+//                              type: 'success'
+//                            });
+////                            清除上一操作选中的多行
+//                            that.$refs.allotTable.clearSelection();
+////                          css隐藏
+//                            $("#resL").animate({width:'100%'},100);
+//                            $("#test").css("display","none")
+//                            that.allotFlag=true;
+//                        }else{
+//                            that.$message.error('客户再分配失败，请重新分配');
+//                        }
+//                    }
+//                })
+//                
+//            },
+//            取消确定
+            qxSure(){
+//              css隐藏
+                $("#resL").animate({width:'100%'},100);
+                $("#test").css("display","none")
+                this.allotFlag=true;
+            }
+//            全分配提交
+//            submitAll(){
+//                console.log("全分配old客户经理"+this.oldCusMng)
+//                console.log("全分配new客户经理"+this.newCusMng)
+//                if(this.oldCusMng.length>0 && this.newCusMng.length>0){
+////                css隐藏
+//                    $("#resL").animate({width:'100%'},100);
+//                    $("#test").css("display","none")
+//                    this.allotFlag=true;
+//                }else{
+//                    this.$message({
+//                      message: '选择客户经理后，才能操作',
+//                      type: 'warning'
+//                    });
+//                }
+//            }
+        }
+    })
+    
+</script>
+</html>

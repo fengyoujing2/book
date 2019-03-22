@@ -1,0 +1,53 @@
+package com.dbsun.service.spread;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.spread.SprMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.FollowUtil;
+
+@Service
+public class SprService extends BaseService {
+
+	@Autowired
+	private SprMapper sprMapper;
+	
+	public List<PageData> getPageSprLst(Page page){
+		return sprMapper.getPageSprLst(page);
+	}
+	
+	public int addCusFromSpr(PageData pd) throws Exception{
+		return sprMapper.addCusFromSpr(pd);
+	}
+	
+	public int addCusFromSprPlu(PageData pd, PageData userPd){
+		int ret = 0;
+		try {
+			String cusId = "fromwbybc_" + pd.getString("YBWY0001");//YBC001按照这种方式拼接而成
+			
+			//将客户添加到YBC表中
+			this.addCusFromSpr(pd);
+			//修改推广表中客户为意向
+			this.updateCusState(pd);
+			
+			//添加跟进
+			this.addCusFlw(userPd, FollowUtil.SPR_ALT_STR, FollowUtil.SPR_ALT_CODE, cusId);
+			this.updateCusFlw(userPd, FollowUtil.SPR_ALT_STR, cusId);
+			
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	
+	public int updateCusState(PageData pd) throws Exception{
+		return sprMapper.updateCusState(pd);
+	}
+	
+}

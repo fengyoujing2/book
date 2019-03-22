@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--命名空间完全限定名-->
+<mapper namespace="com.dbsun.mapper.vip.CutVisitMapper">
+
+    <!--查询客户的回访表-->
+    <select id="getPageYbcCutVisitLst" resultType="pd" parameterType="page" useCache="false">
+        SELECT
+        y.YBC001,<!--客户id-->
+        y.YBC002,<!--客户姓名-->
+        y.YBC003,<!--默认的客户联系电话-->
+        (SELECT VIPT002 FROM vip_type where VIPT001 = y.VIPT001) as VIPGRADE , <!--vip级别-->
+        v.VIPV001,<!--id-->
+        v.VIPV002_TM,<!--更进时间-->
+        v.VIPV003,<!--失败说明-->
+        (SELECT NAME FROM sys_user WHERE USER_ID = y.USER_ID)AS NAME ,<!--客户经理-->
+        (SELECT NAME FROM sys_user WHERE USER_ID = v.USER_ID)AS NAME_OP ,<!--操作人-->
+        (case VIPV004_TP
+        WHEN 1 THEN '成功'
+        WHEN 2 THEN '失败'
+        WHEN 3 THEN '跟进'
+        WHEN 4 THEN '异常'
+        END )AS STATUS,  <!--回访状态(1.成功,2.失败,3.跟进,4异常)TP-->
+        v.VIPE003_IP,<!--异常分类-->
+        (CASE v.VIPV005_TP
+        WHEN 1 THEN '客户拒绝'
+        WHEN 2 THEN '无法接通'
+        WHEN 3 THEN '其他'   <!--失败分类-->
+        END )AS VIPV005_TP,
+        (SELECT DEPT_NAME FROM sys_dept WHERE DEPT_LAYERORDER = y.DEPT_LAYERORDER )as DEPT_NAME ,<!--部门机构代码-->
+        y.POSITION
+        FROM vip_visit v join ybc y on v.YBC001 = y.YBC001
+        where 1=1
+        AND y.YBC036_TP != 0
+        AND y.YBC036_TP IS NOT NULL <!-- 只能对准会员和真会员操作-->
+        <!--多条件查询 -->
+        <!--姓名/联系电话-->
+        <if test=" pd.YBC002 !=null and pd.YBC002 !=''">
+            and y.YBC002 LIKE concat('%',#{pd.YBC002},'%')
+        </if>
+        <if test=" pd.YBC003 !=null and pd.YBC003 !=''">
+            and y.YBC003 LIKE concat('%',#{pd.YBC003},'%')
+        </if>
+        <!--会员级别-->
+        <if test="pd.VIPT001 !=null and pd.VIPT001 !='' ">
+            and y.VIPT001 =#{pd.VIPT001}
+        </if>
+        <!-- 部门 权限 start -->
+        <if test="pd.DEPT_LAYERORDER_Sea !=null and pd.DEPT_LAYERORDER_Sea !='' ">
+            and y.DEPT_LAYERORDER like concat('%',#{pd.DEPT_LAYERORDER_Sea},'%',)
+        </if>
+        <!-- 部门 客户经理 -->
+        <if test="pd.USER_ID_Sea !=null and pd.USER_ID_Sea !='' ">
+            and y.USER_ID=#{pd.USER_ID_Sea}
+        </if>
+        <!-- 1准会员/2真会员 -->
+        <if test="pd.YBC036_TP !=null and pd.YBC036_TP !='' ">
+            and y.YBC036_TP =#{pd.YBC036_TP}
+        </if>
+
+        <!-- 时间搜索 -->
+        <if test="pd.dateStart != null and pd.dateStart != ''"><!-- 签单时间 -->
+            and v.VIPV002_TM <![CDATA[ >= ]]> #{pd.dateStart}
+        </if>
+        <if test="pd.dateEnd != null and pd.dateEnd != ''">
+            and v.VIPV002_TM <![CDATA[ <= ]]> #{pd.dateEnd}
+        </if>
+
+        <!--客户查询-->
+        <if test=" pd.YBC001 !=null and pd.YBC001 !=''">
+            and y.YBC001 = #{pd.YBC001}
+        </if>
+
+        <!--操作人-->
+        <if test=" pd.USER_ID_OP !=null and pd.USER_ID_OP !=''">
+            and v.USER_ID =#{pd.USER_ID_OP}
+        </if>
+        <!-- 按造客户显示最新动态 -->
+        <!-- group by y.YBC001 having max(v.VIPV002_TM) -->
+
+        <!-- 搜索 End -->
+        order by v.VIPV002_TM desc
+
+
+    </select>
+
+
+    <!--更新回访状态(回访状态,失败说明,时间)-->
+    <update id="updateYbcVisitStatu" parameterType="pd">
+        UPDATE vip_visit
+        SET
+        VIPV002_TM = now(),
+        VIPV003 = #{VIPV003} ,<!--失败说明-->
+        VIPV004_TP = #{VIPV004_TP}<!--回访状态-->
+        WHERE YBC001 = #{YBC001}<!--客户的id-->
+
+    </update>
+
+    <!--新增回访-->
+    <insert id="addYbcVisit" parameterType="pd">
+
+        INSERT INTO vip_visit
+        (VIPV001,
+        YBC001,
+        VIPV002_TM,
+        VIPV003,
+        USER_ID,
+        VIPV004_TP,
+        OP_DEPT_LAYERORDER,
+        OP_POSITION,
+        VIPE003_IP,<!--异常-->
+        VIPV005_TP)<!--失败 失败分类(1客户拒绝2无法接通3.其他)-->
+        VALUES
+        (#{VIPV001},#{YBC001},now(),#{VIPV003},#{USER_ID},#{VIPV004_TP},#{DEPT_LAYERORDER},#{POSITION},#{VIPE003_IP},#{VIPV005_TP});
+    </insert>
+</mapper>

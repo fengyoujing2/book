@@ -1,0 +1,113 @@
+package com.dbsun.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.YwDataMapper;
+import com.dbsun.util.DateUtil;
+import com.dbsun.util.Tools;
+
+/**
+ * 个人资料
+ * 
+ * @author DongZai
+ * 
+ */
+@Service
+public class YwDataService {
+
+	@Autowired
+	private YwDataMapper ywDataMapper;
+	@Autowired
+	private YwDataService ywDataService;
+
+	/** 添加用户 */
+	public int addYwData(PageData pd) {
+		return ywDataMapper.addYwData(pd);
+	}
+
+	/** 获取 */
+	public PageData getYwDataByYwu001(PageData pd) {
+		return ywDataMapper.getYwDataByYwu001(pd);
+	}
+
+	/** 修改用户信息 */
+	public int updateYwDataByYwu001(PageData pd) {
+		return ywDataMapper.updateYwDataByYwu001(pd);
+	}
+
+	/** 资质认证 */
+	public int updateIdenByYwu001(PageData pd) {
+		return ywDataMapper.updateIdenByYwu001(pd);
+	}
+
+	/** 获取 */
+	public PageData getYwDataByYwu010(PageData pd) {
+		return ywDataMapper.getYwDataByYwu010(pd);
+	}
+
+	/** 获取资料完整度 */
+	public String getUserHundredInfo(PageData pd) {
+		// 得到用户的基础资料信息
+		String HundredInfo = "0";
+		int userInfoSize = 0;
+		PageData pdata = ywDataMapper.getYwDataByYwu010(pd);
+		if (pdata == null) {// 为空表明为填写过信息
+			return HundredInfo;
+		}
+		if (!Tools.isObjEmpty(pdata.get("YWDATA002")))
+			userInfoSize = userInfoSize + 10;// QQ号
+		if (!Tools.isObjEmpty(pdata.get("YWDATA003_TP")))
+			userInfoSize = userInfoSize + 10;// 学历
+		if (!Tools.isObjEmpty(pdata.get("YWDATA004_TP")))
+			userInfoSize = userInfoSize + 10;// 婚姻
+		if (!Tools.isObjEmpty(pdata.get("YWDATA005_TP")))
+			userInfoSize = userInfoSize + 10;// 职业
+		// if(Tools.isEmpty(pdata.get("YWDATA006"))) userInfoSize =
+		// userInfoSize+10;//家庭地址
+		if (!Tools.isObjEmpty(pdata.get("YWDATA007_TP")))
+			userInfoSize = userInfoSize + 10;// 省
+		if (!Tools.isObjEmpty(pdata.get("YWDATA008_TP")))
+			userInfoSize = userInfoSize + 10;// 市
+		if (!Tools.isObjEmpty(pdata.get("YWDATA009_TP")))
+			userInfoSize = userInfoSize + 10;// 区县
+		if (!Tools.isObjEmpty(pdata.get("YWDATA0010")))
+			userInfoSize = userInfoSize + 10;// 身份证
+		if (!Tools.isObjEmpty(pdata.get("YWDATA0011")))
+			userInfoSize = userInfoSize + 10;// 房产证
+		if (!Tools.isObjEmpty(pdata.get("YWDATA0012")))
+			userInfoSize = userInfoSize + 10;// 行驶证
+		// 11个字段信息按照百分比计算
+		return String.valueOf(userInfoSize);
+	}
+
+	/**
+	 * 更新或者添加资料
+	 * 
+	 * @param pd
+	 */
+	@SuppressWarnings("unused")
+	public String addOrUpdateYwData(PageData pd) {
+		String result = "field";
+		try {
+			// 没有个人资料 -- 添加个人资料
+			if (ywDataService.getYwDataByYwu010(pd) == null) {
+				pd.put("YWDATA0013_TM", DateUtil.get1000ParsedDate());
+				ywDataService.addYwData(pd);
+			} else {
+				// 个人资料已录入 -- 更新个人资料
+				pd.put("YWDATA0014_TM", DateUtil.get1000ParsedDate());
+				ywDataService.updateYwDataByYwu001(pd);
+			}
+
+			result = "success";
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return result;
+
+	}
+
+}

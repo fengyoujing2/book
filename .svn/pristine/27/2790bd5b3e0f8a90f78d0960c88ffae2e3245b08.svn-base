@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>信用贷</title>
+    <style>
+        a:hover{
+            text-decoration: none;
+        }
+
+        a:visited{
+            text-decoration: none;
+        }
+
+        a:active{
+            text-decoration: none;
+        }
+
+        #wanshan{
+            display: none;
+        }
+
+        .one input[type='radio']{
+            margin-left: 2px;
+            margin-right: 2px;
+            display: none;
+            vertical-align: middle;
+        }
+        .one input[type='radio']+label:before{
+            content: '';
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            border-radius: 100%;
+            vertical-align: sub;
+            border: 2px solid #E4E4E4;
+            background: #F9F9F9;
+        }
+        .one input[type='radio']:checked+label:before{
+            background: orange;
+        }
+
+    </style>
+
+</head>
+<body style="background:white">
+<div class="container-fluid jianju"  id="contain" >
+    <div class="row text-center" style="background:#01B5EF;">
+        <img src="../static/img/xinyongdai_02.jpg" style="width: 100%">
+    </div>
+    <div class="row" style="margin-top: -31px">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 15px">
+            <div style="padding: 10px;border: 1px solid white;width: 100%;border-radius: 10px;background: #ffffff;box-shadow: 0px 1px 9px #ecd1c2;overflow:hidden;">
+                <div style="width: 100%;background: white;padding-top: 15px">
+                    <div style="display:inline-block;vertical-align: middle">
+                        <i class="fa fa-circle" style="color: #FC8B4D;margin-left: -17px;font-size: 18px"></i> &nbsp;&nbsp;<span style="font-weight: bold;font-size: 15px">借款金额</span>
+                    </div>
+                </div>
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0">
+                    <div class="row" style="display: flex;justify-content: center;align-items: center;background: white;margin-left: 0;margin-right: 0;">
+                        <div onclick="reduce();" class="col-xs-2  text-left  " style="color:#FC8B4D;">
+                            <i class="fa fa-minus" style="font-size: 20px"></i>
+                        </div>
+                        <div class="col-xs-8  text-center" style="padding: 15px;color:black;font-size: 26px">
+                        	<div class="col-xs-9" style="width: 100%;padding: 5px;color: #0198EF;font-size: 14px;padding-left: 5px;padding-right: 0;color: rgb(100,100,100);padding-top: 11px;border: 1px solid #fc8b4d5c;border-radius: 5px;">
+                            	<input type="number" th:value="${pd == null ? '' : pd.get('YWAPPLY005')}"  oninput="if(value.length>12)value=value.slice(0,12)" placeholder="金额（元）" id="YWAPPLY005" style="text-align: center;width: 100%;font-size: 17px;height: 21px;outline: none;border: none">
+                        	</div>
+                        	
+                        </div>
+                        <div onclick="add();" class="col-xs-2  text-right" style="color: #FC8B4D;">
+                            <i class="fa fa-plus" style="font-size: 20px"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;">
+            <div style="padding: 10px;border: 1px solid white;width: 100%;border-radius: 10px;background: #ffffff;box-shadow: 0px 1px 9px #ecd1c2;overflow: hidden">
+                <div style="width: 100%;background: white;padding-top: 6px;padding-bottom: 15px">
+                    <div style="display:inline-block;vertical-align: middle">
+                        <i class="fa fa-circle" style="color: #FC8B4D;margin-left: -17px;font-size: 18px"></i> &nbsp;&nbsp;<span style="font-weight: bold;font-size: 15px">产品特点</span>
+                    </div>
+                </div>
+                <div style="padding: 5px;width: 100%;background:white;padding-right: 0px;padding-left: 0">
+                    <div style="display:inline-block;vertical-align: middle">
+                        &nbsp; &nbsp;<span>1.用钱不求人，有身份证就行</span>
+                    </div>
+                </div>
+                <div style="padding: 5px;width: 100%;background: white;padding-right: 0px;padding-left: 0">
+                    <div style="display:inline-block;vertical-align: middle">
+                        &nbsp; &nbsp; <span>2.额度小，周期短，到账快</span>
+                    </div>
+                </div>
+                <div style="padding: 5px;width: 100%;background:white;padding-right: 0px;padding-left: 0">
+                    <div style="display:inline-block;vertical-align: middle">
+                        &nbsp; &nbsp; <span>3.还款不麻烦，支持自动还款</span>
+                    </div>
+                </div>
+                <div style="padding: 5px;width: 100%;background:white;padding-right: 0px;padding-left: 0">
+                    <div style="display:inline-block;vertical-align: middle">
+                        &nbsp; &nbsp; <span>4.适合人群：学生、上班族、个体户</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-center  " style="padding: 5px;font-size: 16px;font-weight: 600">
+            快速在线预约
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 10px">
+            <div style="padding: 15px;border: 1px solid white;width: 100%;border-radius: 10px;background: #ffffff;padding-top: 0;padding-bottom: 0;box-shadow: 0px 1px 9px #ecd1c2;" class="">
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;border-bottom: 1px solid rgb(239,239,239);">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-3  text-left  " style="padding: 15px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            姓名：
+                        </div>
+                        <div class="col-xs-9    " style="padding: 15px;color:#0198EF;font-size: 14px;padding-left: 5px;padding-right: 0;color: rgb(100,100,100);;padding-top: 15px">
+                            <input type="text" th:value="${pd == null ? '' : pd.get('YWAPPLY002')}" maxlength="20" id="YWAPPLY002" placeholder="请输入您的姓名" style="font-size: 14px;height: 21px;outline: none;border: none">
+                        </div>
+
+                    </div>
+                </div>
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;border-bottom: 1px solid rgb(239,239,239);">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-3  text-left  " style="padding: 15px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            手机：
+                        </div>
+                        <div class="col-xs-9    " style="padding: 15px;color:#0198EF;font-size: 14px;padding-left: 5px;padding-right: 0;color: rgb(100,100,100);;padding-top: 15px">
+                            <input type="number" th:value="${pd == null ? '' : pd.get('YWAPPLY003')}" id="YWAPPLY003" placeholder="请输入您的手机号" style="font-size: 14px;height: 21px;outline: none;border: none">
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12 text-center" style="padding: 15px;color:#0198EF;font-size: 14px;padding-left: 5px;padding-right: 0;color: rgb(100,100,100);;padding-top: 15px">
+                            <div class="one" id="one">
+                                <input type="radio" th:checked="${pd == null || pd.get('YWAPPLY004') == null || pd.get('YWAPPLY004') == 1}" name="pay" id="p_yes" class="rdo" value="1">  <label for="p_yes" style="margin-bottom: 0;font-weight: 400">先生</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <input th:checked="${pd != null && pd.get('YWAPPLY004') == 2}" type="radio" name="pay" id="p_no" class="rdo" value="2"> <label for="p_no" style="margin-bottom: 0;font-weight: 400">女士</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-left  " style="padding: 15px">
+            <button type="button" onclick="apply();" class="btn btn-primary btn-lg btn-block" style="border-radius: 20px;background:#FC8B4D;;border: 1px solid transparent;outline: none" id="shenqing">我要申请</button>
+        </div>
+    </div>
+    
+    <div style="display:none;width: 100%; height: 100%; color: rgb(0, 0, 0); position:fixed; top: 0px; left: 0px;z-index: 60000; background:white;padding: 10px;padding-top: 0;padding-left: 15px;padding-right: 15px" id="field">
+
+
+	    <div style="text-align: center;padding-top: 73.12px" class="ziti">对不起！服务器开小差了~</div>
+	    <div style="text-align: center;padding-top: 5px" class="ziti">您可以返回上一步操作或者直接拨打下面电话</div>
+	    <div style="padding-top: 30px" id="boda">
+	        <a href="tel:028-66002200">
+	            <div style="text-align: center;height: 48.57px;border: 1px solid #FC763B;border-radius:5px;margin: auto;">
+	                <div style="height: 39px;padding: 4px 0">
+	                    <img src="../static/img/tel.png" style="width: 33.51px;vertical-align: middle;display: inline-block;padding-top: 3px">
+	                    <span style="font-size: 17px;vertical-align: middle;color: #FC763B;margin-left: 11.17px;display: inline-block;padding-top: 6px">点击拨打 贷款联系电话</span>
+	                </div>
+	            </div>
+	        </a>
+	    </div>
+
+	</div>
+	
+	<div style="display:none;width: 100%; height: 100%; color: rgb(0, 0, 0); position:fixed; top: 0px; left: 0px;z-index: 60000; background:white;padding: 10px;padding-top: 0;padding-left: 15px;padding-right: 15px" id="success">
+
+	    <div style="text-align: center;padding-top: 73.12px" class="ziti">恭喜！您的贷款申请已受理！</div>
+	    <div style="text-align: center;padding-top: 5px" class="ziti">后续将会有客户经理给您致电，请注意接听</div>
+	    <div style="text-align: center;padding-top: 5px" class="ziti">028-66002200的来电！</div>
+	    <div style="padding-top: 30px" id="boda">
+	        <a href="tel:028-66002200">
+	            <div style="text-align: center;height: 48.57px;border: 1px solid #FC763B;border-radius:5px;margin: auto;">
+	                <div style="height: 39px;padding: 4px 0">
+	                    <img src="../static/img/tel.png" style="width: 33.51px;vertical-align: middle;display: inline-block;padding-top: 3px">
+	                    <span style="font-size: 17px;vertical-align: middle;color: #FC763B;margin-left: 11.17px;display: inline-block;padding-top: 6px">点击拨打 贷款联系电话</span>
+	                </div>
+	            </div>
+	        </a>
+	
+	    </div>
+	
+	</div>
+	
+	<!-- 引导客户完善资料 -->
+	<div style="width: 100%; height: 100%; color: rgb(0, 0, 0); position:fixed; top: 0px; left: 0px;z-index: 55500; background:url('../static/img/back2.png')" id="wanshan">
+    <div style="opacity: 1">
+        <div style="position: absolute;width: 250px;height:140px;top: 50%;left: 50%;margin: -70px 0 0 -125px;border: 1px solid transparent;color: #ffffff;border-radius: 10px;background: #ffffff;color: #000000;text-align: center">
+            <div style="width: 100%;font-size: 16px;border-top-right-radius: 10px;border-top-left-radius: 10px;padding: 23px 0;overflow: hidden">
+                <div>
+                    您的申请已受理，完善资料
+                </div>
+                <div>提速钱款到账</div>
+                <div style="text-align: center;margin-top: 15px;padding-right: 55px;padding-left: 55px">
+                    <a th:href="@{/wx_ywData/goBacMsg}" class="btn btn-primary btn-sm btn-block" style="border-radius: 20px;background:#FC8B4D;;border: 1px solid transparent;font-size: 16px" id="ziliao">完善资料</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+	</div>
+    
+    <div th:include="html/wechat/public/tip :: tip"></div>
+</div>
+
+<div th:include="html/page/contentpublic :: html"></div>
+<script th:inline="javascript">
+
+	var basePath = "/"+getContextPath();
+	
+	function reduce(){
+		if(parseInt($("#YWAPPLY005").val()) - 10000 > 0){
+			$("#YWAPPLY005").val(parseInt($("#YWAPPLY005").val()) - 10000);
+		}
+	}
+	
+	function add(){
+		
+		//初始化
+		if($("#YWAPPLY005").val() == null || $("#YWAPPLY005").val() == ''){
+			$("#YWAPPLY005").val(10000);
+			return;
+		}
+		
+		//防止用户把界面点乱
+		if(parseInt($("#YWAPPLY005").val()) + 10000 < 999999999999){
+			$("#YWAPPLY005").val(parseInt($("#YWAPPLY005").val()) + 10000);
+		}
+		
+	}
+	
+	function check(){
+		
+		/* 贷款金额 > 0 */
+		if(parseInt($("#YWAPPLY005").val()) < 0){
+			tip("贷款金额大于零");
+			return false;
+		}
+		
+		/* 姓名 */
+		if($.trim($("#YWAPPLY002").val()) == ''){
+			tip("申请人姓名不能为空");
+			return false;
+		}
+		
+		/* 号码 */
+		var regPhone1 = /^1[3|4|5|7|8][0-9]\d{8}$/;
+		if(!regPhone1.test($.trim($("#YWAPPLY003").val()))){
+			tip("手机号错误");
+			return false;
+		}
+		
+		return true;
+	}
+	
+	/* 申请 */
+	function apply(){
+		
+		if(!check())return;
+		
+		$.ajax({
+			type : "POST",
+			url : basePath + "/wx_ywApply/saveYwApply",
+			data : {
+				YWAPPLY002 : $("#YWAPPLY002").val(),
+				YWAPPLY003 : $("#YWAPPLY003").val(),
+				YWAPPLY004 : $("input:checked").val(), 
+				YWPRODUCT001 : 2, /* 信用贷产品 */
+				YWAPPLY005 : $("#YWAPPLY005").val()
+			},
+			success : function(data) {
+				if(data == "success"){
+					//资料未完善，引导客户去完善资料
+					
+					var toWSZL = [[${pd.get('isData')}]];
+					if(toWSZL == "0"){
+						$("#wanshan").show();
+					}else{
+						//客户资料已完善，直接提示提交成功
+						$("#success").show();
+					}
+				}else{
+					$("#field").show();
+					/* tip("服务器开小差了，请稍后再试(*^▽^*)"); */
+				}
+			},
+			error:function(result, status){
+                if(status=="parsererror"){
+               	 tip("解析出错");
+                }else if(status=="error"){
+               	 tip("信息提交失败");
+                }else if(status=="timeout"){
+               	 tip("发送超时");
+                }else{
+               	 tip("发送出错");
+                }
+		    }
+		});
+	}
+
+</script>
+
+</body>
+</html>

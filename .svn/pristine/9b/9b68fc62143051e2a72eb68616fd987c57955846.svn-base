@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.customer.CusTelMapper">
+	<!-- 联系人-->
+	
+	<select id="getTelsByCusId" parameterType="pd" resultType="pd" useCache="false">
+		select
+			c.*
+		from ybc_contacts c
+		where
+			c.YBC001 = #{YBC001}
+	</select>
+	
+	<select id="getTelByCtsId" parameterType="pd" resultType="pd" useCache="false">
+		select
+			c.*
+		from ybc_contacts c
+		where
+			c.YBCCO001 = #{YBCCO001}
+	</select>
+
+	<!-- 添加联系人 -->
+	<insert id="addTel" parameterType="pd" flushCache="false">
+		insert 
+			into 
+				ybc_contacts 
+				(
+					YBCCO002, 
+					YBCCO003, 
+					YBCCO004, 
+					YBCCO005, 
+					YBCCO006_TM, 
+					ybc001, 
+					YBCCO007
+				)
+				values
+				(
+					#{YBCCO002}, 
+					#{YBCCO003}, 
+					#{YBCCO004}, 
+					#{USER_ID}, 
+					now(), 
+					#{YBC001}, 
+					(select name from sys_user where user_id = #{USER_ID})
+				)
+	</insert>
+	
+	
+</mapper>

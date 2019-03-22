@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+    <title>导入管理</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0];
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+
+    <style>
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        .tips{
+            display: inline-block;
+            padding: .5rem 2rem .5rem 1rem;
+            background-color: #53DD9D;
+            color: #fff;
+            font-size: 16px;
+            border-bottom-right-radius: 2rem;
+            border-top-right-radius: 2rem;
+        }
+        .cusMTable{
+            margin-left: 10px;
+        }
+        .cusMTable .el-table tr{
+            background-color: #4aa5fb;
+            color:#fff;
+        }
+        .el-table .odd-row {
+            background: #f1f7fe !important;
+            color:#878787 !important;
+        }
+        .el-table .even-row {
+            background: #ffffff !important;
+            color:#878787 !important;
+        }
+        .el-input-group__append{
+            color: #4aa5fb !important;
+        }
+        .top_divR{
+            margin-right: 20px;
+        }
+        #resL{
+            width:100%;
+            float:left;
+            text-align: center;
+            background-color: #fff;
+        }
+        #test{
+            display: none;
+            float:right;
+            width: 30%;
+            padding-left:10px;
+            margin-top: 20px;
+            animation:move 1s;
+        }
+        @keyframes move{
+            0%{
+                opacity: 0;
+                transform: translateX(300px);
+            }
+            100%{
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .testDiv{
+            min-height: 600px;
+            background-color: #fff;
+        }
+        .elBtn{
+            border-radius: 30px !important;
+            padding: 6px 20px !important;
+        }
+        .el-upload__input {
+            display: none !important;
+        }
+/*        // 去掉input[type=number]默认的加减号*/
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .el-table td{
+            padding: 4px 0 !important;
+        }
+        .textDown{
+            font-size:14px;
+            color:#fff;
+            padding: 14px 20px;
+            background-color: #54DE9E;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:10px;">
+    <div id="productImportApp" v-cloak>
+        <div style="width:100%;display:flex;" v-loading="loading0">
+            <div style="width:300px;" id="resL">
+                <div style="text-align: left;margin:20px 0;">文件模板</div>
+                <div style="text-align: text;margin:40px 0;">
+                      <a href="../static/impcvs.csv"
+                      download
+                      class="textDown">文件模板下载</a>
+                </div>
+                <div style="text-align: left;margin:20px 0;">导入类型</div>
+                <div style="margin-bottom:20px;">
+                    <el-radio-group v-model="updateType" size="mini">
+                      <el-radio-button :label='0'>大类</el-radio-button>
+                      <el-radio-button :label='10'>小类</el-radio-button>
+                      <el-radio-button :label='11'>推广</el-radio-button>
+                      <el-radio-button label='13'>抵押</el-radio-button>
+                    </el-radio-group>
+                </div>
+                <el-upload
+                    style="margin-bottom:40px;"
+                  class="upload-demo"
+                    :data="{YBC008_TP:updateType}"
+                  :action="basePathUpdate" :before-upload="beforeAvatarUpload" :on-success="successUpload">
+                    <el-button type="primary">选择上传文件</el-button>
+                    <div slot="tip" class="el-upload__tip">只能上传csv文件</div>
+                </el-upload>
+            </div>
+            <div style="flex-grow:1;" class="cusMTable"
+            v-loading="loading">
+                    <el-table
+                            ref="multipleTable"
+                            :data="tabledata"
+                            style="width: 100%"
+                            :row-class-name="tableRowClassName">
+                        <el-table-column
+                                prop="YBC002"
+                                label="客户姓名">
+                        </el-table-column>
+                        <el-table-column
+                                prop="YBC003"
+                                label="客户电话">
+                        </el-table-column>
+                    </el-table>
+                <div>
+                    <div style="float:left;">
+                        <div v-if="page.totalResult>0">
+                            <el-button type="primary" size="mini" @click="cusAs">客户分配</el-button>
+                        </div>
+                    </div>
+                    <div style="float:right;">
+                        <el-pagination
+                                @current-change="handleCurrentChange"
+                                :current-page="page.currentPage"
+                                :page-size="10"
+                                layout="total, prev, pager, next, jumper"
+                                :total="page.totalResult">
+                        </el-pagination>
+                    </div>
+                </div>
+            </div>
+        </div>
+<!--        客户分配dialog-->
+        <el-dialog title="客户分配" :visible.sync="cusAllotFg" width="60%" v-loading="loadingBtn" :before-close="closeCus">
+            <el-form :model="cusAForm" label-width="120px">
+                <el-form-item label="请选择部门" porp="selm" :rules="[
+                      { required: true, message: '部门不能为空'}
+                    ]">
+                    <el-cascader
+                                 type="selm"
+                        change-on-select
+                                 v-model="selma"
+                                 :show-all-levels="false"
+                        :options="moreAlloatArr1"
+                        @change="handleChangeMore"
+                        style="width:80%">
+                    </el-cascader>
+                </el-form-item>
+                <el-form-item label="请选择分配人" v-if="moreAlloatArr2.length>0">
+                  <el-checkbox :indeterminate="isCheckAll" v-model="checkAll" @change="handleCheckAllChange" style="color:green;">全选</el-checkbox>
+                  <el-checkbox v-model="check0" @change="handleCheck0Change" style="color:red;">高级经理</el-checkbox>
+                  <el-checkbox v-model="check1" @change="handleCheck1Change" style="color:orange;">中级经理</el-checkbox>
+                  <el-checkbox v-model="check2" @change="handleCheck2Change">初级经理</el-checkbox>
+                  <el-checkbox v-model="check3" @change="handleCheck3Change">实习经理</el-checkbox>
+                </el-form-item>
+
+                <el-form-item  label-width="30px">
+                  <el-checkbox-group v-model="checkedPerson" @change="handleCheckedChange">
+                    <el-checkbox v-for="item in moreAlloatArr2" :label="item" :key="item.value">{{item.label}}</el-checkbox>
+                  </el-checkbox-group>
+                </el-form-item>
+
+                <el-form-item label="请选择分配类型">
+                    <el-radio-group v-model="cusAForm.YBC008_TP" size="mini" @change="changeNumber">
+                        <el-radio-button :label='0'>大类</el-radio-button>
+                        <el-radio-button :label='10'>小类</el-radio-button>
+                        <el-radio-button :label='11'>推广</el-radio-button>
+                        <el-radio-button label='13'>抵押</el-radio-button>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="已勾选">
+                    {{checkedPerson.length}}位客户经理
+                </el-form-item>
+
+                <el-form-item label="每位经理分配" porp="branNum" :rules="[
+                      { required: true, message: '分配数量不能为空'}
+                    ]">
+                    <el-input type="number" v-model="branchNum"  style="width:80%;">
+                        <template slot="append">条数据</template></el-input>
+                    <div style="font-size:14px;">共有{{NumberAll}}条数据可分配(填写的值，总数不能超过可分配数量)</div>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="submitForm">立即保存</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+    </div>
+</div>
+</body>
+<script th:inline="javascript">
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+
+    new Vue({
+        el:"#productImportApp",
+        data(){
+            return {
+                basePathUpdate:`${basePath}/imp_cus/impFileCus`,
+//                从后台模板里面获取
+                tabledata:[[${canFirstAltTableLst}]],
+                page:[[${page}]],
+                selma:[],
+                cusAllotFg:false,
+                moreAlloatArr1:[],
+                moreAlloatArr2:[],
+//                最终分配的人
+                personID:[],
+                cusAForm:{USER_ID2:"",DEPT_ID2:"",branchNum:0,YBC008_TP:0},
+                updateType:0,
+                Number0:"",
+                Number10:"",
+                Number11:'',
+                Number13:'',
+                NumberAll:"",
+                loading:false,
+                loadingBtn:false,
+                checkedPerson:[],
+                checkAll: false,
+                check0:false,
+                check1:false,
+                check2:false,
+                check3:false,
+                isCheckAll: false,
+                branchNum:0,
+                loading0:false
+            }
+        },
+//        DOM渲染前执行
+        mounted(){
+            console.log([[${canFirstAltTableLst}]]);
+            console.log([[${page}]]);
+            this.getDepartment();
+            this.getNumber0();
+            this.getNumber10();
+            this.getNumber11();
+
+        },
+        methods:{
+            closeCus(done){
+                this.moreAlloatArr2=[];
+                this.checkedPerson=[];
+                this.checkAll=false;
+                this.cusAForm={USER_ID2:"",DEPT_ID2:"",branchNum:0,YBC008_TP:0};
+                done();
+            },
+//            全选经理
+            handleCheckAllChange(val) {
+                console.log(val);
+                this.checkedPerson = val ? this.moreAlloatArr2 : [];
+                this.isCheckAll = false;
+                this.check0=false;
+                this.check1=false;
+                this.check2=false;
+                this.check3=false;
+                console.log(this.checkedPerson);
+              },
+//            高级经理
+            handleCheck0Change(val) {
+                console.log(val);
+                let arr = this.moreAlloatArr2.filter(obj=>obj.LEV==3)
+                this.checkedPerson = val ? arr : [];
+                this.isCheckAll=true;
+                this.check1=false;
+                this.check2=false;
+                this.check3=false;
+                console.log(this.checkedPerson);
+              },
+//            中级经理
+            handleCheck1Change(val) {
+                console.log(val);
+                let arr = this.moreAlloatArr2.filter(obj=>obj.LEV==2)
+                this.checkedPerson = val ? arr : [];
+                this.check0=false;
+                this.isCheckAll=true;
+                this.check2=false;
+                this.check3=false;
+                console.log(this.checkedPerson);
+              },
+//            初级经理
+            handleCheck2Change(val) {
+                console.log(val);
+                let arr = this.moreAlloatArr2.filter(obj=>obj.LEV==1)
+                this.checkedPerson = val ? arr : [];
+                this.check0=false;
+                this.check1=false;
+                this.check3=false;
+                this.isCheckAll=true;
+                console.log(this.checkedPerson);
+              },
+//            实习经历
+            handleCheck3Change(val){
+                console.log(val);
+                let arr = this.moreAlloatArr2.filter(obj=>obj.LEV==0)
+                this.checkedPerson = val ? arr : [];
+                this.check0=false;
+                this.check1=false;
+                this.check2=false;
+                this.isCheckAll=true;
+                console.log(this.checkedPerson);
+            },
+//            单选经理
+            handleCheckedChange(val){
+                this.check0=false;
+                this.check1=false;
+                this.check2=false;
+                this.check3=false;
+                let checkedCount = val.length;
+                this.checkAll = checkedCount === this.moreAlloatArr2.length;
+                this.isCheckAll = checkedCount > 0 && checkedCount < this.moreAlloatArr2.length;
+                this.checkedPerson=val;
+                console.log(this.checkedPerson);
+
+            },
+            //行选中事件
+            handleEdit(index, row) {
+                console.log(index, row);
+            },
+            handleDelete(index, row) {
+                console.log(index, row);
+            },
+            getNumber0(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/imp_firstAllot/getCountOfCanFirstAlt`,
+                    data:{YBC008_TP:0},
+                    success:function(data){
+                        if(data.msg="200"){
+                            that.Number0=data.result.canAltSize;
+                            that.branchNum=data.result.canAltSize;
+                            that.NumberAll=data.result.canAltSize;
+                            console.log("大类0");
+                            console.log(that.Number0);
+                        }
+                    }
+                })
+            },
+            getNumber10(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/imp_firstAllot/getCountOfCanFirstAlt`,
+                    data:{YBC008_TP:10},
+                    success:function(data){
+                        if(data.msg="200"){
+                            that.Number10=data.result.canAltSize;
+                            that.branchNum=data.result.canAltSize;
+                            that.NumberAll=data.result.canAltSize;
+                            console.log("小类10");
+                            console.log(that.Number10);
+                        }
+                    }
+                })
+            },
+            getNumber11(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/imp_firstAllot/getCountOfCanFirstAlt`,
+                    data:{YBC008_TP:11},
+                    success:function(data){
+                        if(data.msg="200"){
+                            that.Number11=data.result.canAltSize;
+                            that.branchNum=data.result.canAltSize;
+                            that.NumberAll=data.result.canAltSize;
+                            console.log("临时11");
+                            console.log(that.Number11);
+                        }
+                    }
+                })
+            },
+            getNumber13(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/imp_firstAllot/getCountOfCanFirstAlt`,
+                    data:{YBC008_TP:13},
+                    success:function(data){
+                        if(data.msg="200"){
+                            that.Number13=data.result.canAltSize;
+                            that.branchNum=data.result.canAltSize;
+                            that.NumberAll=data.result.canAltSize;
+                            console.log("临时13");
+                            console.log(that.Number13);
+                        }
+                    }
+                })
+            },
+
+            changeNumber(val){
+                if(val==0){
+                    this.getNumber0();
+                }else if(val==10){
+                    this.getNumber10();
+                }else if(val==11){
+                    this.getNumber11();
+                }else if(val==13){
+                    this.getNumber13();
+                }
+            },
+//            客户分配
+            cusAs(){
+                console.log("点开分配层");
+                this.getNumber0();
+
+                this.checkAll=false;
+                this.check0=false;
+                this.check1=false;
+                this.check2=false;
+                this.check3=false;
+                this.checkAll=false;
+                this.selma=[];
+                this.moreAlloatArr2=[];
+                this.checkedPerson=[];
+                this.cusAForm={USER_ID2:"",DEPT_ID2:"",branchNum:0,YBC008_TP:0};
+                this.cusAllotFg=true;
+            },
+            submitForm(){
+
+                let userStr='';
+                let that=this;
+                if(this.cusAForm.DEPT_ID2.length>0){
+                    console.log(this.cusAForm);
+                    if(this.checkedPerson.length>0){
+                        console.log(this.checkedPerson);
+                        for(let i=0;i<this.checkedPerson.length;i++){
+                            userStr+=(this.checkedPerson)[i].value + ','
+                        }
+                    }else{
+                        userStr='';
+                    }
+                    if(this.branchNum>0){
+                        this.cusAForm.branchNum=parseInt(this.branchNum);
+                        let num=this.cusAForm.branchNum * this.checkedPerson.length;
+                        let tatol=parseInt(this.NumberAll);
+                        if(num > tatol){
+                            this.$message({
+                                message: '分配总数已经超过可分配数量，请重新输入分配数量！',
+                                type: 'warning'
+                            });
+
+
+                        }else{
+                            this.cusAForm.USER_ID2=userStr;
+                            this.loadingBtn=true;
+                            $.ajax({
+                                type:"GET",
+                                url:`${basePath}/imp_firstAllot/updateAllotOfFirst`,
+                                data:that.cusAForm,
+                                success:function(data){
+                                    console.log(data)
+                                    that.loadingBtn=false;
+                                    if(data.msg="200"){
+                                        that.$message({
+                                            message: '您已成功分配',
+                                            type: 'success'
+                                        });
+                                        that.selma=[];
+                                        that.checkedPerson=[];
+                                        that.cusAllotFg=false;
+                                        that.cusAForm={USER_ID2:"",DEPT_ID2:"",branchNum:0,YBC008_TP:0};
+                                        that.getNumber0();
+                                        that.getNumber10();
+                                        that.getNumber11();
+                                        that.getNumber13();
+                                        that.handleCurrentChange(1);
+                                    }
+                                }
+                            })
+
+                        }
+
+                    }else{
+                        this.$message({
+                            message: '分配数量必须大于0！',
+                            type: 'warning'
+                        });
+                    }
+                }else{
+                    this.$message({
+                        message: '请选择部门！',
+                        type: 'warning'
+                    });
+                }
+
+            },
+//            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                if(rowIndex==1){
+
+                }else if (rowIndex%2 == 0) {
+                    return 'odd-row';
+                }
+                return 'even-row';
+            },
+            //            获取产品列表
+            getDepartment(){
+//                DEPT_ID   获取产品
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/deptAllLst`,
+                    data:"",
+                    success:function(data){
+                        that.moreAlloatArr1=data.result;
+                    }
+                })
+            },
+//            当多分配时改变产品选择
+            handleChangeMore(value){
+                let DEPT_ID=value[value.length-1];
+                this.cusAForm.DEPT_ID2=DEPT_ID;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/user/deptAndUserLst`,
+                    data:{DEPT_ID:DEPT_ID},
+                    success:function(data){
+                        console.log("经理们")
+                        console.log(data);
+                        that.moreAlloatArr2=data.result;
+                    }
+                })
+            },
+//            上传前的验证文件
+            beforeAvatarUpload(file) {
+                console.log(file)
+                this.loading0=true;
+                var testmsg=file.name.substring(file.name.lastIndexOf('.')+1)
+                const extension = testmsg === 'csv';
+                if(!extension) {
+                    this.loading0=false;
+                    this.$message({
+                        message: '上传文件只能是csv格式!',
+                        type: 'warning'
+                    });
+                }
+                return extension
+            },
+//            上传成功返回的钩子
+            successUpload(response, file, fileList){
+                console.log(response);
+                console.log(file);
+                console.log(fileList);
+                this.loading0=false;
+                if(response.msg=="200"){
+
+                    let num=response.result.successNum;
+                    this.$confirm(`上传成功${num}条！`, '提示', {
+                      confirmButtonText: '确定',
+                      type: 'warning'
+                    }).then(() => {
+                    }).catch(() => {
+                    });
+                    this.handleCurrentChange(1);
+                }else{
+                    this.$message({
+                        message: '上传失败，请重新',
+                        type: 'warning'
+                    });
+                }
+            },
+            //            当前页翻页
+            handleCurrentChange(val){
+                this.loading=true;
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/imp_firstAllot/getPageCanFirstAltLst`,
+                    data:{currentPage:val},
+                    success:function(data){
+                        console.log(data);
+                        if(data.msg="200"){
+                            that.tabledata=data.rows;
+                            that.page.totalResult=data.total;
+                            that.page.currentPage=val;
+                            that.loading=false;
+                        }
+                    }
+                })
+            }
+        }
+    })
+
+</script>
+</html>

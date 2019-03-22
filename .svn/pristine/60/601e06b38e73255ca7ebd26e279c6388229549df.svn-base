@@ -1,0 +1,27 @@
+package com.dbsun.service.finance;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.finance.FinGetMonyReqMapper;
+
+@Service
+public class FinGetMonyReqService {
+
+	@Autowired
+	private FinGetMonyReqMapper finGetMonyReqMapper;
+	
+	
+	public List<PageData> getPageWtGetMyReqLst(Page page){
+		return finGetMonyReqMapper.getPageWtGetMyReqLst(page);
+	}
+	
+	public int updateForSendGetMyReq(PageData pd){
+		return finGetMonyReqMapper.updateForSendGetMyReq(pd);
+	}
+	
+}

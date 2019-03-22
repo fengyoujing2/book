@@ -1,0 +1,307 @@
+package com.dbsun.controller.webSocket;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CopyOnWriteArraySet;
+
+import javax.servlet.http.HttpSession;
+import javax.websocket.EndpointConfig;
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.stereotype.Component;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.config.HttpSessionConfigurator;
+import com.dbsun.entity.system.PageData;
+
+@ServerEndpoint(value = "/websocket",configurator = HttpSessionConfigurator.class)
+//@Component
+public class WebSocketController extends BaseController{
+	//静态变量，用来记录当前在线连接数。应该把它设计成线程安全的。
+    private static int onlineCount = 0;
+
+    //concurrent包的线程安全Set，用来存放每个客户端对应的MyWebSocket对象。
+    private static CopyOnWriteArraySet<WebSocketController> webSocketSet = new CopyOnWriteArraySet<WebSocketController>();
+
+    private static final Map<String,Object> userconnections = new HashMap<String,Object>();
+    //与某个客户端的连接会话，需要通过它来给客户端发送数据
+    private Session session;
+
+    
+    /**
+     * 连接建立成功调用的方法*/
+    @OnOpen
+    public void onOpen(Session session,EndpointConfig config) { 
+    	HttpSession httpSession= (HttpSession) config.getUserProperties().get(HttpSession.class.getName());
+    	PageData user = (PageData)httpSession.getAttribute("user");
+        if(user != null){
+            this.session = session;
+            
+        }else{
+            //用户未登陆
+            try {
+                session.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    	
+       // this.session = session;
+        
+        webSocketSet.add(this);     //加入set中
+        
+        addOnlineCount();           //在线数加1
+        System.out.println("有新连接加入！当前在线人数为" + getOnlineCount());
+        try {
+        	String username= user.getString("USERNAME");
+        	userjoin(username);
+        	//用户加入
+        	setUserJoin(session.getId(),user);
+        	//sendMessage(username+"用户上线!");
+        } catch (IOException e) {
+            System.out.println("IO异常");
+        }
+    }
+
+    /**
+     * 连接关闭调用的方法
+     */
+    @OnClose
+    public void onClose() {
+    	try {
+			userLeave();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        System.out.println("有一连接关闭！当前在线人数为" + getOnlineCount());
+    }
+
+    /**
+     * 收到客户端消息后调用的方法
+     *
+     * @param message 客户端发送过来的消息*/
+    @OnMessage
+    public void onMessage(String message, Session session) {
+    	String messageinfo = message;
+        System.out.println("来自客户端的消息:" + message);
+        if(!message.equals("init")){//表明初始化不需要转换
+        	// System.out.println(httpHeaders.get("Cookie")); //这里面就有 sessionid
+            JSONObject jsonmge = JSONObject.fromObject(message);
+            JSONObject json = new JSONObject();
+            //当前用户
+            PageData pduser = getUserJoinInfo(session.getId());
+            json.put("from",pduser.getString("USERNAME"));
+            json.put("content",jsonmge.get("content"));
+            json.put("timestamp",jsonmge.get("timestamp"));
+            json.put("type",jsonmge.get("type"));
+            messageinfo = json.toString();
+        }
+       
+//        //群发消息
+//        for (WebSocketController item : webSocketSet) {
+//            try {
+//                item.sendMessage(messageinfo);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+    }
+//    /**
+//     * 向所有客户端广播消息的方法
+//     * @param msg
+//     */
+    public static void broadcast(String msg,List<PageData> pdlst) {
+       /* //遍历所有的客户端
+    	String msgStr = msg;
+    	int i=0;
+        for (WebSocketController client : webSocketSet) {
+            try {
+                synchronized (client) {
+                    //向客户端推送消息
+                    i=i+1;
+                    String key = client.session.getId();
+                    PageData pd = getUserJoinInfo(key);
+                    String userid = pd.getString("USER_ID");
+                    for(PageData pddata : pdlst){
+                        String YBC_NEE008 = pddata.getString("YBC_NEE008");
+                        if(YBC_NEE008.equals(userid)){//轮询查看当前数据是否有符合当前用户的数据，有则推送
+                            if(client.session.isOpen()==true){
+                                msgStr = pddata.getString("YBC_NEE003");
+                                client.session.getBasicRemote().sendText(msgStr);
+                            }
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                //如果广播的时候出现异常会将该客户端移除，并向剩余的客户端广播消息
+                //log.debug("Chat Error: Failed to send message to client", e);
+                try {
+                    client.session.close();
+                } catch (IOException e1) {
+                    // Ignore
+                }
+                broadcast(msgStr,pdlst);
+            }
+        }*/
+    }
+
+    /**
+     * 消息提醒专用通知方法
+     */
+    public static void sendSocketMsg(String msg,List<PageData> pdlst) {
+        //遍历所有的客户端
+        String msgStr = msg;
+        for (WebSocketController client : webSocketSet) {
+            try {
+                synchronized (client) {
+                    //向客户端推送消息
+                    String key = client.session.getId();
+                    PageData pd = getUserJoinInfo(key);
+                    String userid = pd.getString("USER_ID");
+                    for(PageData pddata : pdlst){
+                        String YBC_NEE008 = pddata.getString("YBC_NEE008");
+                        if(YBC_NEE008.equals(userid)){//轮询查看当前数据是否有符合当前用户的数据，有则推送
+                            if(client.session.isOpen()==true){
+                                msgStr = pddata.getString("YBC_NEE003");
+                                client.session.getBasicRemote().sendText(msgStr);
+                            }
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                //如果广播的时候出现异常会将该客户端移除，并向剩余的客户端广播消息
+                //log.debug("Chat Error: Failed to send message to client", e);
+                try {
+                    client.session.close();
+                } catch (IOException e1) {
+                    // Ignore
+                }
+            }
+        }
+    }
+    public int sendNeed(String userid){
+
+        return 1;
+    }
+    /**
+     * 发生错误时调用
+     */
+    @OnError
+    public void onError(Session session, Throwable error) {
+        System.out.println("发生错误");
+        error.printStackTrace();
+    }
+
+
+    public void sendMessage(String message) throws IOException {
+        //this.session.getBasicRemote().sendText("登录成功!");
+        //this.session.getAsyncRemote().sendText(message);
+    }
+
+
+    /**
+     * 群发自定义消息
+     * */
+    public static void sendInfo(String message) throws IOException {
+        for (WebSocketController item : webSocketSet) {
+            try {
+                item.sendMessage(message);
+            } catch (IOException e) {
+                continue;
+            }
+        }
+    }
+    
+    /**
+	 * 用户加入处理
+	 * @param user
+     * @throws IOException 
+	 */
+	public void userjoin(String user) throws IOException{
+		JSONObject result = new JSONObject();
+		result.element("type", "user_join");
+		result.element("user", "<a onclick=\"toUserMsg('"+user+"');\">"+user+"</a>");
+		sendMessage(result.toString());				//把当前用户加入到所有在线用户列表中
+		String joinMsg = "{\"from\":\"[系统]\",\"content\":\""+user+"上线了\",\"timestamp\":"+new Date().getTime()+",\"type\":\"message\"}";
+		sendMessage(joinMsg);						//向所有在线用户推送当前用户上线的消息
+		result = new JSONObject();
+		result.element("type", "get_online_user");
+//		addUser(user,conn);							//向连接池添加当前的连接对象
+		result.element("list",getOnlineUser());
+		sendMessage(result.toString());	//向当前连接发送当前在线用户的列表
+	}
+	
+	/**
+	 * 用户下线处理
+	 * @param user
+	 * @throws IOException 
+	 */
+	public void userLeave() throws IOException{
+		PageData pduser = getUserJoinInfo(session.getId());
+		System.out.println(session.getId());
+		JSONObject result = new JSONObject();
+		result.element("type", "user_leave");
+		result.element("user", "<a onclick=\"toUserMsg('"+pduser.getString("USERNAME")+"');\">"+pduser.getString("USERNAME")+"</a>");
+		sendMessage(result.toString());			//把当前用户从所有在线用户列表中删除
+		String joinMsg = "{\"from\":\"[系统]\",\"content\":\""+pduser.getString("USERNAME")+"下线了\",\"timestamp\":"+new Date().getTime()+",\"type\":\"message\"}";
+		sendMessage(joinMsg);					//向在线用户发送当前用户退出的消息
+		removeUser(session.getId());//map中移除用户
+        webSocketSet.remove(this);  //从set中删除
+        subOnlineCount();           //在线数减1
+	}
+
+    public static synchronized int getOnlineCount() {
+        return onlineCount;
+    }
+
+    public static synchronized void addOnlineCount() {
+    	
+    	WebSocketController.onlineCount++;
+    }
+
+    public static synchronized void subOnlineCount() {
+    	WebSocketController.onlineCount--;
+    }
+    //获取用户加入动作
+    public static synchronized void setUserJoin(String key,Object valueStr) {
+    	System.out.println("加入用户!......");
+    	userconnections.put(key,valueStr);
+    }
+    //获取用户
+    public static synchronized PageData getUserJoinInfo(String key) {
+    	return (PageData)userconnections.get(key);
+    }
+    //移除用户
+    public static synchronized void removeUser(String key) {
+    	System.out.println("移除用户!......");
+    	userconnections.remove(key);
+    }
+    /**
+	 * 获取所有的在线用户
+	 * @return
+	 */
+	public static Collection<String> getOnlineUser(){
+		  List<String> setUsers = new ArrayList<String>();
+		  Iterator<Map.Entry<String, Object>> it = userconnections.entrySet().iterator();
+          while (it.hasNext()) {
+               Map.Entry<String, Object> entry = it.next();
+               System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
+               PageData pduser = (PageData) entry.getValue();
+               setUsers.add("<a onclick=\"toUserMsg('"+pduser.getString("USERNAME")+"');\">"+pduser.getString("USERNAME")+"</a>");
+          }
+		return setUsers;
+	}
+}

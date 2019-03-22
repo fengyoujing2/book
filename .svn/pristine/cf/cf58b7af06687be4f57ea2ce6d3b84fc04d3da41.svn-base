@@ -1,0 +1,23 @@
+package com.dbsun.service.command;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.mapper.CommandMapper;
+import com.dbsun.entity.system.PageData;
+
+
+@Service("commandService")
+public class CommandService {
+
+	@Autowired
+    private CommandMapper commandMapper;
+	/*
+	* 匹配关键词
+	*/
+	public PageData getByKw(PageData pd)throws Exception{
+		
+		return commandMapper.findByKw(pd);
+	}
+}
+

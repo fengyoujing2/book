@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.msg.MessAgeMapper">
+	
+	<!--搜索已经签单,已经分配到做单人手里待做单的客户-->
+	<select id="getPageMessAgeByBranch2" parameterType="page" resultType="pd">
+		SELECT
+		b.YBCBR001, <!--返回给前台可以查询历史数据-->
+        c.YBC001, <!--客户id-->
+		c.YBC003, <!--客户手机-->
+		c.YBC002, <!--客户名称-->
+		cusm.NAME USERNAME,	  <!--客户经理名称-->
+        cusm.PHONE USERPHONE,	  <!--客户经理手机-->
+        b.YBCBR007 BRNAME,	  <!--做单人姓名-->
+        (SELECT br.PHONE FROM sys_user br WHERE br.USER_ID = b.USER_ID) BRPHONE,<!--做单人手机-->
+        (SELECT DEPT_NAME FROM SYS_DEPT WHERE DEPT_LAYERORDER = c.DEPT_LAYERORDER) AS DEPTNAME,<!--部门-->
+		s.YBCS054_TM, <!-- 分配到做单员的时间 -->
+		t.YBCMS004_TM,<!--短信发送时间-->
+		t.YBCMS005_TP,<!--返回状态id-->
+		(
+		CASE t.YBCMS005_TP
+        WHEN 1 THEN
+        '发送成功'
+        WHEN 2 THEN
+        '发送失败'
+        ELSE
+        '未发送'
+		END
+		) YBCMS005 <!--短信发送状态-->
+		FROM
+		ybc c
+		LEFT JOIN ybc_sign s ON c.YBC001 = s.YBC001
+		LEFT JOIN ybc_branch2 b ON b.YBCS001 = s.YBCS001
+        LEFT JOIN sys_user cusm ON cusm.USER_ID = c.USER_ID
+		LEFT JOIN (
+		SELECT
+		m.*
+		FROM
+		ybc_message m
+		JOIN (
+		SELECT
+		YBCMS003,
+		max(YBCMS004_TM) YBCMS004_TM
+		FROM
+		ybc_message
+		GROUP BY
+		YBCMS003
+		) t ON m.YBCMS003 = t.YBCMS003
+		AND t.YBCMS004_TM = m.YBCMS004_TM
+		) t ON t.YBCMS003 = b.YBCBR001
+		WHERE
+		1 = 1
+		AND b.YBCBR009_TM IS NOT NULL <!-- 组长分配到员工的时间不为空，不用YBCS053_TM（有撤销等操作难以维护） -->
+		AND b.YBCBR010_TM IS NULL <!-- 显示没有做过单的客户  -->
+        	AND s.YBCS009_TP != '15d5af3b1ffd4e7e8f23968bd6280e3b' <!-- （排除网贷） -->
+        <if test="pd.YBC002 != '' and pd.YBC002 != null"><!-- 客户名称 -->
+          AND c.YBC002 LIKE concat('%',#{pd.YBC002},'%')
+        </if>
+        <if test="pd.YBC003 != '' and pd.YBC003 != null"><!-- 客户手机号 -->
+            AND c.YBC003 LIKE concat('%',#{pd.YBC003},'%')
+        </if>
+        <if test="pd.DEPT_LAYERORDER_Sea !=null and pd.DEPT_LAYERORDER_Sea !='' "><!-- 部门 -->
+            and c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea},'%')
+        </if>
+        <if test="pd.USER_ID_Sea !=null and pd.USER_ID_Sea !='' "><!-- 部门 客户经理 -->
+            and c.USER_ID = #{pd.USER_ID_Sea}
+        </if>
+        <if test=" pd.BRNAME !=null and pd.BRNAME !=''"><!--做单人查询-->
+            and b.YBCBR007 like concat('%',#{pd.BRNAME},'%')
+        </if>
+        <if test=' pd.YBCMS005_TP=="1" or pd.YBCMS005_TP=="2"  '> <!-- 发送状态 1发送成功  2发送失败 -->
+            and t.YBCMS005_TP=#{pd.YBCMS005_TP}
+        </if>
+        <!-- 发送状态  3.未发送 -->
+        <if test=' pd.YBCMS005_TP=="3"  '>
+            AND NOT EXISTS (
+            SELECT
+            YBCMS001 ,MAX(YBCMS004_TM) YBCMS004_TM
+            FROM
+            ybc_message temp
+            WHERE 1=1
+            AND YBCMS002 = 'ybc_branch2'
+            AND (  YBCMS005_TP = 1  OR YBCMS005_TP = 2 )
+            AND YBCMS004_TM = t.YBCMS004_TM
+            AND YBCMS001 = t.YBCMS001
+            GROUP BY YBCMS003
+            )
+        </if>
+        <if test="pd.dateStart != null and pd.dateStart != ''"> <!-- 时间搜索 -->
+            and b.YBCBR009_TM <![CDATA[ >= ]]> #{pd.dateStart}
+        </if>
+        <if test="pd.dateEnd != null and pd.dateEnd != ''">
+            and b.YBCBR009_TM <![CDATA[ <= ]]> #{pd.dateEnd}
+        </if>
+
+        <!-- 按造客户分组 短信发送时间排序 -->
+         ORDER BY t.YBCMS004_TM DESC
+    </select>
+
+
+    <!--查询已放贷的客户-->
+    <select id="getPageMessAgeByMatch" resultType="pd" parameterType="page">
+        SELECT
+        m.YBCMA001,
+        right(m.YBCMA031,2) YBCMA031,<!-- 还款日 -->
+        m.YBCMA045,<!-- 银行名称 -->
+        c.YBC003,<!-- 客户电话 -->
+        c.YBC002,<!-- 客户名称 -->
+        c.YBC001,<!-- 客户id -->
+        (SELECT u.NAME FROM sys_user u WHERE u.USER_ID = c.USER_ID) AS USERNAME ,<!-- 客服经理姓名   -->
+        (SELECT u.PHONE FROM sys_user u WHERE u.USER_ID = c.USER_ID) AS USERPHONE,<!--客服经理电话 -->
+        (SELECT DEPT_NAME FROM sys_dept WHERE DEPT_LAYERORDER = c.DEPT_LAYERORDER )as DEPT_NAME ,<!--部门机构代码-->
+        m.YBCMA041 AS BRNAME ,<!-- 做单人姓名 -->
+        (SELECT u.PHONE FROM sys_user u WHERE u.USER_ID = m.USER_ID) AS BRPHONE,<!--做单人电话 -->
+        s.YBCS054_TM,<!-- 分配到做单员的时间 -->
+        ms.YBCMS004_TM ,<!-- 短信发送时间 -->
+        (CASE ms.YBCMS005_TP
+        WHEN 1 THEN '发送成功'
+        WHEN 2 THEN '发送失败'
+        ELSE '未发送' END) YBCMS005_TP <!-- 发送状态 -->
+        FROM
+        ybc_match m
+        LEFT JOIN ybc_sign s
+        ON s.YBCS001 = m.YBCS001
+        LEFT JOIN ybc c
+        ON c.YBC001 = m.YBC001
+        LEFT JOIN
+        (SELECT m.* FROM ybc_message m JOIN
+        (SELECT YBCMS003, MAX(YBCMS004_TM) YBCMS004_TM FROM ybc_message GROUP BY YBCMS003) t
+        ON m.YBCMS003 = t.YBCMS003
+        AND t.YBCMS004_TM = m.YBCMS004_TM) AS ms
+        ON ms.YBCMS003 = m.YBCMA001
+        WHERE 1=1
+        AND m.YBCMA029_TM IS NOT NULL <!-- （已放贷） -->
+        AND s.YBCS009_TP != '15d5af3b1ffd4e7e8f23968bd6280e3b' <!-- （排除网贷） -->
+        <!--多条件查询 -->
+        <!--姓名/联系电话-->
+        <if test=" pd.YBC002 !=null and pd.YBC002 !=''">
+            and c.YBC002 LIKE concat('%',#{pd.YBC002},'%')
+        </if>
+        <if test=" pd.YBC003 !=null and pd.YBC003 !=''">
+            and c.YBC003 LIKE concat(#{pd.YBC003},'%')
+        </if>
+        <!-- 部门 权限 start -->
+        <if test="pd.DEPT_LAYERORDER_Sea !=null and pd.DEPT_LAYERORDER_Sea !='' ">
+            and c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea},'%')
+        </if>
+        <!-- 部门 客户经理 -->
+        <if test="pd.USER_ID_Sea !=null and pd.USER_ID_Sea !='' ">
+            and c.USER_ID=#{pd.USER_ID_Sea}
+        </if>
+
+        <!--做单人查询-->
+        <if test=" pd.BRNAME !=null and pd.BRNAME !=''">
+            and m.YBCMA041 like concat('%',#{pd.BRNAME},'%')
+        </if>
+
+        <!--客户查询-->
+        <if test=" pd.YBC001 !=null and pd.YBC001 !=''">
+            and c.YBC001 LIKE concat('%',#{pd.YBC001},'%')
+        </if>
+
+        <!-- 发送状态 1发送成功  2发送失败  3.未发送 -->
+        <if test=' pd.YBCMS005_TP=="1" or pd.YBCMS005_TP=="2"  '>
+            and ms.YBCMS005_TP=#{pd.YBCMS005_TP}
+        </if>
+
+        <!-- 发送状态  3.未发送 -->
+        <if test=' pd.YBCMS005_TP=="3"  '>
+            AND NOT EXISTS (
+            SELECT
+            YBCMS001 ,MAX(YBCMS004_TM) YBCMS004_TM
+            FROM
+            ybc_message temp
+            WHERE 1=1
+            AND YBCMS002 = 'ybc_match'
+            AND (  YBCMS005_TP = 1  OR YBCMS005_TP = 2 )
+            AND YBCMS004_TM = MS.YBCMS004_TM
+            AND YBCMS001 = MS.YBCMS001
+            GROUP BY YBCMS003 
+            )
+
+        </if>
+
+
+        <!-- 时间搜索 -->
+        <if test="pd.dateStart != null and pd.dateStart != ''"><!-- 时间搜索 -->
+            and m.YBCMA029_TM <![CDATA[ >= ]]> #{pd.dateStart}
+        </if>
+        <if test="pd.dateEnd != null and pd.dateEnd != ''">
+            and m.YBCMA029_TM <![CDATA[ <= ]]> #{pd.dateEnd}
+        </if>
+
+
+        <!-- 按造客户分组 短信发送时间排序 -->
+        ORDER BY ms.YBCMS004_TM DESC
+    </select>
+
+	<!--添加发送记录-->
+	<insert id="addMessAge" parameterType="pd">
+		INSERT INTO ybc_message(YBCMS001,YBCMS002,YBCMS003,USER_ID,YBCMS004_TM,YBCMS005_TP,YBC001,YBCMS006,YBCMS007,YBCMS008,YBCMS009,YBCMS0010,YBCMS0011,YBCMS0012)
+		VALUES (#{YBCMS001},#{YBCMS002},#{YBCMS003},#{USER_ID},now(),#{YBCMS005_TP},#{YBC001},#{YBCMS006},#{USERNAME},#{USERPHONE},#{BRNAME},#{BRPHONE},#{YBCMS0011},#{YBCMS0012})
+	</insert>
+
+	<!--查询发送历史记录,根据模块key区分-->
+	<select id="getPageMessAgeHistoryByModuleKey" parameterType="page" resultType="pd">
+		SELECT
+			m.*,(SELECT NAME FROM sys_user WHERE USER_ID = m.USER_ID) AS USERNAME
+		FROM
+			ybc_message m
+		WHERE 1=1
+	  	<if test="pd.YBCMS003 != '' and pd.YBCMS003 != null">
+			AND m.YBCMS003 = #{pd.YBCMS003} <!--模块主键-->
+		</if>
+        ORDER BY m.YBCMS004_TM DESC
+	</select>
+
+
+
+</mapper>

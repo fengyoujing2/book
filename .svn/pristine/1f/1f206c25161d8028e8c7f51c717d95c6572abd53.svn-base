@@ -1,0 +1,23 @@
+package com.dbsun.mapper.importallot;
+
+import java.util.List;
+import java.util.Map;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+
+public interface ImpAllotSecondMapper {
+	
+	public int addIMP2OfDpt(PageData pd);
+	public int updateIMP2ToAltEdForDpt(PageData pd);
+	public int addCus(Map<String, Object> map);
+	public int updateIMP2ToAltEdForEmp(PageData pd);
+	public List<PageData> getPageCanSecondAltLst(Page page);
+	public int addIMP2OfEmp(PageData pd);
+	public PageData getCountOfCanSecondAlt(PageData pd);
+	public int delAltEdDb(Map<String, Object> map);
+	public int delAltEdToHdm(PageData pd);
+	public int delAlledFromIMP2(PageData pd);
+	public List<PageData> getCusIds(PageData pd);
+}

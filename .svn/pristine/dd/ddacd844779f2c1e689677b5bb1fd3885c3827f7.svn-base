@@ -1,0 +1,143 @@
+package com.dbsun.service.importallot;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.SysUserMapper;
+import com.dbsun.mapper.importallot.ImpAllotSecondMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.Tools;
+
+@Service
+public class ImpAllotSecondService extends BaseService {
+
+	@Autowired
+	private ImpAllotSecondMapper impAllotSecondMapper;
+	@Autowired
+	private SysUserMapper sysUserMapper;
+	
+	/**
+	 * 添加到IMP2
+	 * @param pd
+	 * 			USER_ID、DEPT_LAYERORDER、USER_ID、DEPT_ID2、USER_ID2
+	 * @return
+	 */
+	public int addIMP2OfDpt(PageData pd){
+		return impAllotSecondMapper.addIMP2OfDpt(pd);
+	}
+	
+	/**
+	 * 更新IMP2分配状态为已分配
+	 * @param pd
+	 * 			DEPT_ID2、POSITION、branchNum
+	 * @return
+	 */
+	public int updateIMP2ToAltEdForDpt(PageData pd){
+		return impAllotSecondMapper.updateIMP2ToAltEdForDpt(pd);
+	}
+	
+	/**
+	 * 添加到Cus
+	 * @param pd
+	 * 			USER_ID、DEPT_LAYERORDER、DEPT_ID2、POSITION、branchNum
+	 * @return
+	 */
+	public int addCus(Map<String, Object> map){
+		return impAllotSecondMapper.addCus(map);
+	}
+	
+	/**
+	 * 更新IMP2分配状态为已分配
+	 * @param pd
+	 * 			DEPT_ID2、POSITION、branchNum
+	 * @return
+	 */
+	public int updateIMP2ToAltEdForEmp(PageData pd){
+		return impAllotSecondMapper.updateIMP2ToAltEdForEmp(pd);
+	}
+	
+	public List<PageData> getPageCanSecondAltLst(Page page){
+		return impAllotSecondMapper.getPageCanSecondAltLst(page);
+	}
+	
+	public int addIMP2OfEmp(PageData pd){
+		return impAllotSecondMapper.addIMP2OfEmp(pd);
+	}
+	
+	public int updateAllotOfSecond(PageData pd){
+		int ret = 0; 
+		
+		try {
+			//limit后的数据应该是Integer类型
+			int branchNum = Integer.parseInt(pd.getString("branchNum"));
+			pd.put("branchNum", branchNum);
+			
+			//分配到部门
+			if(Tools.isObjEmpty(pd.get("USER_ID2"))){
+				//添加IMP2
+				this.addIMP2OfDpt(pd);
+				//更新IMP2分配状态为已分配
+				//this.updateIMP2ToAltEdForDpt(pd);//之前的属于组长的数据已经分配到新的部门，老数据直接删除就OK
+				//组长再往下级部门分配，非客户经理时删除之前分配的数据
+				this.delAltEdToHdm(pd);
+			}else{
+				PageData userPd = new PageData();
+				userPd.put("USER_ID", pd.get("USER_ID2"));
+				userPd = sysUserMapper.getSysUserById(userPd);
+				//为添加到客户表做准备
+				pd.put("DEPT_LAYERORDER", userPd.get("DEPT_LAYERORDER"));
+				pd.put("NAME", userPd.get("NAME"));
+				
+				Map<String, Object> map = new HashMap<String, Object>();
+				
+				//便于删除，先获取到需要处理的YBC001的集合
+				List<PageData> idLst = this.getCusIds(pd);
+				//添加IMP2
+				//this.addIMP2OfEmp(pd);//分配到客户经理的数据是否要再迁移
+				//添加到客户表
+				map.put("list", idLst);
+				map.put("pd", pd);
+				this.addCus(map);
+				//更新IMP2分配状态为已分配
+				//this.updateIMP2ToAltEdForEmp(pd);//更新之后再删除，是否有必要
+				//此时：IMP003_TP已经等于1
+				//组长再往下级部门分配，非客户经理时删除之前分配的数据
+				this.delAlledFromIMP2(pd);
+				//删除已经分配到客户经理的数据--从IMP中，注意这里有外键关系，要先删除IMP2再删除IMP
+				this.delAltEdDb(map);
+			}
+			
+			ret = 1;
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+	public PageData getCountOfCanSecondAlt(PageData pd){
+		return impAllotSecondMapper.getCountOfCanSecondAlt(pd);
+	}
+	
+	public int delAltEdDb(Map<String, Object> map){
+		return impAllotSecondMapper.delAltEdDb(map);
+	}
+	
+	public int delAltEdToHdm(PageData pd){
+		return impAllotSecondMapper.delAltEdToHdm(pd);
+	}
+	
+	public int delAlledFromIMP2(PageData pd){
+		return impAllotSecondMapper.delAlledFromIMP2(pd);
+	}
+	
+	public List<PageData> getCusIds(PageData pd){
+		return impAllotSecondMapper.getCusIds(pd);
+	}
+}

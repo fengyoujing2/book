@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+
+    <title>瑞信坐席状态</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0];
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+
+    <style>
+        body{
+            min-height: 2000px !important;
+            overflow-y: scroll;
+            font-size: 12px;
+        }
+        a{
+            text-decoration: none;
+            color: #fff;
+        }
+        .top{
+            width:90%;
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            margin: auto;
+            border-bottom: 2px solid #eee;
+        }
+        .top_l{
+            text-align: center;
+        }
+        .top_r{
+            flex-grow: 1;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+        }
+        .top_img img{
+            width: 22px;
+            height: 22px;
+        }
+        .top_name{
+            color: #666;
+        }
+        .top_div div:first-child{
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            border-radius: 5px;
+        }
+        .top_div{
+            font-size: 12px;
+            color:#333333;
+            margin-left:40px;
+            cursor:pointer;
+        }
+        .con{
+            width: 90%;
+            height: auto;
+            margin: 25px auto;
+            background-color: #fff8f2;
+            position: relative;
+        }
+        .con_l{
+            width: 36px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #ff9844;
+
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+        .con_l0 div{
+            width: 36px;
+            text-align: center;
+        }
+        .con_r{
+            padding:0 10px;
+            display: flex;
+            flex-wrap: wrap;
+            height: auto;
+            margin-left: 50px;
+        }
+        .con_rD{
+            width: 70px;
+            height: 70px;
+            text-align: center;
+            margin: 10px 0;
+            margin-right: 40px;
+            border-radius: 5px;
+        }
+        .con_rD img{
+            width: 15px;
+            opacity: 0.3;
+            margin-top: 8px;
+        }
+        .con_rD div:nth-child(2){
+            color: #fff;
+            font-size: 13px;
+            margin-top:6px;
+        }
+        .con_rD div:last-child{
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body style="background-color:#fff;margin:0;">
+    <div id="seatStateApp">
+        <div class="top">
+            <div style="display:flex;">
+                <div class="top_l" style="margin-right: 50px;cursor:pointer;" @click="getSeatList()">
+                    <div class="top_img">
+                        <img src="../static/img/icon_allSeat.gif" />
+                    </div>
+                    <div style="color:#666;">坐席人数</div>
+                    <div style="color:#1a90ff;">{{registeredTotal}}</div>
+                </div>
+                <div class="top_l" v-if="state==0">
+                    <div class="top_img">
+                        <img src="../static/img/icon_seatOnline.gif"/>
+                    </div>
+                    <div style="color:#666;">在线人数</div>
+                    <div style="color:#38d78d;">{{onlineNumber}}</div>
+                </div>
+                <div class="top_l" v-else-if="state==1">
+                    <div class="top_img">
+                        <img src="../static/img/icon_seatkx.png"/>
+                    </div>
+                    <div style="color:#666;">空闲人数</div>
+                    <div style="color:#38d78d;">{{onlineNumber}}</div>
+                </div>
+                <div class="top_l" v-else-if="state==2">
+                    <div class="top_img">
+                        <img src="../static/img/icon_seatBusy.png"/>
+                    </div>
+                    <div style="color:#666;">忙碌人数</div>
+                    <div style="color:#38d78d;">{{onlineNumber}}</div>
+                </div>
+                <div class="top_l" v-else-if="state==3">
+                    <div class="top_img">
+                        <img src="../static/img/icon_seaton.png"/>
+                    </div>
+                    <div style="color:#666;">通话人数</div>
+                    <div style="color:#38d78d;">{{onlineNumber}}</div>
+                </div>
+                <div class="top_l" v-else-if="state==4">
+                    <div class="top_img">
+                        <img src="../static/img/icon_seatout.png"/>
+                    </div>
+                    <div style="color:#666;">离线人数</div>
+                    <div style="color:#38d78d;">{{onlineNumber}}</div>
+                </div>
+            </div>
+            <div class="top_r">
+                <div class="top_div" @click="getSeatList(1)">
+                    <div  style="background-color:#61b0fa;"></div>
+                    <div>空闲</div>
+                </div>
+                <div class="top_div" @click="getSeatList(3)">
+                    <div style="background-color:#38d78d;"></div>
+                    <div>通话</div>
+                </div>
+                <div class="top_div" @click="getSeatList(2)">
+                    <div style="background-color:#ff5d80;"></div>
+                    <div>忙碌</div>
+                </div>
+                <div class="top_div" @click="getSeatList(4)">
+                    <div style="background-color:#cccccc;"></div>
+                    <div>离线</div>
+                </div>
+            </div>
+        </div>
+        <div v-for="(item,index) in callSeat">
+            <div class="con" v-if="item.seatLst">
+                <div class="con_l">
+                    <div class="con_l0">
+                      <div v-for="(m,n) in item.DEPT_NAME">{{m}}</div>
+                    </div>
+                </div>
+                <div class="con_r">
+                    <div class="con_rD" v-for="(t,i) in item.seatLst" :style="t.state==1 ? 'background-color: #61b0fa' : (t.state==2 ? 'background-color: #ff5d80' : (t.state==3 ? 'background-color: #38d78d' : 'background-color: #cccccc'))">
+                        <div>
+                            <img src="../static/img/icon_user.png" />
+                        </div>
+                        <div>{{t.name}}</div>
+                        <div :style="t.state==1 ? 'color: #013669' : (t.state==2 ? 'color: #6b0118' : (t.state==3 ? 'color: #00532c' : 'color: #575757'))">{{t.number}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script  th:inline="javascript">
+
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+
+    var seatState=new Vue({
+        el:"#seatStateApp",
+        data(){
+            return {
+                registeredTotal:0,
+                onlineNumber:0,
+                callSeat:[],
+                state:0
+            }
+        },
+        mounted(){
+            this.getSeatList();
+        },
+        methods:{
+            getSeatList(val){
+              if(val){
+                  this.state=val;
+              }else{
+                  this.state=0;
+              }
+              console.log(this.state);
+              let that=this;
+              $.ajax({
+                  type:"GET",
+                  url:`${basePath}/pho_seatState/callLst`,
+                  data:{state:val},
+                  success:function(data){
+                      console.log(data);
+                      if(data.msg=="200"){
+                          that.registeredTotal=data.result.registeredTotal;//坐席总人数
+                          that.onlineNumber=data.result.onlineNumber;//在线人数
+                          that.filter(data.result.rows);//在线数据
+                      }
+                  }
+              })
+            },
+            filter(data){
+                 this.callSeat = data.filter((item,index)=>{
+                     if(item.seatLst){
+                          return item
+                     }
+                 })
+            },
+            getheight(){
+                var cl0=document.getElementById('cl0').clientHeight;
+                console.log()
+            }
+        }
+    })
+
+</script>
+</html>

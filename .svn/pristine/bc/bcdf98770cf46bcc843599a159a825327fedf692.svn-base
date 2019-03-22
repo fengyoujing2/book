@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.phonesys.PhoCalMsgMapper">
+<!-- 通话筛选个人 -->
+	<!-- 通话筛选个人列表 -->
+	<select id="getPageCallMsgLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			ifnull(c.YBC003, f.YBCF0015) as YBC003,
+			ifnull(c.YBC002, '陌生号码') as YBC002,
+			(
+				case c.YBC018_TP
+					when 1 then 'A'
+					when 2 then 'B'
+					when 3 then 'C'
+					when 4 then 'D'
+				end
+			) as level,
+			(
+				case c.YBC008_TP
+					when 0 then '临时（大类）'
+					when 10 then '临时（小类）'
+					when 1 then '意向'
+					when 2 then '上门'
+					when 3 then '签单'
+					when 4 then '回收'
+					when 5 then '再签单'
+				end
+			) as state,
+			f.YBCF0012, <!-- 通话时长 -->
+			f.YBCF006, <!-- 跟进内容 -->
+			f.YBCF0013, <!-- 录音地址 -->
+			f.YBCF002_TM, <!-- 通话开始时间 -->
+			f.YBCF008, <!-- 跟進人員姓名 -->
+			(select DEPT_NAME from sys_dept where DEPT_LAYERORDER = f.DEPT_LAYERORDER) as deptName <!-- 部门名称 -->
+		from
+			(
+				select
+					*
+				from ybc_follow
+				where YBCF007_TP = 2 <!-- 跟进类型为呼叫 -->
+				<!-- 权限 start -->
+				and (
+						(
+							DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+							and
+							POSITION	= #{pd.POSITION}
+						)<!-- 主管 -->
+						or
+						USER_ID = #{pd.USER_ID} <!-- 客户经理 -->
+				)
+				<!-- 权限 end -->
+				order by YBCF002_TM desc
+			) as f
+		left join ybc c
+		on f.ybc001 = c.ybc001
+		where 1 = 1
+		<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''"><!-- 客户姓名 -->
+			and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+		</if>
+		<if test="pd.YBCF0015 != null and pd.YBCF0015 != ''"><!-- 号码 -->
+			and f.YBCF0015 like concat_ws(#{pd.YBCF0015}, "%", "%")
+		</if>
+		<if test="pd.YBC008_TP != null and pd.YBC008_TP != ''"><!-- 客户状态 -->
+			and c.YBC008_TP = #{pd.YBC008_TP}
+		</if>
+		<!-- 按跟进时间搜索 -->
+		<if test="pd.dateStart != null and pd.dateStart != ''"><!-- 开始时间 -->
+			and f.YBCF002_TM <![CDATA[ >= ]]> #{pd.dateStart}
+		</if>
+		<if test="pd.dateEnd != null and pd.dateEnd != ''"><!-- 结束时间 -->
+			and f.YBCF002_TM <![CDATA[ <= ]]> #{pd.dateEnd}
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and f.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按跟进人员搜索 -->
+			and f.USER_ID = #{pd.USER_ID_Sea}
+		</if>
+		<!-- 通话时长范围搜索  以秒为单位 -->
+		<if test="pd.timeStart != null and pd.timeStart != ''"><!-- 开始时长 -->
+			and f.YBCF0012 <![CDATA[ >= ]]> convert(#{pd.timeStart}, SIGNED)
+		</if>
+		<if test="pd.timeEnd != null and pd.timeEnd != ''"><!-- 结束时长 -->
+			and f.YBCF0012 <![CDATA[ <= ]]> convert(#{pd.timeEnd}, SIGNED)
+		</if>
+	</select>
+
+	<!-- 通话筛选汇总语句 -->
+	<select id="getCallMsgSum" parameterType="pd" resultType="pd" useCache="false">
+		select
+		count(f.ybc001) as callCount, <!-- 通话总次数 -->
+		sum(f.ybcf0012) as  callTimeSum<!-- 通话总时长 -->
+		from
+		(
+		select
+		*
+		from ybc_follow
+		where YBCF007_TP = 2 <!-- 跟进类型为呼叫 -->
+		<!-- 权限 start -->
+		and (
+		(
+		DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+		and
+		POSITION	= #{POSITION}
+		)<!-- 主管 -->
+		or
+		USER_ID = #{USER_ID} <!-- 客户经理 -->
+		)
+		<!-- 权限 end -->
+		order by YBCF002_TM desc
+		) as f
+		left join ybc c
+		on f.ybc001 = c.ybc001
+		where 1 = 1
+		<!-- 搜索 start -->
+		<if test="YBC002 != null and YBC002 != ''"><!-- 客户姓名 -->
+			and c.YBC002 like concat_ws(#{YBC002}, "%", "%")
+		</if>
+		<if test="YBCF0015 != null and YBCF0015 != ''"><!-- 号码 -->
+			and f.YBCF0015 like concat_ws(#{YBCF0015}, "%", "%")
+		</if>
+		<if test="YBC008_TP != null and YBC008_TP != ''"><!-- 客户状态 -->
+			and c.YBC008_TP = #{YBC008_TP}
+		</if>
+		<!-- 按跟进时间搜索 -->
+		<if test="dateStart != null and dateStart != ''"><!-- 开始时间 -->
+			and f.YBCF002_TM <![CDATA[ >= ]]> #{dateStart}
+		</if>
+		<if test="dateEnd != null and dateEnd != ''"><!-- 结束时间 -->
+			and f.YBCF002_TM <![CDATA[ <= ]]> #{dateEnd}
+		</if>
+		<if test="DEPT_LAYERORDER_Sea != null and DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and f.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER_Sea}, "%")
+		</if>
+		<if test="USER_ID_Sea != null and USER_ID_Sea != ''"><!-- 按跟进人员搜索 -->
+			and f.USER_ID = #{USER_ID_Sea}
+		</if>
+		<!-- 通话时长范围搜索  以秒为单位 -->
+		<if test="timeStart != null and timeStart != ''"><!-- 开始时长 -->
+			and f.YBCF0012 <![CDATA[ >= ]]> convert(#{timeStart}, SIGNED)
+		</if>
+		<if test="timeEnd != null and timeEnd != ''"><!-- 结束时长 -->
+			and f.YBCF0012 <![CDATA[ <= ]]> convert(#{timeEnd}, SIGNED)
+		</if>
+	</select>
+</mapper>

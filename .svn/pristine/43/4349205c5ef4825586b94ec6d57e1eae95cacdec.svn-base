@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>测试</title>
+    
+
+
+</head>
+<body style="background:#FFF5F0">
+
+测试页面
+
+<div th:include="html/page/contentpublic :: html"></div>
+<script type="text/javascript" src="../static/wechat/js/wxAuth.js"></script>
+
+</body>
+</html>

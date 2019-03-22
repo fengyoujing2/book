@@ -1,0 +1,367 @@
+ <!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>常见问题</title>
+    <style>
+        a:hover{
+            text-decoration: none;
+        }
+
+        a:visited{
+            text-decoration: none;
+        }
+
+        a:active{
+            text-decoration: none;
+        }
+
+        #wanshan{
+            display: none;
+        }
+
+
+        .one input[type='radio']{
+            margin-left: 2px;
+            margin-right: 2px;
+            display: none;
+            vertical-align: middle;
+        }
+        .one input[type='radio']+label:before{
+            content: '';
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            border-radius: 100%;
+            vertical-align: sub;
+            border: 2px solid #E4E4E4;
+            background: #F9F9F9;
+        }
+        .one input[type='radio']:checked+label:before{
+            background: orange;
+        }
+
+    </style>
+
+</head>
+<body style="background:white">
+<div style="width: 100%; height: 100%; color: rgb(0, 0, 0); position:fixed; top: 0px; left: 0px;z-index: 55500; background:url('img/back2.png')" id="wanshan">
+    <div style="opacity: 1">
+        <div style="position: absolute;width: 250px;height:140px;top: 50%;left: 50%;margin: -70px 0 0 -125px;border: 1px solid transparent;color: #ffffff;border-radius: 10px;background: #ffffff;color: #000000;text-align: center">
+            <div style="width: 100%;font-size: 16px;border-top-right-radius: 10px;border-top-left-radius: 10px;padding: 23px 0;overflow: hidden">
+                <div>
+                    您的申请已受理，完善资料
+                </div>
+                <div>提速钱款到账</div>
+                <div style="text-align: center;margin-top: 15px;padding-right: 55px;padding-left: 55px">
+                    <button type="button" class="btn btn-primary btn-sm btn-block" style="border-radius: 20px;background:#FC8B4D;;border: 1px solid transparent;font-size: 16px" id="ziliao">完善资料</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="container-fluid jianju"  id="contain" >
+
+    <div class="row" style="">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 15px">
+            <div style="padding: 10px;width: 100%;background: #FC8B4D;box-shadow: 0px 1px 9px #ecd1c2;overflow:hidden;">
+                <div style="width: 100%;border:1px dotted white;text-align: center;padding-top: 10px;padding-bottom: 10px">
+                    <span style="font-size: 20px;color: white">瑞信梦想金服常见问题解答</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 15px">
+            <div style="width: 100%;background: #FC8B4D;overflow:hidden;">
+
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-3  text-left  " style="padding:10px 15px;color:white;background: #FC8B4D;font-size: 16px;">
+                            01
+                        </div>
+                        <div class="col-xs-9  text-left" style="padding:10px 15px;color:black;font-size: 16px;background: #EEEEEE;">
+                            如何借款？
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding: 15px;padding-top: 0">
+            <span style="font-weight: 600">小瑞答疑：</span>您好！借款分为两种方式；
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding:10px 15px;padding-bottom: 0;font-weight: 600">
+             方式一：在线申请
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding:10px 15px;">
+            借款步骤：
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding:0 15px;">
+            1. 在公众号中进行“在线申请”，完善个人基本资料；
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding:0 15px;">
+            2.瑞信梦想金服后台将对您提交的信息进行审核，您可以在公众号里面查看审核流程；
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding:0 15px;">
+            3.审核通过后，即可获得额度
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding:0 15px;">
+            4.在公司进行借款期限试算，选择还款周期，确认后签署借款协议，提交借款申请。工作日17：00前提交借款申请，瑞信梦想金服最快预计当日内完成放款
+        </div>
+
+    </div>
+
+
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 30px">
+            <div style="width: 100%;background: #FC8B4D;overflow:hidden;">
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-3  text-left  " style="padding:10px 15px;color:white;background: #FC8B4D;font-size: 16px;">
+                            02
+                        </div>
+                        <div class="col-xs-9  text-left" style="padding:10px 15px;color:black;font-size: 16px;background: #EEEEEE;">
+                            借款期限？
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding: 15px;padding-top: 0;padding-bottom: 0">
+            <span style="font-weight: 600">小瑞答疑：</span>您好！申请人可自由选择现金分期
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding:0px 15px;">
+            (9/12/18/24个月)进行借款，成功借款以后，用户需按照等额本息方式每期支付本金、利息（短期借款无）和综合服务费等。
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 30px">
+            <div style="width: 100%;background: #FC8B4D;overflow:hidden;">
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-3  text-left  " style="padding:10px 15px;color:white;background: #FC8B4D;font-size: 16px;">
+                            03
+                        </div>
+                        <div class="col-xs-9  text-left" style="padding:10px 15px;color:black;font-size: 16px;background: #EEEEEE;">
+                            如何获得额度？
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding: 15px;padding-top: 0;padding-bottom: 0">
+            <span style="font-weight: 600">小瑞答疑：</span>您好！首先，为了获得额度，您必须提供基本资料， 这部分信息为必填项，不填写则无法完成借款的申请。其次，为了获取更高的额度，您可以提供更充分的资料，比如房产证，行驶证以及其他的资产证明。
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 30px">
+            <div style="width: 100%;background: #FC8B4D;overflow:hidden;">
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-3  text-left  " style="padding:10px 15px;color:white;background: #FC8B4D;font-size: 16px;">
+                            04
+                        </div>
+                        <div class="col-xs-9  text-left" style="padding:10px 15px;color:black;font-size: 16px;background: #EEEEEE;">
+                            额度审核需要多久？
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding: 15px;padding-top: 0;padding-bottom: 0">
+            <span style="font-weight: 600">小瑞答疑：</span>小瑞答疑：您好！如果您提交的资料真实有效，我们一般会在工作时间的30分钟内给您评定一个信用额度，如遇到申请高峰期，系统审核处理速度会有所延迟，请您谅解。
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 30px">
+            <div style="width: 100%;background: #FC8B4D;overflow:hidden;">
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-3  text-left  " style="padding:10px 15px;color:white;background: #FC8B4D;font-size: 16px;">
+                            05
+                        </div>
+                        <div class="col-xs-9  text-left" style="padding:10px 15px;color:black;font-size: 16px;background: #EEEEEE;">
+                            是否支持多次放款？
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding: 15px;padding-top: 0;padding-bottom: 0">
+            <span style="font-weight: 600">小瑞答疑：</span>您好！若您前一次借款已成功还款，当天即可继续申请。审核更快捷，放款更快。
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 30px">
+            <div style="width: 100%;background: #FC8B4D;overflow:hidden;">
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-3  text-left  " style="padding:10px 15px;color:white;background: #FC8B4D;font-size: 16px;">
+                            06
+                        </div>
+                        <div class="col-xs-9  text-left" style="padding:10px 15px;color:black;font-size: 16px;background: #EEEEEE;">
+                            如何查看还款详情？
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding: 15px;padding-top: 0;padding-bottom: 0">
+            <span style="font-weight: 600">小瑞答疑：</span>您好！如果您已成功提取过现金，那么可以在“瑞信梦想金服”公众号查看还款详情。
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 30px">
+            <div style="width: 100%;background: #FC8B4D;overflow:hidden;">
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-3  text-left  " style="padding:10px 15px;color:white;background: #FC8B4D;font-size: 16px;">
+                            07
+                        </div>
+                        <div class="col-xs-9  text-left" style="padding:10px 15px;color:black;font-size: 16px;background: #EEEEEE;">
+                            是否允许提前还款？
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding: 15px;padding-top: 0;padding-bottom: 0">
+            <span style="font-weight: 600">小瑞答疑：</span>小瑞答疑：您好！允许提前还款。具体情况根据贷款方式进行操作。
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 30px">
+            <div style="width: 100%;background: #FC8B4D;overflow:hidden;">
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-3  text-left  " style="padding:10px 15px;color:white;background: #FC8B4D;font-size: 16px;">
+                            08
+                        </div>
+                        <div class="col-xs-9  text-left" style="padding:10px 15px;color:black;font-size: 16px;background: #EEEEEE;">
+                            用户的信息是否安全？
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding: 15px;padding-top: 0;padding-bottom: 0">
+            <span style="font-weight: 600">小瑞答疑：</span>您好！瑞信梦想金服非常重视对用户隐私的保护。
+            收集用户的信息是出于遵守国家法律法规的规定以及向用户提供服务及提升服务质量的目的。瑞信梦想金服对用户的信息承担保密义务，在没有用户授权同意的情况下，绝不会为满足第三方的营销目的而出售、出租或泄露用户的任何信息。
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 30px">
+            <div style="width: 100%;background: #FC8B4D;overflow:hidden;">
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-3  text-left  " style="padding:10px 15px;color:white;background: #FC8B4D;font-size: 16px;">
+                            09
+                        </div>
+                        <div class="col-xs-9  text-left" style="padding:10px 15px;color:black;font-size: 16px;background: #EEEEEE;">
+                            提交资料失败怎么办？
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="background: white">
+        <div class="col-xs-12  text-left" style="padding: 15px;padding-top: 0;padding-bottom: 0">
+            <span style="font-weight: 600">小瑞答疑：</span>小瑞答疑：您好！若您在使用瑞信梦想金服的过程中遇到了问题，您可以通过以下几种方式告诉我们：
+            （1）联系客服中心 028-66002200；
+            （2）添加“瑞信梦想金服”微信公众号，直接在对话框中输入您的问题进行反馈。
+        </div>
+    </div>
+
+
+
+
+</div>
+
+<div th:include="html/page/contentpublic :: html"></div>
+<script>
+    $(document).ready(function(){
+        $("#shenqing").click(function(){
+            $("#wanshan").show();
+        });
+
+        $("#ziliao").click(function(){
+            $("#wanshan").hide();
+        });
+
+    });
+
+
+</script>
+
+</body>
+</html>

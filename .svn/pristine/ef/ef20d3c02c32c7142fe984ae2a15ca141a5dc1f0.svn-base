@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.TextmsgMapper">
+	
+	<!-- 匹配关键词 -->
+	<select id="findByKw" parameterType="pd" resultType="pd" useCache="false">
+		select 
+			CONTENT
+		from 
+			WEIXIN_TEXTMSG
+		where 
+			KEYWORD = #{KEYWORD}
+		<if test="TEXTMSG_ID != null and TEXTMSG_ID != ''">
+			and TEXTMSG_ID != #{TEXTMSG_ID} 
+		</if>
+		<if test="STATUS == null or STATUS == ''">
+			and STATUS = '1' 
+		</if>
+	</select>
+	
+</mapper>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.customer.CusDoorMapper">
+	<!-- 上门 -->
+
+	<!-- 添加上门 -->
+	<insert id="addDoor" parameterType="pd" flushCache="false">
+		insert 
+			into 
+				ybc_door
+					(
+						YBCD001,
+						YBC001,
+						USER_ID,
+						YBCD002_TM,
+						YBCD003_TM,
+						YBCD004,
+						YBCD005_TP,
+						<!-- 用户 start -->
+						YBCD006,
+						DEPT_LAYERORDER,
+						POSITION, 
+						YBCD007, 
+						<!-- 用户 end -->
+						YBC_STATE
+						
+					)
+				values(
+						#{YBCD001},
+						#{YBC001},
+						#{USER_ID},
+						#{YBCD002_TM},
+						now(),
+						#{YBCD004},
+						#{YBCD005_TP},
+						<!-- 用户 start -->
+						(select YBCT004_ID from ybc_type where YBCT001 = #{YBCD005_TP}),
+						#{DEPT_LAYERORDER},
+						1,
+						(select name from sys_user where user_id = #{USER_ID}),
+						<!-- 用户 end -->
+						1<!-- 默认有效 -->
+					)
+	</insert>
+	
+	<select id="getDoorsByYbc001" parameterType="pd" resultType="pd" useCache="false">
+		select
+			d.*, 
+			(select YBCT002 from ybc_type where YBCT001 = d.YBCD005_TP) as proTypeName, 
+			d.YBCD007 as name
+		from ybc_door d
+		where d.YBC001 = #{YBC001}
+	</select>
+	
+	<select id="getDoorById" parameterType="pd" resultType="pd" useCache="false">
+		select
+			d.*, 
+			(select YBCT002 from ybc_type where YBCT001 = d.YBCD005_TP) as proTypeName, 
+			d.YBCD007 as name 
+		from ybc_door d 
+		where d.YBCD001 = #{doorId}
+		 
+	</select>
+	
+	<update id="updateDoor" parameterType="pd" flushCache="false">
+		update 
+			ybc_door 
+				<set>
+						YBCD008_TM				= now()<!-- 修改时间更新 -->
+					<if test="YBCD005_TP != null and YBCD005_TP != ''"><!-- 贷款类型ID -->
+						,YBCD005_TP				= #{YBCD005_TP}
+					</if>
+					<if test="YBCD002_TM != null and YBCD002_TM != ''">
+						,YBCD002_TM				= #{YBCD002_TM}
+					</if>
+					<if test="YBCD004 != null and YBCD004 != ''">
+						,YBCD004				= #{YBCD004}<!-- 意向贷款金额 -->
+					</if>
+					<if test="YBCD006 != null and YBCD006 != ''">
+						,YBCD006				= #{YBCD006}<!-- 贷款类型负责人ID -->
+					</if>
+				</set>
+				where	
+						ybcd001					= #{YBCD001}
+	</update>
+	
+</mapper>

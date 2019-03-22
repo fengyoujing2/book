@@ -1,0 +1,13 @@
+package com.dbsun.mapper.homepage;
+
+import java.util.List;
+
+import com.dbsun.entity.system.PageData;
+
+
+public interface HmPBacRankingListMapper {
+	
+	public List<PageData> getRankForLendNum(PageData pd);
+	public List<PageData> getRankForLendLimit(PageData pd);
+	
+}

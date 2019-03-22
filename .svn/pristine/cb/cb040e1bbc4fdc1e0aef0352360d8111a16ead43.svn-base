@@ -1,0 +1,10 @@
+package com.dbsun.mapper.cusothermsg;
+
+import java.util.List;
+
+import com.dbsun.entity.system.PageData;
+
+public interface CorCarMapper {
+	public int addCar(PageData pd);
+	public List<PageData> getCasByCusId(PageData pd);
+}

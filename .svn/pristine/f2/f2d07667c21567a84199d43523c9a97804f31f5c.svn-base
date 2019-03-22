@@ -1,0 +1,24 @@
+package com.dbsun.mapper.msg;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+import java.util.List;
+
+/**
+ * @author color
+ * @create 2018-04-24 上午 9:45
+ * @desc
+ **/
+public interface MessAgeMapper {
+
+    List<PageData> getPageMessAgeByBranch2(Page page);
+
+    List<PageData> getPageMessAgeByMatch(Page page);
+
+    int addMessAge(PageData pd);
+
+    List<PageData> getPageMessAgeHistoryByModuleKey(Page page);
+
+
+}

@@ -1,0 +1,46 @@
+package com.dbsun.service.phonesys;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.dbsun.mapper.SysUserMapper;
+import com.dbsun.util.PhoneStUtil;
+import com.dbsun.util.SentReqUtil;
+import com.dbsun.util.Util;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.phonesys.PhoCalMsgMapper;
+import com.dbsun.service.BaseService;
+
+@Service
+public class PhoSeatStateService extends BaseService {
+    @Autowired
+    private SysUserMapper sysuserMapper;
+    /**
+     *获取坐席状态数据
+     * */
+    public JSONArray getybcSpeedLst(PageData pd){
+        //获取接口数据得到返回坐席状态json数据
+    	
+        String sendUrl = "http://171.221.217.40:81/api/v1/company/getCompanyOnlineInfo";
+//        String sendUrl = "http://192.168.1.241:81/api/v1/company/getCompanyOnlineInfo";
+        String param = "domain=rx&token=e66b1725de98469ba853c56e42136d34";//&seatGroupId=1
+        String resultStr = SentReqUtil.sendGet(sendUrl,param);
+        JSONObject jsondata = JSONObject.fromObject(JSONObject.fromObject(resultStr).get("data"));
+        JSONArray jsaryGroup = jsondata.getJSONArray("chlidren");
+        JSONArray jsonArray = new JSONArray();
+//        //获取当前用户权限下的部门结构以及人员列表
+//        //获取部门列表（包含当前部门）
+        List<PageData> pageData = sysuserMapper.getSeatDeptLst(pd);
+//        //组装json格式数据
+        JSONArray ja = Util.treeSeatList(pageData,jsaryGroup,pd.getString("DEPT_ID"));
+        return ja;
+    }
+}

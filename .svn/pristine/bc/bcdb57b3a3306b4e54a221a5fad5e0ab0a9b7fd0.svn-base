@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.customer.CusNewAddTmpOrSgnMapper">
+	<!-- 新增意向客户或者签单客户 -->
+
+	<select id="getPageNewAdTpOrSgLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			c.YBC029, <!-- 客户经理名称 -->
+			c.YBC001, 
+			c.YBC002, 
+			c.YBC003, 
+			(
+				case c.YBC008_TP 
+					when 0 then '临时（大类）' 
+					when 10 then '临时（小类）' 
+					when 1 then '意向'
+					when 2 then '上门'
+					when 3 then '签单'
+					when 4 then '回收'
+					when 5 then '再签单'
+				end
+			) as state, 
+			if(#{pd.cusState} = '1', c.YBC035_TM, s.YBCS002_TM) as time, <!-- 根据传入的状态取相应的时间 -->
+			(select dept_name from sys_dept where DEPT_LAYERORDER = c.DEPT_LAYERORDER) as deptName
+		from ybc c
+		left join ybc_sign s
+		on c.YBC001 = s.YBC001  
+		WHERE 1 = 1
+	<!-- 权限 start -->
+		and (
+				(
+					c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+					and 
+					c.POSITION	= #{pd.POSITION}
+				)<!-- 主管 -->
+				or
+				c.USER_ID = #{pd.USER_ID} <!-- 客户经理 -->
+		)
+	<!-- 权限 end -->
+	<!-- 搜索 Start -->	
+		<!-- 时间搜索 -->
+		<if test="pd.cusState == 1 or pd.cusState == '1'"><!-- 意向客户 -->
+				and s.YBCS001 IS NULL	<!-- 意向客户就不取出有签单信息的客户，因为转为意向客户的时间不会清空，为了不更新两个文件 -->
+			<if test="pd.dateStart != null and pd.dateStart != ''"><!-- 转为意向客户的时间 -->
+				and c.YBC035_TM <![CDATA[ >= ]]> #{pd.dateStart} 
+			</if>
+			<if test="pd.dateEnd != null and pd.dateEnd != ''">
+				and c.YBC035_TM <![CDATA[ <= ]]> #{pd.dateEnd}
+			</if>
+			<if test="(pd.dateStart = null or pd.dateStart = '') and (pd.dateEnd = null or pd.dateEnd = '')"><!-- 默认当天 -->
+				and DATE(c.YBC035_TM) = curdate()
+			</if>
+		</if>
+		<if test="pd.cusState == 3 or pd.cusState == '3'"><!-- 签单客户 -->
+				and s.YBCS001 IS NOT NULL <!-- 以最新一条签单数据为准 -->
+			<if test="pd.dateStart != null and pd.dateStart != ''"><!-- 签单时间 -->
+				and s.YBCS002_TM <![CDATA[ >= ]]> #{pd.dateStart}
+			</if>
+			<if test="pd.dateEnd != null and pd.dateEnd != ''">
+				and s.YBCS002_TM <![CDATA[ <= ]]> #{pd.dateEnd}
+			</if>
+			<if test="(pd.dateStart = null or pd.dateStart = '') and (pd.dateEnd = null or pd.dateEnd = '')"><!-- 默认当天 -->
+				and DATE(s.YBCS002_TM) = curdate()
+			</if>
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and c.USER_ID = #{pd.USER_ID_Sea} 
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+		</if>
+	<!-- 搜索 End -->
+		order by c.YBC015_TM desc
+	</select>
+	
+</mapper>

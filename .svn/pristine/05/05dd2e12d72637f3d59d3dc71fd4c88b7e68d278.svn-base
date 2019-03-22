@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>邀请明细</title>
+    <style>
+        a:hover{
+            text-decoration: none;
+        }
+
+        a:visited{
+            text-decoration: none;
+        }
+
+        a:active{
+            text-decoration: none;
+        }
+
+    </style>
+
+</head>
+<body style="background:#ffffff;">
+
+
+<div class="container-fluid jianju"  id="contain" >
+    <div class="page-body">
+
+        <div class="row" style="">
+            <div class="col-xs-12  text-left" style="padding: 15px 35px;margin-right: 0;">
+                <div style="padding: 10px;border: 1px solid white;width: 100%;border-radius: 10px;background: #ffffff;">
+                    <div style="width: 100%;background: white;text-align: center;padding: 0 10px">
+                        <div style="display:inline-block;vertical-align: middle;">
+                            <img src="../static/img/niyeyouqian_03.png" style="width: 100%">
+                        </div>
+                    </div>
+                    <div style="padding: 10px;border-bottom:1px solid white;width: 100%;background:white;padding-right: 0px;padding-left: 0;text-align:left;font-size: 14px;padding-bottom: 0">
+                        <div style="display:inline-block;vertical-align: middle">
+                            <span style="color: #43B4FB"> 1.</span>注册后生成个人邀请码
+                        </div>
+                    </div>
+                    <div style="padding: 10px;border-bottom:1px solid white;width: 100%;background:white;padding-right: 0px;padding-left: 0;text-align:left;font-size: 14px;padding-bottom: 0">
+                        <div style="display:inline-block;vertical-align: middle">
+                            <span style="color:#43B4FB">2.</span>邀请好友注册成功，各得100积分
+                        </div>
+                    </div>
+                    <div style="padding: 10px;border-bottom:1px solid white;width: 100%;background:white;padding-right: 0px;padding-left: 0;text-align:left;font-size: 14px;padding-bottom: 0">
+                        <div style="display:inline-block;vertical-align: middle">
+                            <span style="color:#43B4FB">3.</span>积分累积无上限，100积分换额度
+                        </div>
+                    </div>
+                    <div style="padding: 10px;border-bottom:1px solid white;width: 100%;background: white;padding-right: 10px;padding-left: 10px;text-align: center">
+                        <div style="display:inline-block;vertical-align: middle;">
+                            <img src="../static/img/yaoqingmingxi_03.jpg" style="width: 100%">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xs-12  text-left" style="padding: 15px 35px;margin-right: 0;margin-top: -27px">
+                <div style="padding: 10px;border: 1px solid white;width: 100%;border-radius: 10px;background: #ffffff;">
+                    <div style="width: 100%;background: white;text-align: center;padding: 0">
+                        <div style="display:inline-block;vertical-align: middle;margin-left: -12px;margin-right: -12px">
+                            <img src="../static/img/youqianzhuan_03.jpg" style="width: 100%">
+                        </div>
+                    </div>
+                    <div style="margin-top:5px;height:48px;padding: 10px;border-bottom:1px solid white;width: 100%;padding-right: 0px;padding-left: 0;text-align:left;font-size: 14px;padding-bottom: 0">
+                        <div style="width: 40%;float: left;text-align: center">
+                            <button type="button" class="btn btn-block btn-outline " style="display:inline-block;padding:3px 0;background:#FFF100;color: black;border-color: black;width: 72px" >20还款金</button>
+                        </div>
+                        <div style="width: 60%;float: left;text-align: center;padding-top: 3px">
+                            <span style="color: #43B4FB;vertical-align: middle;font-size: 18px">1</span> <span style="vertical-align: middle">个好友贷款成功</span>
+                        </div>
+                    </div>
+                    <div style="height:48px;padding: 10px;border-bottom:1px solid white;width: 100%;padding-right: 0px;padding-left: 0;text-align:left;font-size: 14px;padding-bottom: 0">
+                        <div style="width: 40%;float: left;text-align: center">
+                            <button type="button" class="btn btn-block btn-outline " style="display:inline-block;padding:3px 0;background:#FFF100;color: black;border-color: black;width: 72px" >40还款金</button>
+                        </div>
+                        <div style="width: 60%;float: left;text-align: center;padding-top: 3px">
+                            <span style="color: #43B4FB;vertical-align: middle;font-size: 18px">2</span> <span style="vertical-align: middle">个好友贷款成功</span>
+                        </div>
+                    </div>
+                    <div style="height:48px;padding: 10px;border-bottom:1px solid white;width: 100%;padding-right: 0px;padding-left: 0;text-align:left;font-size: 14px;padding-bottom: 0">
+                        <div style="width: 40%;float: left;text-align: center">
+                            <button type="button" class="btn btn-block btn-outline " style="display:inline-block;padding:3px 0;background:#FFF100;color: black;border-color: black;width: 72px" >60还款金</button>
+                        </div>
+                        <div style="width: 60%;float: left;text-align: center;padding-top: 3px">
+                            <span style="color: #43B4FB;vertical-align: middle;font-size: 18px">3</span> <span style="vertical-align: middle">个好友贷款成功</span>
+                        </div>
+                    </div>
+                    <div style="height:48px;padding: 10px;border-bottom:1px solid white;width: 100%;padding-right: 0px;padding-left: 0;text-align:left;font-size: 14px;padding-bottom: 0">
+                        <div style="width: 40%;float: left;text-align: center">
+                            <button type="button" class="btn btn-block btn-outline " style="display:inline-block;padding:3px 0;background:#FFF100;color: black;border-color: black;width: 72px" >80还款金</button>
+                        </div>
+                        <div style="width: 60%;float: left;text-align: center;padding-top: 3px">
+                            <span style="color: #43B4FB;vertical-align: middle;font-size: 18px">4</span> <span style="vertical-align: middle">个好友贷款成功</span>
+                        </div>
+                    </div>
+                    <div style="height:48px;padding: 10px;border-bottom:1px solid white;width: 100%;padding-right: 0px;padding-left: 0;text-align:left;font-size: 14px;padding-bottom: 0">
+                        <div style="width: 40%;float: left;text-align: center">
+                            <button type="button" class="btn btn-block btn-outline " style="display:inline-block;padding:3px 0;background:#FFF100;color: black;border-color: black;width: 72px" >100还款金</button>
+                        </div>
+                        <div style="width: 60%;float: left;text-align: center;padding-top: 3px">
+                            <span style="color: #43B4FB;vertical-align: middle;font-size: 18px">N</span> <span style="vertical-align: middle">个好友贷款成功</span>
+                        </div>
+                    </div>
+
+                    <div style="padding: 10px;border-bottom:1px solid white;width: 100%;background:white;padding-right: 0px;padding-left: 0;text-align:left;font-size: 14px;color: rgb(253,52,94);padding-bottom: 0">
+
+                            <button type="button" class="btn btn-block btn-outline btn-primary" style="background: #ffffff;color:black;border:1px dashed #00A0E9;word-break: break-all" >
+                                <div style="word-break: break-all;font-size: 13px">
+                                    邀请5个好友以后,每增加一个好友,<br/>
+                                    可获得100元还款金,累计无上限
+                                </div>
+                            </button>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+
+
+<div th:include="html/page/contentpublic :: html"></div>
+<script>
+    $(document).ready(function(){
+
+        $("#back").click(function(){
+            window.history.back();
+        });
+    });
+</script>
+
+
+</body>
+</html>

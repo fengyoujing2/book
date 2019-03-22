@@ -1,0 +1,18 @@
+package com.dbsun.mapper;
+
+import com.dbsun.entity.SysUserq;
+import com.dbsun.entity.system.PageData;
+
+/**
+ * 
+ *
+ */
+public interface CommandMapper {
+	
+	/**
+	 * 
+	 */
+	public PageData findByKw(PageData pd);
+	
+	
+}

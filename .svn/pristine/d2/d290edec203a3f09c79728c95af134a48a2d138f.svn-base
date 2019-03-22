@@ -1,0 +1,22 @@
+package com.dbsun.mapper.customer;
+
+import java.util.List;
+
+import com.dbsun.entity.system.PageData;
+
+public interface CusAptitudeMapper {
+	
+	/**
+	 * 添加资质
+	 * @param pd
+	 * 			含有：YBC001
+	 * @return
+	 */
+	public int addAptitude(PageData pd);
+	
+	public List<PageData> getAptitudesByYBC001(PageData pd);
+	
+	public PageData getAptitudeById(PageData pd);
+	
+	public int updateAptitude(PageData pd);
+}

@@ -1,0 +1,60 @@
+package com.dbsun.service.customer;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.customer.CusTelMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.FollowUtil;
+
+@Service
+public class CusTelService extends BaseService {
+
+	@Autowired
+	private CusTelMapper telMapper;
+	
+	public int addTel(PageData pd, PageData userPd) {
+		//获取当前的用户信息
+		pd.put("YBCCO005", userPd.get("USER_ID"));
+		int res = 0;
+		try {
+			res = telMapper.addTel(pd);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+	
+	public int addTelPlu(PageData pd, PageData userPd) {
+		int ret = 0;
+		try {
+			addTel(pd, userPd);
+			this.addCusFlw(userPd, FollowUtil.CUS_ADD_TEL_STR, FollowUtil.CUS_ADD_TEL_CODE, pd.getString("YBC001"));
+			this.updateCusFlw(userPd, FollowUtil.CUS_ADD_TEL_STR, pd.getString("YBC001"));
+			
+			ret = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+	/**
+	 * 根据客户ID获取联系人
+	 * @param pd
+	 * 			YBC001
+	 * @return
+	 */
+	public List<PageData> getTelsByCusId(PageData pd){
+		return telMapper.getTelsByCusId(pd);
+	}
+	
+	public PageData getTelByCtsId(PageData pd){
+		return telMapper.getTelByCtsId(pd);
+	}
+
+}

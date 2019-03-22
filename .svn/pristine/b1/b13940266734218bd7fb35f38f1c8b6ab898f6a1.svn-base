@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.vip.CusVipMapper">
+    <!--会员管理-->
+
+    <!--查询可加入会员的客户-->
+    <select id="getPageInVipList" resultType="pd" parameterType="page" useCache="false">
+        SELECT
+        y.YBC001 YBC001,
+        y.USER_ID as USER_ID_Sea,<!--客户经理id-->
+        y.YBC002 YBC002,
+        y.YBC003 YBC003,
+        (
+        SELECT
+        sys_user.NAME
+        FROM
+        sys_user
+        WHERE
+        (
+        sys_user.USER_ID = y.USER_ID
+        )
+        ) AS YBCS038,
+        (SELECT DEPT_NAME FROM SYS_DEPT WHERE DEPT_LAYERORDER = Y.DEPT_LAYERORDER) AS DEPTNAME,
+        (CASE y.YBC036_TP
+        WHEN '1' THEN '1'
+        WHEN '2' THEN '2'
+        WHEN '3' THEN '3'
+        ELSE '0' END) AS YBC036_TP,<!--null和0都处理为0-->
+        m.YBCMA025_TM YBCMA025_TM,
+        y.DEPT_LAYERORDER as DEPT_LAYERORDER_Sea,
+        y.POSITION as POSITION_Sea
+        FROM
+        ybc y
+        LEFT JOIN ybc_sign s ON s.YBC001 = y.YBC001
+        LEFT JOIN ybc_match m ON m.YBC001 = y.YBC001
+        WHERE s.YBCS001 IS NOT NULL <!--已签单-->
+        AND y.YBC036_TP != '2' AND y.YBC036_TP != '1' <!--排除准会员和正式会员-->
+        <if test=" pd.YBC002 != '' and pd.YBC002 != null"><!--客户姓名-->
+            AND y.YBC002 like concat(#{pd.YBC002}, "%")
+        </if>
+        <if test=" pd.YBC003 != '' and pd.YBC003 != null"><!--客户手机-->
+            AND y.YBC003 like concat(#{pd.YBC003}, "%")
+        </if>
+        <if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and y.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+        </if>
+        <if test=" pd.YBC036_TP != '' and pd.YBC036_TP != null"><!--会员状态-->
+            AND y.YBC036_TP = #{pd.YBC036_TP}
+        </if>
+        <if test=" pd.dateStart != '' and pd.dateStart != null"><!--结账时间-->
+            AND m.YBCMA025_TM <![CDATA[>=]]> #{pd.dateStart}
+        </if>
+        <if test=" pd.dateEnd != '' and pd.dateEnd != null"><!--结账时间-->
+            AND m.YBCMA025_TM <![CDATA[<=]]> #{pd.dateEnd}
+        </if>
+        <if test=" pd.USER_ID_Sea != '' and pd.USER_ID_Sea != null"><!--客户经理-->
+            AND y.USER_ID = #{pd.USER_ID_Sea}
+        </if>
+        group by y.YBC001 HAVING 1
+        order by m.YBCMA025_TM desc
+    </select>
+
+    <!--查询所有会员-->
+    <select id="getPageVipList" resultType="pd" parameterType="page" useCache="false">
+        SELECT
+        *
+        FROM
+        v_ybc_vip v
+        WHERE 1=1
+        <if test=" pd.YBC002 != '' and pd.YBC002 != null"><!--客户姓名-->
+            AND v.YBC002 like concat(#{pd.YBC002}, "%")
+        </if>
+        <if test=" pd.YBC003 != '' and pd.YBC003 != null"><!--客户手机-->
+            AND v.YBC003 like concat(#{pd.YBC003}, "%")
+        </if>
+        <if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and v.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+        </if>
+        <if test=" pd.YBC036_TP != '' and pd.YBC036_TP != null"><!--会员状态-->
+            AND v.YBC036_TP = #{pd.YBC036_TP}
+        </if>
+        <if test=" pd.dateStart != '' and pd.dateStart != null"><!--结账时间-->
+            AND (v.YBC037_TM <![CDATA[>=]]> #{pd.dateStart})
+        </if>
+        <if test=" pd.dateEnd != '' and pd.dateEnd != null"><!--结账时间-->
+            AND (v.YBC037_TM <![CDATA[<=]]> #{pd.dateEnd})
+        </if>
+        <if test=" pd.USER_ID_Sea != '' and pd.USER_ID_Sea != null"><!--客户经理-->
+            AND v.USER_ID = #{pd.USER_ID_Sea}
+        </if>
+        <if test=" pd.VIPT001 != null and pd.VIPT001!= '' "><!--会员级别筛选-->
+            And v.VIPT001 = #{pd.VIPT001}
+        </if>
+        ORDER BY v.YBC037_TM DESC
+    </select>
+    <!--查询送礼会员-->
+    <select id="getPageVipGiftList" resultType="com.dbsun.entity.system.PageData">
+
+        SELECT
+        g.VIPG004,<!--送礼名目-->
+        (CASE g.VIPG005_TP
+        WHEN 1 THEN '生日'
+        WHEN 2 THEN '端午'
+        WHEN 3 THEN '中秋'
+        WHEN 4 THEN '春节'
+        WHEN 5 THEN '体检'
+        WHEN 6 THEN '课程'
+        ELSE '其他'
+        END) AS VIPG005_TP,<!--节日-->
+        g.VIPG003_TM,<!--送礼时间-->
+        v.* <!--会员视图-->
+
+        FROM v_ybc_vip v
+        LEFT JOIN
+        <!--通过子查询 查询最新的时间,然后 客服进行关联-->
+        (SELECT g.* FROM vip_gift g
+        JOIN
+        (SELECT YBC001, MAX(VIPG006_TM) VIPG006_TM FROM vip_gift GROUP BY YBC001) AS v
+        ON v.YBC001 =g.YBC001 AND v.VIPG006_TM =g.VIPG006_TM
+        ORDER BY g.VIPG006_TM DESC) AS g ON g.YBC001= v.YBC001
+
+        <where>
+            <if test=" pd.YBC002 != '' and pd.YBC002 != null"><!--客户姓名-->
+                AND v.YBC002 like concat(#{pd.YBC002},'%')
+            </if>
+            <if test=" pd.YBC003 != '' and pd.YBC003 != null"><!--客户手机-->
+                AND v.YBC003 like concat(#{pd.YBC003},'%')
+            </if>
+            <if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+                and v.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea},'%')
+            </if>
+            <if test=" pd.YBC036_TP != '' and pd.YBC036_TP != null"><!--会员状态-->
+                AND v.YBC036_TP = #{pd.YBC036_TP}
+            </if>
+
+            <if test=" pd.USER_ID_Sea != '' and pd.USER_ID_Sea != null"><!--客户经理 -->
+                AND v.USER_ID = #{pd.USER_ID_Sea}
+            </if>
+            <if test=" pd.VIPT001 != null and pd.VIPT001!= '' "><!--会员级别筛选 -->
+                And v.VIPT001 = #{pd.VIPT001}
+            </if>
+
+            <if test=" pd.dateStart != '' and pd.dateStart != null "><!--送礼时间 -->
+                AND g.VIPG003_TM <![CDATA[>=]]>  SUBSTRING_INDEX(#{pd.dateStart}, ' ', 1)
+            </if>
+            <if test=" pd.dateEnd != '' and pd.dateEnd != null ">
+                AND g.VIPG003_TM <![CDATA[<=]]> SUBSTRING_INDEX(#{pd.dateEnd}, ' ', 1)
+            </if>
+
+            <!--送礼节日筛选 -->
+            <if test=" pd.VIPG005_TP !='' and pd.VIPG005_TP !=null ">
+                AND g.VIPG005_TP = ${pd.VIPG005_TP}
+            </if>
+
+            <!--生日  YBC010格式=> (10-06) -->
+            <if test=" pd.YBC010 !='' and pd.YBC010 !=null ">
+                AND v.YBC010 = ${pd.YBC010}
+            </if>
+
+            <!--月份 -->
+            <if test=" pd.YBC010_M !='' and pd.YBC010_M !=null ">
+                AND v.YBC010_M = ${pd.YBC010_M}
+            </if>
+
+
+
+        </where>
+        ORDER BY g.VIPG006_TM DESC  <!--  vipg003_tm 2018/4/20 -->
+
+
+    </select>
+
+    <!--查询客户可-回访会员 增加回访表的最新状态-->
+    <select id="getPageVipVisitList" resultType="pd" parameterType="page" useCache="false">
+
+        SELECT
+        v.* ,
+        (CASE visit.VIPV004_TP
+        WHEN 1 THEN '成功'
+        WHEN 2 THEN '失败'
+        WHEN 3 THEN '跟进'
+        WHEN 4 THEN '异常'
+        END) AS STATUS ,    <!--回访状态-->
+        (CASE visit.VIPV005_TP
+        WHEN 1 THEN '客户拒绝'
+        WHEN 2 THEN '无法接通'
+        WHEN 3 THEN '其他'   <!--失败分类-->
+        END )AS VIPV005_TP,
+        visit.VIPV002_TM,   <!--回访时间-->
+        visit.VIPV003    <!--回访说明-->
+        FROM v_ybc_vip v
+        LEFT JOIN
+        #通过子查询 查询最新的时间,然后 客服进行关联
+        (SELECT
+        vis.*
+        FROM vip_visit vis
+        JOIN ( SELECT YBC001,MAX(VIPV002_TM) VIPV002_TM FROM vip_visit GROUP BY YBC001 ) AS temp
+        ON temp.YBC001 = vis.YBC001 AND temp.VIPV002_TM = vis.VIPV002_TM
+        ORDER BY vis.VIPV002_TM DESC) AS visit ON visit.YBC001= v.YBC001
+
+        <where>
+            <if test=" pd.YBC002 != '' and pd.YBC002 != null"><!--客户姓名-->
+                AND v.YBC002 like concat(#{pd.YBC002},'%')
+            </if>
+            <if test=" pd.YBC003 != '' and pd.YBC003 != null"><!--客户手机-->
+                AND v.YBC003 like concat(#{pd.YBC003},'%')
+            </if>
+            <if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+                and v.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+            </if>
+            <if test=" pd.YBC036_TP != '' and pd.YBC036_TP != null"><!--会员状态-->
+                AND v.YBC036_TP = #{pd.YBC036_TP}
+            </if>
+
+            <if test=" pd.USER_ID_Sea != '' and pd.USER_ID_Sea != null"><!--客户经理-->
+                AND v.USER_ID = #{pd.USER_ID_Sea}
+            </if>
+            <if test=" pd.VIPT001 != null and pd.VIPT001!= '' "><!--会员级别筛选-->
+                And v.VIPT001 = #{pd.VIPT001}
+            </if>
+
+            <if test=" pd.YBC001 != null and pd.YBC001!= '' "><!--指定的客户-->
+                And v.YBC001 = #{pd.YBC001}
+            </if>
+
+            <!--按造最后的结果时间筛选-->
+            <if test=" pd.dateStart != '' and pd.dateStart != null"><!--回访时间-->
+                AND (visit.VIPV002_TM <![CDATA[>=]]> #{pd.dateStart})
+            </if>
+            <if test=" pd.dateEnd != '' and pd.dateEnd != null"><!--回访时间-->
+                AND (visit.VIPV002_TM <![CDATA[<=]]> #{pd.dateEnd})
+            </if>
+
+            <if test=" pd.VIPV004_TP != '' and pd.VIPV004_TP != null "><!--跟进状态-->
+                AND visit.VIPV004_TP = #{pd.VIPV004_TP}
+            </if>
+
+
+        </where>
+
+        ORDER BY visit.VIPV002_TM DESC
+
+
+    </select>
+
+
+    <!--查询客户的回访表 异常状态的 会员-->
+    <select id="getPageYbcVisitExeStatusLst" resultType="pd" parameterType="page">
+
+        SELECT
+        v.* ,
+        (CASE visit.VIPV004_TP
+        WHEN 1 THEN '成功'
+        WHEN 2 THEN '失败'
+        WHEN 3 THEN '跟进'
+        WHEN 4 THEN '异常'
+        END) AS STATUS ,    <!--回访状态-->
+        visit.VIPV002_TM,   <!--回访时间-->
+        visit.VIPV003 ,     <!--回访说明-->
+        (case visit.VIPE003_IP <!--异常分类-->
+        when 1 THEN '一般咨询类问题'
+        when 2 THEN '服务类问题'
+        when 3 THEN '产品质量问题'
+        when 4 THEN '升级投诉'
+        when 5 THEN '预警'
+        ELSE '其他'
+        end) AS VIPE003_IP
+        FROM v_ybc_vip v
+        LEFT JOIN
+        #通过子查询 查询最新的时间,然后 客服进行关联
+        (SELECT
+        vis.*
+        FROM vip_visit vis
+        JOIN ( SELECT YBC001,MAX(VIPV002_TM) VIPV002_TM FROM vip_visit GROUP BY YBC001 ) AS temp
+        ON temp.YBC001 = vis.YBC001 AND temp.VIPV002_TM = vis.VIPV002_TM
+        ORDER BY vis.VIPV002_TM DESC) AS visit ON visit.YBC001= v.YBC001
+        WHERE visit.VIPV004_TP = 4 #异常状态
+
+        <if test=" pd.YBC002 != '' and pd.YBC002 != null"><!--客户姓名-->
+            AND v.YBC002 like concat(#{pd.YBC002},'%')
+        </if>
+        <if test=" pd.YBC003 != '' and pd.YBC003 != null"><!--客户手机-->
+            AND v.YBC003 like concat(#{pd.YBC003},'%')
+        </if>
+        <if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+            and v.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%")
+        </if>
+        <if test=" pd.YBC036_TP != '' and pd.YBC036_TP != null"><!--会员状态-->
+            AND v.YBC036_TP = #{pd.YBC036_TP}
+        </if>
+
+        <if test=" pd.USER_ID_Sea != '' and pd.USER_ID_Sea != null"><!--客户经理-->
+            AND v.USER_ID = #{pd.USER_ID_Sea}
+        </if>
+        <if test=" pd.VIPT001 != null and pd.VIPT001!= '' "><!--会员级别筛选-->
+            And v.VIPT001 = #{pd.VIPT001}
+        </if>
+
+        <if test=" pd.YBC001 != null and pd.YBC001!= '' "><!--指定的客户-->
+            And v.YBC001 = #{pd.YBC001}
+        </if>
+
+        <if test="pd.VIPE003_IP != null and pd.VIPE003_IP != '' "> <!--异常问题分类-->
+            and visit.VIPE003_IP = #{pd.VIPE003_IP}
+        </if>
+
+        <!--按造最后的结果时间筛选-->
+        <if test=" pd.dateStart != '' and pd.dateStart != null"><!--回访时间-->
+            AND (visit.VIPV002_TM <![CDATA[>=]]> #{pd.dateStart})
+        </if>
+        <if test=" pd.dateEnd != '' and pd.dateEnd != null"><!--回访时间-->
+            AND (visit.VIPV002_TM <![CDATA[<=]]> #{pd.dateEnd})
+        </if>
+
+        ORDER BY visit.VIPV002_TM DESC
+
+
+    </select>
+
+
+    <!--页面操作会员状态改变-->
+    <update id="updateVipByPageDate" parameterType="pd" flushCache="false">
+        UPDATE ybc
+        <set>
+            <!--会员状态-->
+            <if test="YBC036_TP != '' and YBC036_TP != null">
+                YBC036_TP = #{YBC036_TP}
+            </if>
+            <if test="YBC037_TM != '' and YBC037_TM != null"><!--加入准会员时间-->
+                ,YBC037_TM = #{YBC037_TM}
+            </if>
+            <if test="YBC038_TM != '' and YBC038_TM != null"><!--加入正式会员时间-->
+                ,YBC038_TM = #{YBC038_TM}
+            </if>
+            <if test="YBC039_TM != '' and YBC039_TM != null"><!--起始时间-->
+                ,YBC039_TM = #{YBC039_TM}
+            </if>
+            <if test="YBC040_TM != '' and YBC040_TM != null"><!--过期时间-->
+                ,YBC040_TM = #{YBC040_TM}
+            </if>
+            <if test="VIPT001 != '' and VIPT001 != null"><!--会员级别-->
+                ,VIPT001 = #{VIPT001}
+            </if>
+            <if test="YBC036_TP == '3'"><!--对退出会员做处理-->
+                ,YBC039_TM = '',VIPT001 = ''
+            </if>
+        </set>
+        where
+        YBC001 = #{YBC001} <!--会员级别-->
+    </update>
+
+    <!--页面操作会员维护改变-->
+    <update id="updateVipLevel" parameterType="pd" flushCache="false">
+        UPDATE ybc
+        <set>
+            <!--会员状态-->
+            <if test="YBC036_TP != '' and YBC036_TP != null">
+                YBC036_TP = #{YBC036_TP}
+            </if>
+            <if test="YBC039_TM != '' and YBC039_TM != null"><!--起始时间-->
+                ,YBC039_TM = #{YBC039_TM}
+            </if>
+            <if test="YBC040_TM != '' and YBC040_TM != null"><!--过期时间-->
+                ,YBC040_TM = #{YBC040_TM}
+            </if>
+            <if test="VIPT001 != '' and VIPT001 != null"><!--会员级别-->
+                ,VIPT001 = #{VIPT001}
+            </if>
+        </set>
+        where
+        YBC001 = #{YBC001} <!--会员级别-->
+    </update>
+
+    <!--页面操作会员退出改变-->
+    <update id="updateVipExit" parameterType="pd" flushCache="false">
+        UPDATE ybc
+        <set>
+            <!--会员状态-->
+            <if test="YBC036_TP != '' and YBC036_TP != null">
+                YBC036_TP = #{YBC036_TP}
+            </if>
+            ,YBC037_TM = ''
+            ,YBC038_TM = ''
+            ,YBC039_TM = ''
+            ,YBC040_TM = ''
+            ,VIPT001 = '0'
+        </set>
+        where
+        YBC001 = #{YBC001} <!--用户id-->
+    </update>
+
+
+    <select id="getVipInfo" parameterType="pd" resultType="pd">
+      SELECT y.*,(CASE
+         WHEN v.VIPT003_TP is not null then CONCAT(v.VIPT002,'-',v.VIPT003_TP,'-',v.VIPT004,'元')
+        else CONCAT(v.VIPT002,'-',v.VIPT004,'元')end ) as VIPT002
+        FROM  ybc y
+        LEFT  JOIN  vip_type v on v.VIPT001 = y.VIPT001
+        WHERE  YBC001 = #{YBC001}
+    </select>
+
+    <!--添加会员联系方式-->
+    <insert id="addContact" parameterType="pd" flushCache="false">
+        INSERT INTO vip_info(VIPI001,VIPI002,VIPI003,YBC001) VALUES (#{VIPI001},#{VIPI002},#{VIPI003},#{YBC001})
+    </insert>
+
+    <!--修改会员联系方式-->
+    <update id="updateContact" parameterType="pd" flushCache="false">
+        UPDATE vip_info
+        <set>
+            <if test="VIPI002 != '' and VIPI002 != null">
+                VIPI002 = #{VIPI002} <!--手机号-->
+            </if>
+            <if test="VIPI003 != '' and VIPI003 != null">
+                ,VIPI003 = #{VIPI003} <!--地址-->
+            </if>
+        </set>
+        where VIPI001 = #{VIPI001} <!--会员联系方式id-->
+    </update>
+
+    <!--删除联系方式-->
+    <delete id="deleteContact" parameterType="pd" flushCache="false">
+        DELETE FROM
+        VIP_INFO
+        where VIPI001 = #{VIPI001}
+    </delete>
+
+    <!--获取该客户的所有联系方式-->
+    <select id="getAllContactByCus" parameterType="pd" resultType="pd" useCache="false">
+        SELECT * FROM VIP_INFO WHERE YBC001 = #{YBC001}
+    </select>
+
+    <!--获取vip等级列表-->
+    <select id="getListByVipLevel" resultType="pd">
+      SELECT
+	    v.VIPT001,
+        (CASE
+         WHEN V.VIPT003_TP is not null then CONCAT(v.VIPT002,'-',v.VIPT003_TP,'-',v.VIPT004,'元')
+        else CONCAT(v.VIPT002,'-',v.VIPT004,'元')end ) as VIPT002
+        FROM
+            vip_type v
+        ORDER BY v.VIPT001
+    </select>
+</mapper>

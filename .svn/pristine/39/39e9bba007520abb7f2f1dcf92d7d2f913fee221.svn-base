@@ -1,0 +1,12 @@
+package com.dbsun.mapper.customer;
+
+import java.util.List;
+
+import com.dbsun.entity.system.PageData;
+
+public interface CusFollowMapper {
+	
+	public int addFollow(PageData pd);
+	
+	public List<PageData> getFollowsByYbc001(PageData pd);
+}

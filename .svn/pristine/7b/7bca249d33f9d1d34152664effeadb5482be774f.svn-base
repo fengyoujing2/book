@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.background.BacTransferMapper">
+	<!-- 做单转移 -->
+
+	<select id="getPageTransferLst" parameterType="page" resultType="pd" useCache="false">
+		select 
+			s.*, 
+			IF(s.YBCS052_TM is null,0,1) as isAlt, <!-- 部长是否分配 -->
+			c.YBC002, 
+			c.YBC003, 
+			(select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName<!-- 产品类型名称 -->
+			
+		from ybc_sign s, ybc_match m, ybc c  
+		where s.ybcs001 = m.ybcs001 
+		and s.ybc001 = c.ybc001 <!-- 没有任何限制，任意时刻都可以转移 -->
+		and s.YBCS012 = #{pd.USER_ID} <!-- 产品负责人 --> 
+	<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+			and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+		</if>
+		<if test="pd.YBC003 != null and pd.YBC003 != ''">
+			and c.YBC003 like concat_ws(#{pd.YBC003}, "%", "%")
+		</if>
+		<if test="pd.YBCS017 != null and pd.YBCS017 != ''"><!-- 合同编号 -->
+			and s.YBCS017 like concat_ws(#{pd.YBCS017}, "%", "%")
+		</if>
+		<if test="pd.YBCS038 != null and pd.YBCS038 != ''"><!-- 签单客户经理 -->
+			and s.YBCS038 like concat_ws(#{pd.YBCS038}, "%", "%")
+		</if>
+		<if test="pd.signTmStart != null and pd.signTmStart != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[>=]]> #{pd.signTmStart} 
+		</if>
+		<if test="pd.signTmEnd != null and pd.signTmEnd != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[<=]]> #{pd.signTmEnd} 
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and 
+				(
+					s.USER_ID = #{pd.USER_ID_Sea} 
+					or
+					m.USER_ID = #{pd.USER_ID_Sea} 
+			)
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and 
+				(
+					s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+					or
+					m.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+				)
+		</if>
+	<!-- 搜索 end -->
+			
+		order by s.YBCS020_TM desc <!-- 以财务编号时间排序 -->
+	</select>
+	
+	<update id="updateForTransfer" parameterType="pd" flushCache="false">
+		update 
+			ybc_sign 
+				<set>
+					YBCS045_TP			= 1,<!-- 转移 --> 
+					YBCS046				= #{USER_ID}, <!-- 当前用户 -->
+					YBCS047				= (select name from sys_user where user_id = #{USER_ID}), 
+					YBCS048_TM			= now(), 
+					YBCS009_TP			= #{YBCS009_TP}, <!-- 贷款类型 -->
+					YBCS012				= #{newLeaderId},<!-- 新的类型负责人ID -->
+					YBCS039				= (select name from sys_user where user_id = #{newLeaderId}),<!-- 新的负责人姓名 -->
+					<!-- 原来的流程不动，以分配表的分配时间为待做单的判定，但是要允许新的部长进行分配，所以得清空原来相关的分配时间 -->
+					YBCS052_TM			= NULL,
+					YBCS053_TM			= NULL, 
+					YBCS054_TM			= NULL
+				</set>
+			where
+				ybcs001 				= #{YBCS001}
+	</update>
+	
+</mapper>

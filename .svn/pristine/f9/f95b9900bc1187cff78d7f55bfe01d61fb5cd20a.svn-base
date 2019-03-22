@@ -1,0 +1,64 @@
+package com.dbsun.controller.task;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.task.TaskService;
+
+@Controller
+@RequestMapping("/tas_")
+public class TaskController extends BaseController {
+	
+	@Autowired
+	private TaskService taskService;
+	
+	/**
+	 * 添加任务
+	 * @return
+	 */
+	@RequestMapping("/addTask")
+	@ResponseBody
+	public JSONObject addTask(){
+		PageData pd = this.getPageData();
+		return this.getAddOrUpdJson(taskService.addTask(this.putUserIdPd(pd)));
+	}
+	
+	/**
+	 * 新增多条任务
+	 * @return
+	 */
+	@RequestMapping("/addTasks")
+	@ResponseBody
+	public JSONObject addTasks(){
+		PageData pd = this.getPageData();
+		return this.getAddOrUpdJson(taskService.addTasks(this.putUserIdPd(pd)));
+	}
+	
+	/**
+	 * 获取任务
+	 * @return
+	 */
+	@RequestMapping("/getTskById")
+	@ResponseBody
+	public JSONObject getTskById(){
+		PageData pd = this.getPageData();
+		return this.getSucJson(taskService.getTskById(pd));
+	}
+	
+	/**
+	 * 获取任务
+	 * @return
+	 */
+	@RequestMapping("/getTskAdUserById")
+	@ResponseBody
+	public JSONObject getTskAdUserById(){
+		PageData pd = this.getPageData();
+		return this.getSucJson(taskService.getTskAdUserById(pd));
+	}
+}

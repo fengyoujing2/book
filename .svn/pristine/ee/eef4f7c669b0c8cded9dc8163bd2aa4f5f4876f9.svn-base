@@ -1,0 +1,13 @@
+package com.dbsun.mapper.cusothermsg;
+
+import java.util.List;
+
+import com.dbsun.entity.system.PageData;
+
+public interface CorHouseProMapper {
+	
+	public int addHousePro(PageData pd);
+	
+	public List<PageData> getHosProsByCusId(PageData pd);
+	
+}

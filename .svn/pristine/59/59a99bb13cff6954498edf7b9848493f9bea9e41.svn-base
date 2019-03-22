@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.spread.SprMapper">
+	<!-- 推广 -->
+	
+	<select id="getPageSprLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			w.*, 
+			ifnull(w.YBWY0011_TP, 0) as isAlt, <!-- 是否分配，分配之后YBWY0011_TP为1 -->
+			FROM_UNIXTIME(w.YBWY0006_TM, '%Y-%m-%d %H:%i:%s') as date, <!-- 日期 -->
+			(
+				CASE w.YBWY0007_TP
+					when 1 then '微信'
+					when 2 then '今日头条'
+					when 3 then '短信'
+					when 4 then '广点通'
+					when 5 then '广点通2'
+		end
+			) as source
+		from wb_ybc w 
+		where 1 = 1
+		<if test="pd.startDate != null and pd.startDate != ''">
+			and FROM_UNIXTIME(w.YBWY0006_TM) <![CDATA[ >= ]]> #{pd.startDate}
+		</if>
+		<if test="pd.endDate != null and pd.endDate != ''">
+			and FROM_UNIXTIME(w.YBWY0006_TM) <![CDATA[ <= ]]> #{pd.endDate}
+		</if>
+		order by w.YBWY0006_TM desc <!-- 按照录入时间排序 -->
+	</select>
+	
+	<insert id="addCusFromSpr" parameterType="pd" flushCache="false">
+		insert 
+			into 
+				ybc 
+					(	
+						YBC001, 
+						YBC002, 
+						YBC003, 
+						YBC004_TP, 
+						YBC005, 
+						YBC006, 
+						YBC008_TP, 
+						YBC014_TM, 
+						YBC015_TM, 
+						USER_ID, 
+						YBC016_TP, 
+						YBC018_TP, 
+						DEPT_LAYERORDER, 
+						POSITION, 
+						YBC029, 
+						YBC017_TP,
+						YBC024, 
+						YBC026_TP, 
+						YBC031_TP, 
+						YBC033_TP
+					) 
+		select
+			concat('fromwbybc_', YBWY0001), 
+			YBWY0002, 
+			<!-- 手机号不允许重复，分配之前查询系统中是否存在 -->
+			YBWY0003, 
+			YBWY0008_TP, 
+			YBWY0009, 
+			YBWY0007_TP, 
+			1, <!-- 意向客户 -->
+			now(), 
+			now(), 
+			#{USER_ID}, <!-- 分配的客户经理非当前登录者的，controller就不要放了 -->
+			1, 
+			1, <!-- 客户等级 -->
+			(select DEPT_LAYERORDER from sys_user where user_id = #{USER_ID}), 
+			1, 
+			(select name from sys_user where user_id = #{USER_ID}),  
+			0, 
+			0,
+			0, 
+			0,
+			0
+		from wb_ybc 
+		where YBWY0001 = #{YBWY0001}
+	</insert>
+	
+	<update id="updateCusState" parameterType="pd" flushCache="false">
+		update
+			wb_ybc
+				<set>
+					YBWY0011_TP			= 1
+				</set>
+			where 
+					YBWY0001 			= #{YBWY0001}
+	</update>
+	
+</mapper>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+    <title>瑞信-前台业务结账确认单</title>
+
+    <link rel="shortcut icon" href="favicon.ico"> 
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+    
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0]; 
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+    
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+    
+    <style>
+        body {
+            height: auto !important;
+        }
+        .tableRow{
+            border: 2px solid #000;
+            border-bottom: 0;
+        }
+        .el-col{
+            padding: 6px 0;
+            padding-left: 4px;
+        }
+        .tableRowL{
+            border-left: 2px solid #000;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f1f7fe;margin:10px;">
+    <div id="printSureSignApp" v-cloak>
+        <el-row>
+            <el-col :span="24" style="text-align:center;font-size:20px;font-weight:900;margin-top:10px;">
+                前台业务结账确认单
+            </el-col>
+        </el-row>
+        <el-row>
+             <el-col :span="24" style="text-align:right;">
+                <span style="margin-right:20px;"><strong>结账时间：</strong>{{sureTime}}</span>
+            </el-col>
+        </el-row>
+        <el-row class="tableRow">
+            <el-col :span="6">
+                <span><strong>客户姓名：</strong>{{info.YBC002}}</span>
+            </el-col>
+            <el-col :span="6">
+                <span><strong>贷款金额：</strong>{{info.YBCMA030}}</span>
+            </el-col>
+            <el-col :span="6" class="tableRowL">
+                <span><strong>贷款编号：</strong>{{info.YBCS007}}</span>
+            </el-col>
+            <el-col :span="6" class="tableRowL">
+                <span><strong>账户：</strong>{{info.accoType}}<span v-if="info.YBCMA043">-{{info.YBCMA043}}</span></span>
+            </el-col>
+        </el-row>
+        <el-row class="tableRow">
+            <el-col :span="6">
+                <span><strong>贷款渠道：</strong>{{info.proName}}</span>
+            </el-col>
+            <el-col :span="6">
+                <span><strong>期限：</strong>{{info.YBCMA033}}</span>
+            </el-col>
+            <el-col :span="12" class="tableRowL">
+                <span><strong>运营成本：</strong>{{info.YBCMA020}}</span>
+            </el-col>
+        </el-row>
+        <el-row class="tableRow">
+            <el-col :span="6">
+                <span><strong>还款方式：</strong>{{info.payBackMtd}}</span>
+            </el-col>
+            <el-col :span="6" class="tableRowL">
+                <span><strong>定金：</strong></span>
+            </el-col>
+            <el-col :span="12" class="tableRowL">
+                <span><strong>费用明细：</strong>{{moneyList}}</span>
+            </el-col>
+        </el-row>
+        <el-row class="tableRow">
+            <el-col :span="6">
+                <span><strong>应收手续费：</strong>{{info.receivable}}</span>
+            </el-col>
+            <el-col :span="6" class="tableRowL">
+                <span><strong>实收手续费：</strong>{{info.YBCMA012}}</span>
+            </el-col>
+            <el-col :span="12" class="tableRowL">
+                <span><strong>前台利润：</strong>{{info.YBCMA022}}</span>
+            </el-col>
+        </el-row>
+        <el-row class="tableRow">
+            <el-col :span="12">
+                <span><strong>前台经理：</strong>{{info.YBCS038}}</span>
+            </el-col>
+            <el-col :span="12" class="tableRowL">
+                <span><strong>后台做单：</strong>{{info.YBCMA041}}</span>
+            </el-col>
+        </el-row>
+        <el-row class="tableRow" style="border-bottom:2px solid #000;">
+            <el-col :span="6">
+                <span><strong>小组长：</strong>{{info.frontHeadman}}</span>
+            </el-col>
+            <el-col :span="6">
+                <span><strong>部门主管：</strong>{{info.frontLeador}}</span>
+            </el-col>
+            <el-col :span="6" class="tableRowL">
+                <span><strong>小组长：</strong>{{info.behiHeadman}}</span>
+            </el-col>
+            <el-col :span="6">
+                <span><strong>部门主管：</strong>{{info.behiLeador}}</span>
+            </el-col>
+        </el-row>
+        <el-row v-if="flag" style="margin-top:20px;">
+            <el-col :span="24" style="text-align:center;">
+                <el-button @click="print" style="color:red;">打印</el-button>
+            </el-col>
+        </el-row>
+    </div>
+</body>
+<script th:inline="javascript">
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+    
+    
+    var printSureSign=new Vue({
+        el:"#printSureSignApp",
+        data(){
+            return {
+                
+                info:[[${billed}]],
+                flag:true,
+                sureTime:'',
+                moneyList:""
+
+            }
+        },
+//        DOM渲染前执行
+        mounted(){
+            
+            let date0=[[${billed}]].YBCMA025_TM;
+            console.log([[${billed}]])
+            if(date0){
+                let year=Number(date0.substring(0,4));
+                let month=Number(date0.substring(5,7));
+                let day=Number(date0.substring(8,10));
+                this.sureTime=`${year}年${month}月${day}日`;
+            }else{
+                this.moneyList="";
+            }
+            let str=[[${billed}]].YBCMA021;
+            if(str){
+                this.moneyList=str.substr(0,str.length-1);
+            }else{
+                this.moneyList=""
+            }
+        },
+        methods:{
+            print(){
+                this.flag=false;
+                setTimeout(function(){
+                    window.print();
+                
+                    for(let index in app.$data.editableTabs){
+                        if(app.$data.editableTabs[index].name=="打印结账单"){
+                            app.$data.editableTabs.splice(index,1);
+                            app.$data.editableTabsValue="已结账客户";
+                        }
+                    }
+                },100);
+            }
+        }
+    })
+    
+</script>
+</html>

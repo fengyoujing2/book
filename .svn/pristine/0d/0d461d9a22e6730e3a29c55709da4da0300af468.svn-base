@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+
+    <!--360浏览器优先以webkit内核解析-->
+
+
+    <title>外呼工作台</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css?v=4.1.0" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+
+    <script type="text/javascript">
+        //获取html元素
+        var html = document.getElementsByTagName('html')[0];
+        //屏幕的宽度（兼容处理）
+        var w = document.documentElement.clientWidth || document.body.clientWidth;
+        //750这个数字是根据你的设计图的实际大小来的，所以值具体根据设计图的大小
+        html.style.fontSize = w / 1366 + "px";
+    </script>
+
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/element-ui/lib/index.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+
+    <style>
+        body{
+            height: 1500px !important;
+            overflow: scroll;
+        }
+        a{
+            text-decoration: none;
+            color: #fff;
+        }
+        .demo-table-expand {
+            font-size: 0;
+        }
+        .cusMTable .el-table tr{
+            background-color: #54DE9E;
+            color:#fff;
+        }
+        .cusMTable2 .el-table tr{
+            background-color: #4AA5FB;
+            color:#fff;
+        }
+        .el-table .evrow {
+            background: #ffffff !important;
+            color:#000 !important;
+        }
+        .el-table .evrow2 {
+            background-color: #F1F7FE !important;
+            color:#000 !important;
+        }
+
+        .el-table .evrow0 {
+            background-color: #FC5C7E !important;
+            color:#000 !important;
+        }
+        .tips{
+            display: inline-block;
+            padding: .5rem 2rem .5rem 1rem;
+            background-color: #4AA5FB;
+            color: #fff;
+            font-size: 16px;
+            border-bottom-right-radius: 2rem;
+            border-top-right-radius: 2rem;
+        }
+        .userTag{
+            margin:.5rem;
+            color:#fff;
+            background-color:#4aa5fb;
+            font-size:12px;
+        }
+        .userTag i{
+            display: none;
+        }
+        .userTag:hover{
+            background-color:#FD8B12;
+            border: 1px solid #FD8B12;
+        }
+        .userTag:hover i{
+            display: inline-block;
+            color: #fff !important;
+        }
+        .callL div{
+            margin: 10px 0;
+        }
+        .callLtop{
+            position: relative;
+        }
+        .callLtop div{
+            padding:10px;
+            border-radius: 6px;
+            display:flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .callLtopSel{
+            position: absolute;
+            left: 0px;
+            top:30px;
+            z-index: 999;
+            padding:0 10px;
+            box-shadow: 2px 2px 5px #4AA5FB;
+            background-color: #fff;
+            border-radius: 6px;
+        }
+        .callLtopSel div{
+            margin: 8px 5px;
+        }
+        .callBtn{
+            padding: 0 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .callLNum{
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .callLNum img{
+            width: 30px;
+            height: 30px;
+        }
+        .callLNumCon1{
+            width: 100px;
+            text-align: center;
+            color: #6CE3AC;
+            border: 2px solid #6CE3AC;
+            padding: 10px 0px;
+            border-bottom-right-radius: 40px;
+            border-top-left-radius: 40px;
+        }
+        .callLNumCon2{
+            width: 100px;
+            text-align: center;
+            color: #4AA5FB;
+            border: 2px solid #4AA5FB;
+            padding: 10px 0px;
+            border-bottom-right-radius: 40px;
+            border-top-left-radius: 40px;
+        }
+        .callLNumCon3{
+            width: 100px;
+            text-align: center;
+            color: #FC5C7E;
+            border: 2px solid #FC5C7E;
+            padding: 10px 0px;
+            border-bottom-right-radius: 40px;
+            border-top-left-radius: 40px;
+        }
+        .callLBot{
+            margin-top: 30px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            color:#4AA5FB;
+            font-size: 16px;
+            border: 2px solid #4AA5FB;
+            border-radius: 40px;
+        }
+        .tableNum button{
+            color: #000;
+            font-size: 20px;
+            padding:5px 30px;
+        }
+        .phoneIpt{
+            position: relative;
+        }
+        .phoneBtn{
+            position: absolute;
+            left: 225px;
+            top:8px;
+            font-size: 20px;
+            color: #000;
+        }
+        .selCusTP0{
+            margin: 0;
+            color: #fff;
+            font-size: 14px;
+        }
+/*        // 去掉input[type=number]默认的加减号*/
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .el-table td{
+            padding: 4px 0 !important;
+        }
+    </style>
+</head>
+
+<body style="background-color:#F1F7FE;margin:0;">
+    <div id="callWorkbApp" style="width:100%;display:flex;">
+        <div style="width:400px;background-color:#fff;padding:10px;margin-right:20px;">
+            <div style="width:400px;padding:0 30px;" class="callL">
+                <div class="callLtop">
+                    <div :style="callStateS==1 ? 'background-color:#99cbfa;': (callStateS==2 ? 'background-color:#5faffa;' : (callStateS==3 ? 'background-color:#fcb160;' :(callStateS==4 ? 'background-color:#54de9e;' : 'background-color:#99cbfa;')))">
+                        <el-button type="text" class="fa fa-bars" style="color:#fff;font-size:14px;padding:0;" @click="openSelCusTP"></el-button>
+                        <span class="selCusTP0">(客户分类)</span>
+                        <span class="selCusTP0" style="flex-grow: 1;text-align: right;">
+                            <span v-if="selCusTP=='0'">临时(大类)</span>
+                            <span v-else-if="selCusTP=='10'">临时(小类)</span>
+                            <span v-else-if="selCusTP=='11'">临时(推广)</span>
+                            <span v-else-if="selCusTP=='13'">临时(抵押)</span>
+                            <span v-else-if="selCusTP=='1'">意向</span>
+                            <span v-else-if="selCusTP=='2'">上门</span>
+                            <span v-else-if="selCusTP=='3'">签单</span>
+                        </span>
+                    </div>
+                </div>
+                <div v-if="selCusTPFg" class="callLtopSel">
+                     <el-radio-group v-model="selCusTP" @change="changeSelCusTP">
+                        <el-radio :label="0">临时(大类)</el-radio><br/>
+                        <el-radio :label="10">临时(小类)</el-radio><br/>
+                        <el-radio :label="11">临时(推广)</el-radio><br/>
+                        <el-radio :label="13">临时(抵押)</el-radio><br/>
+                        <el-radio :label="1">意向</el-radio><br/>
+                        <el-radio :label="2">上门</el-radio><br/>
+                        <el-radio :label="3">签单</el-radio><br/>
+                      </el-radio-group>
+                </div>
+                <div class="phoneIpt" style="width:400px;">
+                    <el-input type="number" v-model="phoneNum" style="font-size:20px;width:340px;">
+                        <template slot="append">
+                            <el-button v-if="phoneNum.length>0" @click="callOutB" style="background-color:#54DE9E;color:#fff;padding: 13px 30px;font-size:14px;border-radius: 0;">外呼</el-button>
+                            <el-button v-else style="background-color:#BFBFBF;color:#fff;border-color:#BFBFBF;padding: 13px 30px;font-size:14px;border-radius: 0;">外呼</el-button>
+                        </template>
+                    </el-input>
+                    <el-button v-if="phoneNum.length>0"  class="phoneBtn" icon="fa fa-times" type="text" @click="clearPhoneNum"></el-button>
+                </div>
+                <div>
+                    <div style="text-align:center;height:60px;color:#4AA5FB;font-size:16px;">
+                        <div :style="callStateS==1 ? 'color:#99cbfa;': (callStateS==2 ? 'color:#5faffa;' : (callStateS==3 ? 'color:#fcb160;' :(callStateS==4 ? 'color:#54de9e;' : 'color:#99cbfa;')))">{{callName}}</div>
+                        <div :style="callStateS==1 ? 'color:#99cbfa;': (callStateS==2 ? 'color:#5faffa;' : (callStateS==3 ? 'color:#fcb160;' :(callStateS==4 ? 'color:#54de9e;' : 'color:#99cbfa;')))">{{callState}}</div>
+                    </div>
+                </div>
+                <div class="callBtn">
+<!--                    未在拨打中-->
+                    <el-button v-if="callingFg" icon="fa fa-phone"
+                          style="color:#fff;padding:2px 50px;background-color:#54de9e;border-color:#54de9e;font-size:28px;" @click="callOutA"></el-button>
+<!--                    在拨打中-->
+                    <el-button v-else icon="fa fa-phone"
+                          style="color:#fff;padding:2px 50px;background-color:#BFBFBF;border-color:#BFBFBF;font-size:28px;" @click="noCall"></el-button>
+<!--                    暂停-->
+<!--
+                    <el-button icon="fa fa-pause"
+                          style="color:#fff;padding:10px 18px;background-color:#4AA5FB;border-color:#4AA5FB;font-size:20px;"
+                          @click=""></el-button>
+-->
+<!--                    挂断-->
+
+                    <a  v-if="callHangup" href="javascript:" style="display:inline-block;background-color:#FC5C7E;border-radius:4px;border-color:#ff6961;padding: 0px 45px;vertical-align: bottom;" @click="calOutAnswerHangupA">
+                        <img style="width:35px;" src="../static/img/hungUp.png"/>
+                    </a>
+                    <a v-else href="javascript:" style="display:inline-block;background-color:#BFBFBF;border-radius:4px;border-color:#BFBFBF;padding: 0px 45px;vertical-align: bottom;" >
+                        <img style="width:35px;" src="../static/img/hungUp.png"/>
+                    </a>
+                </div>
+                <div>
+                    <table style="border:1px solid #ccc;border-radius:2px;margin:0 auto;" class="tableNum">
+                        <tr style="border-bottom:1px solid #ccc;">
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;">
+                                <el-button type="text" @click="calphoneNum('1')">1</el-button>
+                            </td>
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;border-left:1px solid #ccc;border-right:1px solid #ccc;">
+                                <el-button type="text" @click="calphoneNum('2')">2</el-button>
+                            </td>
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;">
+                                <el-button type="text" @click="calphoneNum('3')">3</el-button>
+                            </td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #ccc;">
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;">
+                                <el-button type="text" @click="calphoneNum('4')">4</el-button>
+                            </td>
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;border-left:1px solid #ccc;border-right:1px solid #ccc;">
+                                <el-button type="text" @click="calphoneNum('5')">5</el-button>
+                            </td>
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;">
+                                <el-button type="text" @click="calphoneNum('6')">6</el-button>
+                            </td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #ccc;">
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;">
+                                <el-button type="text" @click="calphoneNum('7')">7</el-button>
+                            </td>
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;border-left:1px solid #ccc;border-right:1px solid #ccc;">
+                                <el-button type="text" @click="calphoneNum('8')">8</el-button>
+                            </td>
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;">
+                                <el-button type="text" @click="calphoneNum('9')">9</el-button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;border-left:1px solid #ccc;border-right:1px solid #ccc;">
+                                <el-button type="text" @click="calphoneNum('0')" style="padding: 0 80px;">0</el-button>
+                            </td>
+                            <td style="background-color:#fff;border:0;width:100px;text-align:center;padding:6px 12px;">
+                                <el-button type="text" @click="delPhoneNum">C</el-button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="callLNum">
+                <div class="callLNumCon1">
+                    <div><img src="../static/img/callOut.png"></div>
+                    <div style="margin:5px 0;font-size:16px;">外呼</div>
+                    <div style="font-size:20px;font-weight:bold;">{{callOutNum}}个</div>
+                </div>
+                <div class="callLNumCon2">
+                    <div><img src="../static/img/cuss.png"></div>
+                    <div style="margin:5px 0;font-size:16px;">客户池</div>
+                    <div style="font-size:20px;font-weight:bold;">{{cusNums}}个</div>
+                </div>
+                <div class="callLNumCon3">
+                    <div><img src="../static/img/cusFollow.png"></div>
+                    <div style="margin:5px 0;font-size:16px;">待跟进</div>
+                    <div style="font-size:20px;font-weight:bold;">{{stayFolNum}}个</div>
+                </div>
+            </div>
+            <div style="padding:0 15px;">
+                <div class="callLBot">
+                    累计通话：{{callTime}}
+                </div>
+            </div>
+        </div>
+        <div style="flex-grow:1;">
+            <div class="cusMTable">
+                <el-table
+            v-loading="loading"
+                :data="callPlan"
+                :row-class-name="tableRowClassName"
+                :row-key="getRowKeys"
+                :expand-row-keys="expands"
+                    @row-click="clickRow">
+                    <el-table-column type="expand">
+                        <template slot-scope="props">
+                            <el-row style="display:flex;">
+                                <el-col :span="18" style="text-align:right;">
+                                    <el-input type="textarea" :rows="3" v-model="props.row.followRecord" placeholder="请输入客户跟进记录，不超过1000个字~"></el-input>
+                                    <el-button size="mini" style="background-color:#4AA5FB;border-color:#4AA5FB;color:#fff;padding:10px 25px;margin-top:10px;" @click="getFolRd(props.$index,props.row)">保存</el-button>
+                                </el-col>
+                                <el-col :span="6" style="padding:0 10px;">
+                                    <span v-if="customerTags.length=='0'" style="color:#000;">客户标签:</span>
+                                    <el-tag
+                                      :key="tag"
+                                      v-for="tag in customerTags"
+                                      closable
+                                      size="small"
+                                      :disable-transitions="false"
+                                      @close="handleClose(tag)"
+                                      class="userTag">
+                                        {{tag}}
+                                    </el-tag>
+                                    <div v-if="addCusTag">
+                                        <el-select  v-model="newTags" multiple placeholder="请选择客户标签">
+                                            <el-option-group
+                                              v-for="group in TagOptions"
+                                              :key="group.label"
+                                              :label="group.label">
+                                              <el-option
+                                                v-for="item in group.options"
+                                                :key="item.value"
+                                                :label="item.label"
+                                                :value="item.label">
+                                              </el-option>
+                                            </el-option-group>
+                                        </el-select>
+                                        <el-button size="mini" @click="sureAddTag">确认</el-button>
+                                    </div>
+                                    <div v-else style="text-align:center;">
+                                        <el-button class="button-new-tag fa fa-plus" style="color:#fff;background-color:#e5e5e5;border:0;boder-radius:.6rem;padding:6px 20px;margin-left:.5rem;" size="small" @click="showInput"></el-button>
+                                    </div>
+                                </el-col>
+                            </el-row>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                      type="index"
+                      label="序号"
+                      width="50">
+                    </el-table-column>
+                    <el-table-column
+                      label="客户姓名"
+                      prop="YBC002">
+                    </el-table-column>
+                    <el-table-column
+                      label="性别"
+                      prop="sex">
+                    </el-table-column>
+                    <el-table-column
+                      label="电话号码"
+                      prop="YBC003">
+                    </el-table-column>
+                    <el-table-column
+                      label="拨打状态"
+                      prop="callState">
+                    </el-table-column>
+                    <el-table-column label="客户状态操作" width="200">
+                        <template v-if="scope.$index=='0' && (selCusTP=='0' || selCusTP=='10' || selCusTP=='11' || selCusTP=='13')" slot-scope="scope">
+                        <el-button
+                          size="mini"
+                          style="background-color:#54DE9E;border-color:#54DE9E;color:#fff;"
+                          @click="changeCus0(scope.$index, scope.row)">转为意向</el-button>
+                          <el-button
+                          style="background-color:#BFBFBF;border-color:#BFBFBF;color:#fff;"
+                          size="mini"
+                          @click="empty(scope.$index, scope.row)">空号</el-button>
+                      </template>
+                    </el-table-column>
+                </el-table>
+            </div>
+            <div style="margin:20px 0;">
+                <span class="tips">通话记录</span>
+            </div>
+            <div class="cusMTable2"
+            v-loading="loading2">
+                <el-table
+                :data="callRecords"
+                :row-class-name="headerClassName"
+                style="width: 100%">
+                    <el-table-column
+                      type="index"
+                      label="序号"
+                      width="50">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBC002"
+                      label="客户姓名">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBC003"
+                      label="联系电话" width="150">
+                    </el-table-column>
+                    <el-table-column
+                      prop="callState"
+                      label="拨打状态">
+                    </el-table-column>
+                    <el-table-column
+                      prop="YBCF0012"
+                      label="拨打时间" width="160">
+                    </el-table-column>
+                    <el-table-column
+                      prop="state"
+                      label="客户状态">
+                    </el-table-column>
+                    <el-table-column label="回拨" width="100">
+                      <template slot-scope="scope">
+                        <el-button
+                          icon="fa fa-phone"
+                          style="color:#fff;padding:4px 10px;background-color:#54DE9E;border-color:#54DE9E;font-size:20px;"
+                          @click="callBack(scope.$index, scope.row)"></el-button>
+                      </template>
+                    </el-table-column>
+                </el-table>
+                <div style="text-align:right;" v-if="moreRecordFlag">
+                    <el-pagination
+                      @current-change="handleCurrentChange"
+                      :current-page="pageInit.currentPage"
+                      :page-size="10"
+                      layout="total, prev, pager, next, jumper"
+                      :total="pageInit.totalResult">
+                    </el-pagination>
+                </div>
+                <div style="text-align:center;margin-top:20px;" v-else>
+                    <el-button type="primary" plain @click="moreRecord" style="width: 200px;border-radius: 20px;">查看更多记录<i class="el-icon-d-arrow-right"></i></el-button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script  th:inline="javascript">
+
+    var basePath="/"+window.location.pathname.split("/")[1];
+    let app=window.parent.App;
+
+
+    var callWorkbApp=new Vue({
+        el:"#callWorkbApp",
+        data(){
+            return {
+                callPlan:[],
+    //            返回每一行的id
+                getRowKeys(row){
+                    return row.YBC001;
+                },
+                expands:[],
+//                客户标签
+                customerTags:[],
+//                添加客户标签
+                addCusTag:false,
+//                可选标签
+                TagOptions:[],
+//                添加的新标签
+                newTags:[],
+//                通话记录
+                callRecords:[],
+//                页码
+                pageInit:{currentPage:1,totalResult:1},
+//                输入框显示的电话号码
+                phoneNum:"",
+//                查询客户姓名
+                callName:"",
+//                筛选客户状态
+                selCusTPFg:false,
+//                选择的客户类别
+                selCusTP:0,
+//                外呼
+                callOutNum:'',
+//                客户池数量
+                cusNums:'',
+//                待跟进数量
+                stayFolNum:'',
+//                累计通话时间
+                callTime:'',
+//                拨打中的状态flag
+                callingFg:true,
+                callHangup:false,
+//                来电状态flag
+                callInFg:true,
+//                呼叫状态
+                callState:'',
+//                用于清除定时器的flag
+                timerFlag:false,
+//                是否是回拨电话
+                callBackFlag:false,
+//                待办拨打事项是否处理
+                tobeCall:{id:"",phone:"",flag:false},
+//                是否是第一次待拨打
+                firstCall:0,
+//                监听拨打通话状态
+                callStateS:1,
+                //通话状态--1接通 2未接通
+                YBCF0010_TP:2,
+                //通话类型--1呼入  2呼出
+                YBCF0011_TP:2,
+//                当前拨打电话用来回来跟进记录的id
+                YBCF001:"",
+//                当前拨打电话用来回来跟进记录的外接id
+                YBCF009:'',
+                loading:false,
+                loading2:false,
+                // 是否查看真实的通话记录
+                moreRecordFlag:false
+            }
+        },
+        mounted(){
+            this.getUserTabs();
+            // this.getCallRecord();
+
+            this.firstGetCallOut(0);
+            if(sessionStorage.calloutPhone){
+                this.phoneNum=(sessionStorage.calloutPhone).replace(/[^0-9]/ig,"");
+            }
+            if(localStorage.records){
+                this.callRecords=JSON.parse(localStorage.records);
+            }
+        },
+        methods:{
+            noCall(){
+                console.log("不能拨打")
+            },
+            openSelCusTP(){
+                if(this.callingFg || this.callPlan.length==0){
+                    this.selCusTPFg=true;
+                }else{
+                    this.$message({
+                      message: '正在拨打，请不要操作此功能！',
+                      type: 'warning'
+                    });
+                }
+            },
+            clickRow(row,event,column){
+                this.getExpands();
+            },
+            //            表格间隔行变色
+            tableRowClassName({row,rowIndex}){
+                if(rowIndex==0){
+                    return "evrow0"
+                }
+                return 'evrow';
+            },
+            headerClassName({row,rowIndex}){
+                return 'evrow2'
+            },
+//            默认展开第一行
+            getExpands(){
+                this.expands=[];
+                if(this.callPlan.length>0){
+                    this.expands.push(this.callPlan[0].YBC001);
+                }
+            },
+//            获取客户标签可选项
+            getUserTabs(){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pubSys/getLabelLst`,
+                    data:"",
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.TagOptions=data.result;
+                        }
+                    }
+                })
+            },
+//            获取客户姓名
+            getCallName(phone,id){
+                let that=this;
+        				if(id){
+        					that.callOuting(phone,id);
+        					$.ajax({
+        						type:"GET",
+        						url:`${basePath}/pho_rec/getNameByTel`,
+        						data:{YBC003:phone},
+        						success:function(data){
+        							if(data.msg=="200"){
+        								if(data.result.YBC001){
+        									that.callName=data.result.YBC002;
+        								}else{
+        									that.callName="陌生号码";
+        								}
+        							}
+        						}
+        					})
+        				}else{
+        					$.ajax({
+        						type:"GET",
+        						url:`${basePath}/pho_rec/getNameByTel`,
+        						data:{YBC003:phone},
+        						success:function(data){
+        							if(data.msg=="200"){
+        								if(data.result.YBC001){
+        									that.callName=data.result.YBC002;
+        									that.callOuting(phone,data.result.YBC001)
+        								}else{
+        									that.callName="陌生号码";
+        									that.callOuting(phone,'')
+        								}
+        							}
+        						}
+        					})
+        				}
+
+            },
+            // 获取真实通话记录
+            moreRecord(){
+                this.moreRecordFlag=true;
+                this.handleCurrentChange(1);
+            },
+//            获取通话记录详情
+            getCallRecord(){
+                this.moreRecordFlag=false;
+                app.moreRecordFlag=false;
+                var obj={YBC002:this.callName,YBC003:this.phoneNum,callState:this.YBCF0010_TP==2 ? '未接通' : '接通'}
+                console.log(obj);
+                if(localStorage.records){
+                    var records=JSON.parse(localStorage.records);
+                    records.unshift(obj);
+                    if(records.length>10){
+                        records.splice(-1,1);
+                    }
+                    localStorage.records=JSON.stringify(records);
+                }else{
+                  var arr= new Array();
+                  arr[0]=obj;
+                  localStorage.records=JSON.stringify(arr);
+                }
+                console.log(localStorage.records);
+                this.callRecords=JSON.parse(localStorage.records);
+                console.log(this.callRecords);
+            },
+//            翻页
+            handleCurrentChange(val){
+                this.loading2=true;
+                console.log(val);
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pho_calOut/getPageGetRecFormFowLst`,
+                    data:{currentPage:val},
+                    success:function(data){
+                        console.log(data);
+                        that.callRecords=data.rows;
+                        that.pageInit.totalResult=data.total;
+                            that.loading2=false;
+                    }
+                })
+            },
+//            删除客户标签
+            handleClose(tag) {
+                let cusTags=this.customerTags;
+                cusTags.splice(cusTags.indexOf(tag), 1);
+                let str='';
+                for(let i=0;i<cusTags.length;i++){
+                    str+=cusTags[i] + ","
+                }
+                let YBC001=this.tobeCall.id || this.callPlan[0].YBC001;
+                let cusTTag={
+                    YBC001:YBC001,
+                    YBC023:str
+                }
+                let that =this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/cus_/updateCusForLabel`,
+                    data:cusTTag,
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.$message({
+                              message: '标签删除成功',
+                              type: 'success'
+                            });
+                            that.customerTags=cusTags;
+                            that.addCusTag = false;
+                            that.newTags=[];
+                        }else{
+                            that.$message({
+                              message: '删除失败！',
+                              type: 'warning'
+                            });
+                        }
+                    }
+                })
+            },
+//            显示添加标签输入框
+            showInput() {
+                if(this.tobeCall.id !=""){
+                    this.addCusTag = true;
+                }else{
+                    this.$message.error("请先拨打后再操作！");
+                }
+            },
+//            确定添加的客户标签
+            sureAddTag() {
+                let cusTags=this.customerTags;
+                if(!cusTags){
+                    cusTags=[];
+                }
+                let newTags=this.newTags;
+                function tab(arr1,arr2){
+                    var arr = arr1.concat(arr2);
+                    var lastArr = [];
+                    for(var i = 0;i<arr.length;i++){
+                        if(! unique(arr[i],lastArr)){
+                            lastArr.push(arr[i]);
+                        }
+                    }
+                    return lastArr;
+                }
+                function unique(n,arr){
+                    for(var i=0;i<arr.length;i++){
+                        if(n==arr[i]){
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                cusTags=tab(cusTags,newTags);
+                let str='';
+                for(let i=0;i<cusTags.length;i++){
+                    str+=cusTags[i] + ","
+                }
+
+                if(str.length>0){
+                    let YBC001=this.tobeCall.id || this.callPlan[0].YBC001;
+                    let cusTTag={
+                        YBC001:YBC001,
+                        YBC023:str
+                    }
+                    let that =this;
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/cus_/updateCusForLabel`,
+                        data:cusTTag,
+                        success:function(data){
+                            if(data.msg=="200"){
+                                that.$message({
+                                  message: '标签添加成功',
+                                  type: 'success'
+                                });
+                                that.tobeCall.flag=true;
+                                that.customerTags=cusTags;
+                                that.addCusTag = false;
+                                that.newTags=[];
+                            }else{
+                                that.$message({
+                                  message: '添加失败！',
+                                  type: 'warning'
+                                });
+                            }
+                        }
+                    })
+                }else{
+                    this.$message.error("请先添加标签！");
+                }
+
+            },
+//            转为意向客户
+            changeCus0(index,row){
+                if(this.tobeCall.id !=""){
+                    this.tobeCall.flag=true;
+                    let that=this;
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/cus_/updateCusToThink`,
+                        data:{YBC001:row.YBC001},
+                        success:function(data){
+                            if(data.msg="200"){
+                                that.$message({
+                                  message: '您已成功标记为意向客户',
+                                  type: 'success'
+                                });
+                            }
+                        }
+                    })
+                }else{
+                    this.$message.error("请先拨打后再操作！");
+                }
+            },
+//            空号码
+            empty(index,row){
+                if(this.tobeCall.id !=""){
+                    this.tobeCall.flag=true;
+                    let that=this;
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/pho_calOut/updateToNullPhoByCusId`,
+                        data:{YBC001:row.YBC001},
+                        success:function(data){
+                            if(data.msg="200"){
+                                that.$message({
+                                  message: '您已成功标记为空号',
+                                  type: 'success'
+                                });
+                            }
+                        }
+                    })
+                }else{
+                    this.$message.error("请先拨打后再操作！");
+                }
+            },
+            getFolRd(index,row){
+                if(this.tobeCall.id !=""){
+                    if(row.followRecord){
+                        let YBC001=row.YBC001;
+                        let cusText=row.followRecord;
+                        let newFollowInfo={
+                            YBC001:YBC001,
+                            YBCF007_TP:3,
+                            YBCF006:cusText
+                        }
+                        let that=this;
+                        $.ajax({
+                            type:"GET",
+                            url:`${basePath}/cus_follow/addFollow`,
+                            data:newFollowInfo,
+                            success:function(data){
+                                if(data.msg=="200"){
+                                    that.$message({
+                                      message: '您已成功添加跟进消息',
+                                      type: 'success'
+                                    });
+                                    that.tobeCall.flag=true;
+                                    that.callPlan[index].followRecord = "";
+                                }else{
+                                    that.$message({
+                                      message: '添加跟进消息失败！',
+                                      type: 'warning'
+                                    });
+                                }
+                            }
+                        })
+                    }else{
+                        this.$message({
+                          message: '请输入跟进记录内容！',
+                          type: 'warning'
+                        });
+                    }
+                }else{
+                    this.$message.error("请先拨打后再操作！");
+                }
+            },
+
+
+//            秒转换为时分秒//秒转化成 时分秒
+            secondToDate(result) {
+                var h = Math.floor(result / 3600);
+                var m = Math.floor((result / 60 % 60));
+                var s = Math.floor((result % 60));
+                if(h>0){
+                    return result = h + "h" + m + "min" + s + "s";
+                }
+                return result = m + "min" + s + "s";
+            },
+
+//            回拨电话
+            callBack(index,row){
+                console.log(index,row);
+                this.phoneNum=(row.YBC003).replace(/[^0-9]/ig,"");
+                this.callBackFlag=true;
+            },
+//            键盘按键数字
+            calphoneNum(n){
+                this.phoneNum+=n;
+            },
+            clearPhoneNum(){
+                this.phoneNum="";
+            },
+//            删除按键数字最后一位
+            delPhoneNum(){
+                let str=this.phoneNum;
+                this.phoneNum=str.substr(0,str.length-1);
+            },
+//            筛选客户类型改变时
+            changeSelCusTP(val){
+                this.firstGetCallOut(val);
+                this.selCusTPFg=false;
+
+            },
+//            第一次获取拨打列表数据
+            firstGetCallOut(val){
+                this.loading=true;
+                console.log("获取第一次及改变类型的待拨打列表")
+                this.callingFg=false;
+                let that=this;
+//                待拨打列表
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pho_calOut/wtCallLst`,
+                    data:{YBC008_TP:val},
+                    success:function(data){
+                        console.log("获取待拨打列表");
+                        console.log(data);
+                        if(data.msg=="200"){
+
+                            that.loading=false;
+                            that.callPlan=data.result;
+//                            2018.5.28修复拨打后，切换类型，再次拨打导致数据被回收问题>>
+                            that.tobeCall.id='';
+                            that.tobeCall.phone='';
+                            that.tobeCall.flag=true;
+                            if(sessionStorage.calloutPhone ==""){
+                                that.phoneNum='';
+                            }
+                            that.callName='';
+                            that.callState='';
+                            //<<2018.5.28
+                            that.getExpands();
+                            if(data.result.length==0){
+                                that.callingFg=false;
+                                that.callHangup=false;
+                            }else{
+                                that.callingFg=true;
+                            }
+                        }
+                    }
+                })
+//                客户数量池
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pho_calOut/getTolPoolDb`,
+                    data:{YBC008_TP:val},
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.cusNums=data.result;
+                            console.log("通话数量")
+                            console.log(data.result);
+//                            调用获取外呼、待跟进、累计通话
+                            that.getCallInfo(data.result,val);
+                        }
+                    }
+                })
+            },
+//            请求待拨打列表刷新
+            getWtCallOut(val){
+                this.loading=true;
+                console.log("——————————————————进入请求刷新待拨打列表——————————————");
+                let that=this;
+//                待拨打列表
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pho_calOut/wtCallLst`,
+                    data:{YBC008_TP:val},
+                    success:function(data){
+                        console.log("——————————————————请求刷新待拨打列表成功——————————————");
+                        console.log(data);
+                        if(data.msg=="200"){
+                            that.callPlan=data.result;
+                            that.getExpands();
+                            that.loading=false;
+
+                            if(data.result.length==0){
+                                that.callingFg=false;
+                                that.callName="";
+                                that.phoneNum="";
+                                that.callState="该类型已无待拨打客户";
+                                that.callHangup=false;
+                            }else{
+                                that.phoneNum=data.result[0].YBC003;
+                                that.phoneNum=(that.phoneNum).replace(/[^0-9]/ig,"");
+                                if(that.phoneNum.length>11){
+                                    that.phoneNum=(that.phoneNum).substring(0,11);
+                                }
+
+                                console.log("显示的电话号码");
+                                console.log(that.phoneNum);
+                                console.log("调用拨打的电话号码")
+                                console.log(that.phoneNum);
+
+    //                            调用呼叫系统拨打操作
+                                that.getCallName(that.phoneNum,data.result[0].YBC001);
+    //                            保存上一条电话的信息
+                                that.tobeCall.id=data.result[0].YBC001;
+                                that.tobeCall.phone=that.phoneNum;
+                                that.tobeCall.flag=false;
+
+
+                            }
+
+                        }
+                    }
+                })
+//                客户数量池
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pho_calOut/getTolPoolDb`,
+                    data:{YBC008_TP:val},
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.cusNums=data.result;
+
+//                            调用获取外呼、待跟进、累计通话
+                            that.getCallInfo(data.result,val);
+                        }
+                    }
+                })
+            },
+//            异步获取外呼个数、待跟进、累计通话
+            getCallInfo(val,YBC008_TP){
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pho_calOut/getTolCallOtAdWtFwAdTmDb`,
+                    data:{countPoolSize:val,YBC008_TP:YBC008_TP},
+                    success:function(data){
+                        console.log("获取外呼、待跟进、累计通话");
+                        console.log(data);
+                        if(data.msg=="200"){
+                            that.callOutNum=data.result.callOtNum;
+                            that.stayFolNum=data.result.wtFwNum;
+                            that.callTime=that.secondToDate(data.result.takTime);
+                        }
+                    }
+                })
+            },
+//    来电接听或者是对方接听的时候，启动定时器
+            timer(){
+                let that=this;
+                let s=0;
+                let m=0;
+                let h=0;
+                let sj = setInterval(function(){
+                        let str_s=s;
+                        let str_m=m;
+                        let str_h=h;
+                        if(s<10){
+                            str_s='0' + s;
+                        }
+                        if(m<10){
+                            str_m='0' + m;
+                        }
+                        if(h<10){
+                            str_h='0' + h;
+                        }
+                        let num=str_h + ":" + str_m + ":" + str_s;
+                        that.callState=num;
+                        s++;
+                        if(s>59){
+                            s=0;
+                            m++;
+                        }
+                        if(m>59){
+                            s=0;
+                            h++;
+                        }
+                        if(that.timerFlag){
+                            window.clearInterval(sj);
+                            that.callState="通话结束";
+                        }
+                    },1000);
+            },
+//            暂时不管来电
+//    当来电的时候
+            callInS(){
+                this.callInFg=true;
+            },
+//    来电接听
+            callInAnswer(){
+//                通话类型--1呼入  2呼出
+                this.YBCF0011_TP=1;
+                //通话状态--1接通 2未接通
+                this.YBCF0010_TP=2;
+                this.callInFg=false;
+                this.timer();
+            },
+//    来电未接挂断
+            callInHangUp(){
+                this.callInFg=false;
+            },
+//    来电-接听后挂断
+            callInAnswerHangup(){
+                this.callInFg=false;
+                this.clearTimer();
+            },
+//    清除定时器
+            clearTimer(){
+                this.timerFlag=true
+            },
+//    拨打A(待拨打列表)
+            callOutA(){
+                let that=this;
+                sessionStorage.calloutPhone="";
+                if(!app.cusCallBusy){
+
+                    this.YBCF0010_TP=2;
+                    this.timerFlag=false;
+                    this.callingFg=false;
+                    this.callHangup=true;
+//                判断上一电话是否处理
+                    if(this.tobeCall.id==''){
+                        this.getWtCallOut(this.selCusTP);
+                    }else{
+
+    //                        没有做4个操作，未处理,先请求后台未处理该客户的接口，后在刷新列表
+                        if(this.tobeCall.flag){
+                            console.log("——————————————不做废弃操作——————————————————");
+                            this.newCallTime(this.tobeCall.id);
+                        }else{
+                            if(this.selCusTP==0 || this.selCusTP==10 || this.selCusTP==11 || this.selCusTP==13){
+                                console.log("——————————————做废弃操作————————————————————");
+                                $.ajax({
+                                    type:"GET",
+                                    url:`${basePath}/pho_calOut/updatePhoScrapByCusID`,
+                                    data:{YBC001:that.tobeCall.id},
+                                    success:function(data){
+                                        if(data.msg=="200"){
+                                            that.newCallTime(that.tobeCall.id);
+                                        }
+                                    }
+                                })
+                            }else{
+                                this.newCallTime(this.tobeCall.id);
+                                console.log("——————————————不做废弃操作——————————————————");
+                            }
+
+                        }
+
+                    }
+                }else{
+                    this.$message({
+                        message: '呼叫系统已被示忙，请点击示闲后进行拨打操作！',
+                        type: 'warning'
+                    });
+                }
+            },
+//    拨打B(主动拨打或回拨)
+            callOutB(){
+                let that=this;
+                sessionStorage.calloutPhone="";
+                console.log(app.cusCallBusy);
+                if(!app.cusCallBusy){
+                    if(this.callingFg || this.callPlan.length==0){
+                        if(this.phoneNum.length>0){
+                            this.tobeCall.id="";
+                            this.YBCF0010_TP=2;
+                            this.timerFlag=false;
+                            this.callingFg=false;
+
+                            this.callHangup=true;
+            //                判断是否是回拨的电话
+                            if(this.callBackFlag){
+            //                    是回拨的电话
+                                this.callBackFlag=false;
+            //                    调用拨打电话接口
+                                this.getCallName(this.phoneNum);
+                            }else{
+            //                    主动拨打的电话
+            //                    调用拨打电话接口
+                                this.getCallName(this.phoneNum);
+                            }
+                        }else{
+                            that.$message({
+                                message: '请拨打正确的手机号码！',
+                                type: 'warning'
+                            });
+                        }
+                    }else{
+                        that.$message({
+                            message: '呼叫正在拨打中，请挂断后再主动拨打！',
+                            type: 'warning'
+                        });
+                    }
+                }else{
+                    this.$message({
+                        message: '呼叫系统已被示忙，请点击示闲后进行拨打操作！',
+                        type: 'warning'
+                    });
+                }
+
+            },
+//     拨打-对方接听
+            callOutAnswer(){
+                this.timer();
+            },
+//     拨打-对方未接通
+            callOutUnA(){
+                this.callingFg=true;
+            },
+//     拨打-接听后我方挂断
+            calOutAnswerHangupA(){
+                this.clearTimer();
+                this.callState="通话结束";
+                this.callingFg=true;
+                this.getCallRecord();
+                this.callHangup=false;
+                window.parent.hangupTest(this.phoneNum);
+            },
+//     拨打-接听后对方挂断
+            callOutAnswerHangupB(){
+
+            },
+//            通话挂断之后的操作
+            callHangUPDo(){
+                this.clearTimer();
+                this.callingFg=true;
+                this.getCallRecord();
+                this.callHangup=false;
+//                let that=this;
+////                挂断后写入电话跟进记录，重新请求通话记录
+//                let callFollow={
+//                    YBCF001:this.YBCF001,
+//                    YBC001:this.tobeCall.id,
+//                    YBCF007_TP:2,
+//                    YBCF0010_TP:this.YBCF0010_TP,//通话状态
+//                    YBCF0011_TP:this.YBCF0011_TP,//通话类型
+//                }
+//                console.log(callFollow);
+//                $.ajax({
+//                    type:"GET",
+//                    url:`${basePath}/pho_calOut/updateFwById`,
+//                    data:callFollow,
+//                    success:function(data){
+//                        console.log(data)
+//                        if(data.msg=="200"){
+//                            that.getCallRecord();
+//                        }
+//                    }
+//                })
+            },
+//            呼叫系统拨打操作
+            callOuting(phone,id){
+                let that=this;
+//                挂断后写入电话跟进记录，重新请求通话记录
+                let callFollow={
+                    YBC001:id,
+                    YBCF007_TP:2,
+                    YBCF0010_TP:this.YBCF0010_TP,//通话状态
+                    YBCF0011_TP:this.YBCF0011_TP,//通话类型
+                }
+                if(phone.length>0){
+                    $.ajax({
+                        type:"GET",
+                        url:`${basePath}/pho_calOut/addFlowForCall`,
+                        data:callFollow,
+                        success:function(data){
+                            console.log(data)
+                            if(data.msg=="200"){
+                                that.YBCF009=data.result.YBCF009;
+                                that.YBCF001=data.result.YBCF001;
+                                console.log("————————YBCF009查询主键————————————")
+                                console.log(data.result.YBCF009);
+                                window.parent.calloutTest(phone,data.result.YBCF009);
+                            }else{
+                                window.parent.calloutTest(phone,"");
+                            }
+                        }
+                    })
+                }else{
+                    that.$message({
+                        message: '请拨打正确的手机号码！或直接自动拨打过滤掉此号码',
+                        type: 'warning'
+                    });
+                }
+
+            },
+            newCallTime(ID){
+                console.log("——————————————————进入更新拨打时间——————————————");
+                let that=this;
+                $.ajax({
+                    type:"GET",
+                    url:`${basePath}/pho_calOut/updateCallTmByCusId`,
+                    data:{YBC001:ID},
+                    success:function(data){
+                        if(data.msg=="200"){
+                            that.getWtCallOut(that.selCusTP);
+                        }
+                    }
+                })
+            }
+
+        }
+    })
+
+</script>
+</html>

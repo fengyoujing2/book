@@ -1,0 +1,13 @@
+package com.dbsun.mapper.homepage;
+
+import java.util.List;
+
+import com.dbsun.entity.system.PageData;
+
+
+public interface HmPCusMapper {
+	
+	public PageData getCusDb(PageData pd);
+	public List<PageData> getCtForMonth(PageData pd);
+	
+}

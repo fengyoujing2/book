@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的邀请码</title>
+    <style>
+        a:hover{
+            text-decoration: none;
+        }
+
+        a:visited{
+            text-decoration: none;
+        }
+
+        a:active{
+            text-decoration: none;
+        }
+
+        .yangshi{
+            display: block;
+            padding: 3px 20px;
+            clear: both;
+            font-weight: 400;
+            line-height: 1.42857143;
+            color: #333;
+            white-space: nowrap;
+        }
+
+    </style>
+
+
+</head>
+<body style="background:#FFF5F0">
+
+
+
+<div class="container-fluid jianju"  id="contain" >
+
+
+
+
+    <div class="row" style="margin-top: 30px">
+        <div class="col-xs-12  text-left" style="padding: 40px;margin-right: 0;padding-top: 0;padding-bottom: 0">
+            <div style="text-align: center;margin: 0 auto;border: 1px solid white;width: 100%;border-radius: 10px;background: #ffffff;box-shadow: 0px 1px 9px #ecd1c2;padding-top: 0;padding-bottom: 30px">
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-center  " style="padding: 15px;color:#0198EF;font-size: 18px;padding-right: 0;color: rgb(100,100,100);padding-left: 0;padding-bottom: 0">
+                            	分享<span style="font-size: 5px;vertical-align: middle;">&nbsp;●&nbsp;</span>邀请码
+                        </div>
+                    </div>
+                </div>
+
+                <!--<div style="width: 130px;background:white;padding-right: 0px;padding-left: 0;border-bottom: 3px solid #7D7D7D;margin: auto">-->
+                    <!--<div class="row" style="background: white;margin-left: 0;margin-right: 0;">-->
+                        <!--<div class="col-xs-12  text-center  " style="color:#0198EF;font-size: 25px;padding-right: 0px;color: rgb(100,100,100);padding-left: 0px">-->
+                            <!--1234567-->
+                        <!--</div>-->
+                    <!--</div>-->
+                <!--</div>-->
+
+                <div style="width: 130px;background:white;padding-right: 0px;padding-left: 0;margin: auto">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-center  " style="padding: 15px;color:#0198EF;font-size: 14px;padding-right: 0px;color: rgb(100,100,100);padding-left: 0px;padding-bottom:5px;">
+                            <img th:src="${scanUrl}" width="100%">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-12  text-center  " style="padding: 15px;color:#0198EF;font-size: 14px;padding-right: 10px;color: rgb(100,100,100);padding-left: 10px;padding-bottom:5px;">
+                            	邀请好友扫二维码关注瑞信梦想金服
+                        </div>
+                    </div>
+                </div>
+
+
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="margin-top: 15px;margin-bottom: 15px;">
+        <div class="col-xs-12  text-left" style="margin-right: 0;">
+            <div style="width: 100%;border-radius: 10px;">
+                <div style="width: 100%;padding-top: 15px;padding-bottom: 5px;text-align: center">
+                    <span style="color: #D2D2D2">——————</span> <span style="font-size: 15px;">立即分享</span> <span style="color: #D2D2D2">——————</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="text-align: center;">
+        <div class="col-xs-12  text-center" style="margin: 0 auto;;margin-right: 0;padding-left: 0px;padding-right: 0;padding-bottom: 0">
+            <div style="width: 50px;height: 50px;display: inline-block;background: url(../static/img/yaoqingma_07.png)no-repeat;background-size: 660%;background-position-x: -22px;background-position-y: -1px;"></div>
+            &nbsp; &nbsp;
+            <div style="width: 50px;height: 50px;background: red;display: inline-block;background: url(../static/img/yaoqingma_07.png)no-repeat;background-size: 660%;background-position-x: -98px;background-position-y: -1px;"></div>
+            &nbsp; &nbsp;
+            <div style="width: 50px;height: 50px;background: red;display: inline-block;background: url(../static/img/yaoqingma_07.png)no-repeat;background-size: 660%;background-position-x: -174px;background-position-y: -1px;"></div>
+            &nbsp; &nbsp;
+            <div style="width: 50px;height: 50px;background: red;display: inline-block;background: url(../static/img/yaoqingma_07.png)no-repeat;background-size: 660%;background-position-x: -245px;background-position-y: -1px;"></div>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-left" style="margin-right: 0;">
+            <div style="width: 100%;border-radius: 10px;">
+                <div style="width: 100%;padding-top: 15px;padding-bottom: 5px">
+                    <div style="display:inline-block;vertical-align: middle">
+                       <span style="font-size: 18px;">分享小贴士：</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="color: #345b7d;line-height: 1;">
+        <div class="col-xs-12  text-left" style="margin-right: 0;">
+            <div style="width: 100%;border-radius: 10px;">
+                <div style="width: 100%;">
+                    <div style="display:inline-block;vertical-align: middle">
+                        <span style="font-size: 14px;">1.&nbsp;您的专属邀请码只属于你个人，请牢记！</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="color: #345b7d;">
+        <div class="col-xs-12  text-left" style="margin-right: 0;">
+            <div style="width: 100%;border-radius: 10px;">
+                <div style="width: 100%;">
+                    <div style="display:inline-block;vertical-align: middle">
+                        <span style="font-size: 14px;">2.&nbsp;好友接收邀请后，需先关注公众号，随后输入您的邀请码完成 整个邀请流程。好友与您均能获得20积分。</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="padding-bottom: 30px;color: #345b7d;">
+        <div class="col-xs-12  text-left" style="margin-right: 0;">
+            <div style="width: 100%;border-radius: 10px;">
+                <div style="width: 100%;">
+                    <div style="display:inline-block;vertical-align: middle">
+                        <span style="font-size: 14px;">3.&nbsp;不要尝试作弊，多次关注或注册虚假账号完成邀请均会清零积 分并会取消活动资格。</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:include="html/page/contentpublic :: html"></div>
+<script th:inline="javascript">
+function getRealPath(){
+                var localObj = window.location;
+                var contextPath = localObj.pathname.split("/")[1];
+                var basePath = localObj.protocol + "//" + localObj.host + "/"+ contextPath;
+                return basePath ;
+            }	
+           // var ywu010 =  [[${ywu010}]];
+       $(document).ready(function(){
+	var url = window.location.href;
+	var ywu010 = null;
+	var urlShare = window.location.href;
+        var path = getRealPath();
+        	jQuery.ajax({
+                url:path+"/wechat/getJssdk",
+                data:{URL:url},
+                type:'POST',
+                dataType:"json",
+                async: false,
+                success:function(result,status){
+                 //组装openid
+                    urlShare = window.location.href +"?YWU010="+result.ywu010;
+                    wx.config({
+                        debug : false, //
+                        appId : result.appId, // 必填，公众号的唯一标识
+                        timestamp : result.timestamp, // 必填，生成签名的时间戳
+                        nonceStr : result.nonceStr, // 必填，生成签名的随机串
+                        signature : result.signature,// 必填，签名，见附录1
+                        jsApiList : [
+                            'onMenuShareAppMessage'
+                        ]
+                        // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+                    });
+                }
+
+            });
+        	wx.ready(function(){
+    			// config信息验证后会执行ready方法，所有接口调用都必须在config接口获得结果之后，config是一个客户端的异步操作，所以如果需要在页面加载时就调用相关接口，则须把相关接口放在ready函数中调用来确保正确执行。对于用户触发时才调用的接口，则可以直接调用，不需要放在ready函数中。
+				wx.onMenuShareAppMessage({
+				    title: '邀您关注瑞信梦想金服', // 分享标题
+				    desc: '马上关注,更多惊喜等着您!', // 分享描述
+				    link: urlShare, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+				    imgUrl: '', // 分享图标
+				    type: '', // 分享类型,music、video或link，不填默认为link
+				    dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+				    success: function () { 
+				        // 用户确认分享后执行的回调函数
+				        alert('分享朋友成功!');
+				    },
+				    cancel: function () { 
+				        // 用户取消分享后执行的回调函数
+				        alert('取消分享朋友!');
+				    }
+				});
+			});
+		});
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.phonesys.PhoCaloutMapper">
+<!-- 客户外呼 -->
+
+	<!-- 外呼右侧列表 -->
+	<select id="getWtCallCuses" parameterType="pd" resultType="pd" useCache="false">
+		select
+			c.YBC001, 
+			c.YBC002, 
+			(
+				case c.YBC004_TP 
+					when 1 then '男'	
+					when 2 then '女'	
+				end
+			) as sex, 
+			c.YBC003, 
+			c.YBC023
+			
+		from ybc c
+		where 1 = 1 
+		and c.USER_ID = #{USER_ID}
+		and c.YBC008_TP = #{YBC008_TP}<!-- 客户状态 --> 
+		and c.YBC026_TP != 1 
+		and c.YBC024 != 1
+		and c.YBC031_TP != 1 <!-- 电话废弃 -->
+		and c.YBC033_TP != 1 <!-- 电话废弃状态为0或者是空号 --> 
+		<!-- and (DATE(c.YBC034_TM) != curdate() or c.YBC034_TM is null) --> <!-- 当天没有跟进数量， -->
+		order by c.YBC034_TM<!-- 按拨打时间排序，刚拨打的排到最后 --> 
+		limit 0, 5 
+	</select>
+	
+	<!-- 获取通话记录 -->
+	<select id="getPageRecFormFowLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			ifnull(c.YBC003, f.YBCF0015) as YBC003,
+			f.YBCF0012, <!--拨打时长-->
+			ifnull(c.YBC002, '陌生号码') as YBC002,
+			(
+				case c.YBC008_TP
+					when 0 then '临时（大类）'
+					when 10 then '临时（小类）'
+					when 1 then '意向'
+					when 2 then '上门'
+					when 3 then '签单'
+					when 4 then '回收'
+					when 5 then '再签单'
+					else  '无'
+				end
+			) as state,
+			(
+				case f.YBCF0010_TP
+					when 1 then "接通"
+					when 2 then "未接通"
+				end
+			) as callState, <!-- 接听状态 -->
+			(
+				case f.YBCF0011_TP
+					when 1 then "呼入"
+					when 2 then "呼出"
+				end
+			) as callType, <!-- 通话类型 -->
+			f.YBCF002_TM <!--拨打时间-->
+
+		from
+			(
+				select
+					*
+				from ybc_follow
+				where 1 = 1
+				and YBCF007_TP = 2 <!-- 状态为呼叫 -->
+				and user_id = #{pd.USER_ID} <!-- 跟进人员 -->
+				order by YBCF002_TM desc
+			) as f
+		left join ybc c
+		on f.ybc001 = c.ybc001
+		order by f.YBCF002_TM desc
+	</select>
+	
+	<!-- 电话废弃 -->
+	<update id="updatePhoScrapByCusID" parameterType="pd">
+		update 
+			ybc 
+			<set>
+					YBC031_TP		= 1 
+					,YBC032_TM		= now()<!-- 电话废弃时间 -->
+					,YBC015_TM 		= now()
+			</set>
+			where	
+					YBC001			= #{YBC001}	
+	</update>
+	
+	<!-- 标记客户为空号 -->
+	<update id="updateToNullPhoByCusId" parameterType="pd">
+		update 
+			ybc 
+			<set>
+					YBC033_TP		= 1<!-- 空号 -->
+					,YBC015_TM		= now()
+			</set>
+			where	
+					YBC001			= #{YBC001}	
+	</update>
+	
+	<!-- 第一次进来获取池子总数 -->
+	<select id="getCountPollSiz" parameterType="pd" resultType="pd" useCache="false">
+		select
+			count(c.ybc001) as poolSize
+		from ybc c
+		where 1 = 1 
+		and c.USER_ID = #{USER_ID}
+		and c.YBC008_TP = #{YBC008_TP}<!-- 客户状态 --> 
+		and c.YBC026_TP != 1 
+		and c.YBC024 != 1
+		and c.YBC031_TP != 1 <!-- 电话废弃 -->
+		and c.YBC033_TP != 1 <!-- 电话废弃状态为0或者是空号 --> 
+	</select>
+	
+	<!-- 当天的外呼数量（根据YBC获取，外呼才会回写时间） -->
+	<select id="getCountOutNum" parameterType="pd" resultType="pd" useCache="false">
+		select
+			count(f.YBCF001) as callOtNum, <!--当天拨打数量-->
+			ifnull(sum(f.YBCF0012), 0) as takTime <!--当天通话时长-->
+		from ybc_follow f 
+		where 1 = 1
+		and f.USER_ID = #{USER_ID} 
+		and f.YBCF007_TP = 2 <!-- 跟进类型为呼叫 -->
+		and DATE(f.YBCF002_TM) = curdate()<!-- 当天的数据 -->
+	</select>
+	
+	<!-- 当天待跟进数量 -->
+	<select id="getWtFlwNum" parameterType="pd" resultType="pd" useCache="false">
+		select
+			count(c.YBC001) as wtFwNum
+		from ybc c
+		where 1 = 1 
+		and c.USER_ID = #{USER_ID}
+		and c.YBC008_TP = #{YBC008_TP}<!-- 客户状态 --> 
+		and c.YBC026_TP != 1 
+		and c.YBC024 != 1
+		and c.YBC031_TP != 1 <!-- 电话废弃 -->
+		and c.YBC033_TP != 1 <!-- 电话废弃状态为0或者是空号 --> 
+		and (DATE(c.YBC034_TM) != curdate() or c.YBC034_TM is null) <!-- 当天没有跟进数量 -->
+	</select>
+	
+	<!-- 当天的通话时长 -->
+	<select id="getTakTime" parameterType="pd" resultType="pd" useCache="false">
+		select
+			ifnull(sum(f.YBCF0012), 0) as takTime
+		from ybc_follow f
+		where 1 = 1
+		and f.USER_ID = #{USER_ID}
+		and f.YBCF007_TP = 2 <!-- 跟进类型为呼叫 -->  
+		and DATE(f.YBCF002_TM) = curdate()<!-- 当天的数据 -->
+	</select>
+	
+	<!-- 电话拨打出去后更新拨打时间 -->
+	<update id="updateCallTmByCusId" parameterType="pd" flushCache="false">
+		update
+			ybc
+				<set>
+					YBC015_TM			= now()
+					,YBC034_TM			= now()<!-- 拨打时间 -->
+				</set>
+			where
+					YBC001				= #{YBC001}
+	</update>
+	
+	<!-- 回写跟进记录 -->
+	<update id="updateFwById" parameterType="pd" flushCache="false">
+		update 
+			YBC_FOLLOW 
+				<set>
+						YBCF0014_TM		= now()<!-- 回写跟进时间 -->
+					<if test="YBCF0010_TP != null and YBCF0010_TP != ''">
+						,YBCF0010_TP	= #{YBCF0010_TP}<!-- 通话状态 -->
+					</if>
+					<if test="YBCF0011_TP != null and YBCF0011_TP != ''">
+						,YBCF0011_TP	= #{YBCF0011_TP}<!-- 通话类型 -->
+					</if>
+					<if test="YBCF0012 != null and YBCF0012 != ''">
+						,YBCF0012		= #{YBCF0012}<!-- 通话时长 -->
+					</if>
+					<if test="YBCF0013 != null and YBCF0013 != ''">
+						,YBCF0013		= #{YBCF0013}<!-- 通话录音地址 -->
+					</if>
+					<if test="YBCF0015 != null and YBCF0015 != ''">
+						,YBCF0015		= #{YBCF0015}<!-- 呼出的电话号码 -->
+					</if>
+				</set>
+			where 1 = 1 
+			<if test="YBCF001 != null and YBCF001 != ''"><!-- 跟进表主键 -->
+				and YBCF001				= #{YBCF001}
+			</if>
+			<if test="YBCF009 != null and YBCF009 != ''"><!-- 外接ID -->
+				and YBCF009				= #{YBCF009}
+			</if>
+					
+	</update>
+
+</mapper>

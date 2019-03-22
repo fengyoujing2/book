@@ -1,0 +1,12 @@
+package com.dbsun.mapper.finance;
+
+import java.util.List;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+public interface FinPayBillEdMapper {
+	
+	public List<PageData> getPagePayEdLst(Page page);
+	public PageData getBilBySglId(PageData pd);
+}

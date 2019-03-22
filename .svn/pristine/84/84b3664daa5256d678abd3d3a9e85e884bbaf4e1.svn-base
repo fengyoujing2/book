@@ -1,0 +1,48 @@
+#数据源1主数据源用于写数据
+jdbc.driverClassName = com.mysql.jdbc.Driver
+jdbc.url = jdbc:mysql://192.168.1.246:3306/crmdb3?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+jdbc.username = root
+jdbc.password = 111111
+
+#数据源2
+jdbc2.driverClassName = com.mysql.jdbc.Driver
+jdbc2.url = jdbc:mysql://192.168.1.246:3306/crmdb3?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+jdbc2.username = root
+jdbc2.password = 111111
+#设置执行sql语句输出控制台查看
+logging.level.com.dbsun.mapper=debug
+spring.resources.static-locations = classpath:/templates/,classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/
+
+##################################################
+#####        mybatis configurations          #####
+##################################################
+mybatis.mapper-locations=classpath*:com/dbsun/mysql/**/*Mapper.xml
+mybatis.mapper-beans=com.dbsun.mapper
+mybatis.type-aliases-package=com.dbsun.entity
+
+##################################################
+#####         redis configurations          #####
+##################################################
+# Redis数据库索引（默认为0）
+spring.redis.database=0  
+# Redis服务器地址
+spring.redis.host=127.0.0.1
+# Redis服务器连接端口
+spring.redis.port=6379
+# Redis服务器连接密码（默认为空）
+spring.redis.password=
+# 连接池最大连接数（使用负值表示没有限制）
+spring.redis.pool.max-active=8  
+# 连接池最大阻塞等待时间（使用负值表示没有限制）
+spring.redis.pool.max-wait=-1  
+# 连接池中的最大空闲连接
+spring.redis.pool.max-idle=8  
+# 连接池中的最小空闲连接
+spring.redis.pool.min-idle=0  
+# 连接超时时间（毫秒）
+spring.redis.timeout=0  
+
+spring.thymeleaf.mode=LEGACYHTML5
+
+server.context-path=/dbSun
+server.port=80

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.customer.CusLikeTitleMapper">
+	<!-- 根据标签搜索客户 -->
+	
+	<select id="getPageCusLikeTleLst" parameterType="page" resultType="pd" useCache="false">
+		SELECT 
+			c.*
+		FROM ybc c
+		WHERE 1 = 1 
+		AND c.YBC023 
+			LIKE 
+				concat_ws
+					(
+						replace
+						(
+							substring
+							(
+								#{pd.titleAryStr}, 
+								0, 
+								length(#{pd.titleAryStr}) - 1
+							), ',', '%'
+						), '%', '%'
+					) 
+	<!-- 权限 start -->
+		and (
+				(
+					c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+					and 
+					c.POSITION	= #{pd.POSITION}
+				)<!-- 主管 -->
+				or
+				c.USER_ID = #{pd.USER_ID} <!-- 客户经理 -->
+		)
+	<!-- 权限 end -->
+	</select>
+
+	
+</mapper>

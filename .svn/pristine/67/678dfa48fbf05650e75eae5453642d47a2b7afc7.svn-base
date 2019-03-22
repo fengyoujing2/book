@@ -1,0 +1,174 @@
+package com.dbsun.mapper.statistics;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+import java.util.List;
+
+/**
+ * 统计主入口
+ */
+public interface StatisticsMapper {
+
+
+    /**
+     * 后台签单明细列表
+     */
+    public List<PageData> getPageChartSign(Page pd);
+
+    /**
+     * 后台签单当月总数
+     */
+    public PageData getChartSignMonthSum(PageData pd);
+
+    /**
+     * 后台退单列表
+     */
+    public List<PageData> getPageChartBackSign(Page pd);
+
+    /**
+     * 后台退单总数
+     */
+    public PageData getChartBackSignMonthSum(PageData pd);
+
+    /**
+     * 后台过件列表
+     */
+    public List<PageData> getPageChartPiece(Page pd);
+
+    /**
+     * 后台过件所有汇总信息
+     */
+    public PageData getChartPieceAllSum(PageData pd);
+
+    /**
+     * 后台过件当月汇总信息
+     */
+    public PageData getChartPieceMonthSum(PageData pd);
+
+    /**
+     * 后台放贷列表
+     */
+    public List<PageData> getPageChartLending(Page pd);
+
+    /**
+     * 后台放贷所有汇总信息
+     */
+    public PageData getChartLendAllSum(PageData pd);
+
+    /**
+     * 后台放贷当月汇总信息
+     */
+    public PageData getChartLendMonthSum(PageData pd);
+
+    /**
+     * 财务收款明细列表
+     */
+    public List<PageData> getPageChartReceivables(Page pd);
+
+    /**
+     * 财务网贷收款明细列表
+     */
+    public List<PageData> getPageChartNetReceivables(Page pd);
+
+    /**
+     * 财务渠道收款明细列表
+     */
+    public List<PageData> getPageChartChannelReceivables(Page pd);
+
+    /**
+     * 财务已结账明细列表
+     */
+    public List<PageData> getPageChartCheckoutReceivables(Page pd);
+
+    /***
+     *后台用户上传数据来源-汇总信息
+     * @Desc 2018.05.11
+     */
+    public PageData getUploadTheSourceSum(PageData pd);
+
+    /***
+     * 后台用户上传数据来源-汇总列表
+     * 所有\签单\意向
+     * @param page
+     * @Desc 2018.06.15 根据YBC008TP 状态查询 ,1意向 3签单 null所有
+     */
+    public List<PageData> getPageUploadTheSourceListByYBC008TP(Page page);
+
+    /***
+     * 后台用户上传数据来源-汇总列表
+     * 已放贷
+     * @param page
+     * @Desc 2018.06.15
+     */
+    public List<PageData> getPageUploadTheSourceListBySign(Page page);
+
+    /***
+     * 后台用户上传数据来源-汇总列表
+     * 已结账
+     * @param page
+     * @Desc 2018.06.15
+     */
+    public List<PageData> getPageUploadTheSourceListByLending(Page page);
+
+
+    /***
+     *后台用户 签单汇总-所有 1
+     *所有签单汇总,无效单(门拒不要,退单,不能做单),有效单(已放贷,已结账)
+     *参数: YBCS009_TP 贷款类型(房贷/信贷/网贷..)
+     * @Desc 2018.05.11
+     */
+    public PageData getChartSignByNormalSumAll(PageData pd);
+
+    /***
+     * 后台用户 签单汇总-异常单2
+     */
+    public PageData getChartSignByNormalSumByFlag(PageData pd);
+
+    /***
+     * 后台用户 签单汇总-已放贷3
+     */
+    public PageData getChartSignByNormalSumByLending(PageData pd);
+
+    /***
+     * 后台用户 签单汇总-已结账4
+     */
+    public PageData getChartSignByNormalSumByClosedAccount(PageData pd);
+
+
+    /***
+     *后台用户 签单明细列表 1
+     *所有签单明细  有效单(已放贷 )
+     *  签单表不能做单-getPageChartSignByNormalByNotSingle()
+     * @Desc 2018.05.11
+     */
+    public List<PageData> getPageChartSignByNormal(Page pd);
+    /***
+     *后台用户 签单明细列表 1
+     *所有签单明细  有效单(已结账)
+     *  签单表不能做单-getPageChartSignByNormalByNotSingle()
+     * @Desc 2018.09.26
+     */
+    public List<PageData> getPageChartSignByNormalIsClosedAccount(Page pd);
+
+    /***
+     *后台用户 签单明细列表  有效单 无效单 2
+     *- 签单表
+     * @Desc 2018.05.11
+     */
+    public List<PageData> getPageChartSignByNormalBySingle(Page pd);
+
+    /**********************************************营销X中心 数据报表********************************************/
+
+    /***
+     *营销X中心 日数据报表
+     * @Desc 2018/6/28
+     */
+    List<PageData> marketingCenterStatisticReport(PageData pd);
+
+    /***
+     *营销X中心 周数据报表
+     * @Desc 2018/6/28
+     */
+    List<PageData> weeklyReportOfMarketingCenter(PageData pd);
+}

@@ -1,0 +1,151 @@
+package com.dbsun.service.msg;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.msg.MessAgeMapper;
+import com.dbsun.service.BaseService;
+import com.dbsun.util.JuheSmsPushUtil;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author color
+ * @create 2018-04-24 上午 10:11
+ * @desc
+ **/
+@Service
+public class MessAgeService extends BaseService {
+
+
+    @Autowired
+    private MessAgeMapper messAgeMapper;
+
+
+    /***
+     * 搜索已经签单,已经分配到做单人手里待做单的客户
+     * @param page
+     * @return
+     */
+    public List<PageData> getPageMessAgeByBranch2(Page page) {
+        return messAgeMapper.getPageMessAgeByBranch2(page);
+    }
+
+
+    /***
+     * 查询已放贷的
+     * @param page
+     * @return
+     */
+    public List<PageData> getPageMessAgeByMatch(Page page) {
+        return messAgeMapper.getPageMessAgeByMatch(page);
+    }
+
+    /***
+     * 发送短信
+     * @param pd
+     * @return
+     */
+    public int sendMessAge(PageData pd) {
+        String contactId = get32UUID();
+        pd.put("YBCMS001", contactId);
+        if(paramsChecke(pd)  ) {
+            pd = sendMsg(pd);
+        }else {
+            return 0;
+        }
+        return this.messAgeMapper.addMessAge(pd);
+    }
+
+    /**
+     * 短信发送参数拼接,是否需要限制某用户多少次
+     * @method:sendMsg
+     * @param:[pd]
+     * @return:net.sf.json.JSONObject
+     */
+    private PageData sendMsg(PageData pd){
+        Map params = new HashMap();
+        try {
+            if(pd.getString("YBCMS002").equalsIgnoreCase("ybc_branch2")){//给待做单发送
+                params = JuheSmsPushUtil.getCustomSms(pd.getString("YBC003")
+                        ,pd.getString("USERNAME"),pd.getString("USERPHONE"),
+                        pd.getString("BRNAME"),pd.getString("BRPHONE"));
+            }else if(pd.getString("YBCMS002").equalsIgnoreCase("ybc_match")){//给已放贷发送
+                params = JuheSmsPushUtil.getCustomByLoan(pd.getString("YBC003")
+                        ,pd.getString("YBCMS0011"),pd.getString("YBCMS0012"));
+            }
+            if(params.containsKey("code")&&null!=params.get("code")&&params.containsKey("reason")&&null!=params.get("reason")){
+                if("0".equals(params.get("code").toString())){
+                    pd.put("YBCMS005_TP","1");//发送成功
+                }else{
+                    pd.put("YBCMS005_TP","2");//发送失败
+                }
+                pd.put("YBCMS006",params.get("reason"));//接口返回内容
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            pd.put("YBCMS005_TP","2");
+            pd.put("YBCMS006","后台错误,请联系管理员!");
+        }
+        return  pd;
+    }
+
+    /**
+     * 非空验证
+     * @method:paramsChecke
+     * @param:[pd]
+     * @return:java.lang.Boolean
+     */
+    private Boolean paramsChecke(PageData pd){
+        if(!pd.containsKey("YBCMS002") || StringUtils.isBlank(pd.getString("YBCMS002"))){
+            return false;
+        }
+        if(pd.getString("YBCMS002").equalsIgnoreCase("ybc_branch2")){
+            if(!pd.containsKey("USERNAME") || StringUtils.isBlank(pd.getString("USERNAME"))){
+                return false;
+            }
+            if(!pd.containsKey("USERPHONE") || StringUtils.isBlank(pd.getString("USERPHONE"))){
+                return false;
+            }
+            if(!pd.containsKey("BRNAME") || StringUtils.isBlank(pd.getString("BRNAME"))){
+                return false;
+            }
+            if(!pd.containsKey("BRPHONE") || StringUtils.isBlank(pd.getString("BRPHONE"))){
+                return false;
+            }
+        }
+        if(pd.getString("YBCMS002").equalsIgnoreCase("ybc_match")){
+            if(!pd.containsKey("YBCMS0011") || StringUtils.isBlank(pd.getString("YBCMS0011"))){
+                return false;
+            }
+            if(!pd.containsKey("YBCMS0012") || StringUtils.isBlank(pd.getString("YBCMS0012"))){
+                return false;
+            }
+        }
+        if(!pd.containsKey("YBCMS003") || StringUtils.isBlank(pd.getString("YBCMS003"))){
+            return false;
+        }
+        if(!pd.containsKey("YBC001") || StringUtils.isBlank(pd.getString("YBC001"))){
+            return false;
+        }
+        if(!pd.containsKey("YBC003") || StringUtils.isBlank(pd.getString("YBC003"))){
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 根据模块主键查询发送历史
+     * @method:getPageMessAgeHistoryByModuleKey
+     * @param:[page]
+     * @return:java.util.List<com.dbsun.entity.system.PageData>
+     */
+    public List<PageData> getPageMessAgeHistoryByModuleKey(Page page){
+        return messAgeMapper.getPageMessAgeHistoryByModuleKey(page);
+    }
+
+}

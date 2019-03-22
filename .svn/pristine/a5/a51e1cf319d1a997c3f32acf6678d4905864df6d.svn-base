@@ -1,0 +1,40 @@
+package com.dbsun.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.WbYbcMapper;
+
+@Service
+public class WbYbcService {
+
+	@Autowired
+	private WbYbcMapper wbYbcMapper;
+	
+	public int addWbYbc(PageData pd) {
+		return wbYbcMapper.addWbYbc(pd);
+	}
+	
+	public List<PageData> getPageWbYbcLst(Page page) {
+		return wbYbcMapper.getPageWbYbcLst(page);
+	}
+	
+	public List<PageData> getWbYbcByOpenId(PageData pd) {
+		return wbYbcMapper.getWbYbcByOpenId(pd);
+	}
+
+	public int updateWY(PageData pd) {
+		return wbYbcMapper.updateWY(pd);
+	}
+
+	public int addWXUser(PageData pd) {
+		return wbYbcMapper.addWXUser(pd);
+	}
+
+	
+
+}

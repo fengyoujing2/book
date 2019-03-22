@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.stm.SysDeptMapper">
+
+	<!-- 查询该部门组长ID(部门匹配并且pos=1) -->
+	<select id="getUserIdByDLR" parameterType="pd" resultType="pd" useCache="false">
+		select
+			USER_ID 
+		from sys_user 
+		where 1 = 1 
+		and DEPT_LAYERORDER = #{DEPT_LAYERORDER}
+		and position = 1 
+		limit 0,1
+	</select>
+	
+	<!-- 查询leader -->
+	<select id="getLeaderByDeptId" parameterType="pd" resultType="pd" useCache="false">
+		select
+			u.*  
+		from sys_user u, sys_dept d
+		where u.dept_id = d.dept_id 
+		and u.dept_id = #{DEPT_ID}
+		and u.position = 1 <!-- 主管 -->
+		limit 0,1
+	</select>
+	
+
+</mapper>

@@ -1,0 +1,12 @@
+package com.dbsun.mapper.homepage;
+
+import com.dbsun.entity.system.PageData;
+
+
+public interface HmPBacMapper {
+	
+	public PageData getTotalSingle(PageData pd);
+	public PageData getAddSgle(PageData pd);
+	public PageData getNewDbForLeador(PageData pd);
+	
+}

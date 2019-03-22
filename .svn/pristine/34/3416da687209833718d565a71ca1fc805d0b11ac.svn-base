@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.CrmMapper">
+	<!-- 用户账号 -->
+
+	<!-- 账号列表数据 -->
+	<select id="getPageYwuLst" parameterType="page" resultType="pd"
+		useCache="false">
+		select
+		u.*
+		from ywu u
+	</select>
+
+	<select id="getCrmData" parameterType="pd" resultType="pd" useCache="false">
+		select
+		(select ybtl002  from ybt_list where ybtl001 = m.YBTL001) name, <!-- 产品名称 -->
+		YBCMA003_TM time,  <!-- 创建时间  -->
+		CASE YBCMA005_TP
+		<![CDATA[ WHEN YBCMA005_TP < 4 THEN ]]>
+			'1'
+		WHEN YBCMA005_TP = 5 THEN
+			'2'
+		WHEN YBCMA005_TP = 6 THEN
+			'2'
+		WHEN YBCMA005_TP = 8 THEN
+			'3'
+		WHEN YBCMA005_TP = 10 THEN
+			'4'
+		ELSE
+			'1'
+		END state <!-- 跟进状态  -->
+		from YBC_MATCH m 
+		where 1 = 1
+		and m.YBC001 = (select ybc001 from ybc where ybc003 = #{YBC003})
+	</select>
+	
+</mapper>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.background.BacMapper">
+
+	<select id="getPageDb" parameterType="page" resultType="pd" useCache="false">
+        select
+	    	*
+        from app_ab_tb_student a
+        where 1 = 1
+        <if test="pd.title != null and pd.title != ''">
+            and a.title = #{pd.title}
+        </if>
+		<if test="pd.nick != null and pd.nick != ''">
+            and a.nick = #{pd.nick}
+        </if>
+		order by a.id
+    </select>
+
+    <update id="updateDb" parameterType="pd" flushCache="false">
+		update
+			app_ab_tb_student
+				<set>
+					<if test="collection != null and collection !=''">/*收藏数*/
+						,collection			= (select collection + #{collection} from app_ab_tb_student where id = #{id})
+					</if>
+                    <if test="click_number != null and click_number !=''">/*点击数*/
+						,click_number			= (select click_number + #{click_number} from app_ab_tb_student where id = #{id})
+					</if>
+					<if test="time_length != null and time_length !=''">/*浏览时长*/
+						,time_length		=
+																	(
+																		SELECT
+																			temp.t
+																		FROM
+																		(
+																			SELECT
+																				(time_length + #{time_length}) as t
+																			FROM
+																				app_ab_tb_student
+																			WHERE
+																				id = #{id}
+																		) as temp
+																	  )
+					</if>
+				</set>
+			where
+						id  			= #{id}
+	</update>
+
+    <!--热门-->
+    <select id="getPageHotDb" parameterType="page" resultType="pd" useCache="false">
+		select
+			*
+		from app_news_homepages
+		order by collection desc
+	</select>
+
+
+</mapper>

@@ -1,0 +1,163 @@
+package com.dbsun.service.settleAccounts;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.mapper.settleAccounts.SettleAccountsMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * @author zhao yi
+ * @create 2018-08-14 10:06
+ * @desc
+ **/
+@Service
+public class SettleAccountsService {
+
+
+    @Autowired
+    private SettleAccountsMapper settleAccountsMapper;
+
+
+    /********************************************** 结账处理 ***********************************************/
+
+
+    /***
+     * 未结账数据-签单 YBCS056_TP=0 未结账
+     * @desc
+     * @return
+     * @param page
+     */
+    public List<PageData> getPageAccountListIsUnsettledAccount(Page page) {
+        return settleAccountsMapper.getPageAccountListIsUnsettledAccount(page);
+    }
+
+    /***
+     * 结账数据-签单 YBCS056_TP= 1 未完全结账  2完全结账
+     * @return
+     */
+    public List<PageData> getPageAccountListIsHasTheInvoicing(Page page) {
+        List<PageData> dataList = settleAccountsMapper.getPageAccountListIsHasTheInvoicing(page);
+        for (PageData data : dataList) {
+            Double YBCAC006_SUM = (Double) data.get("YBCAC006_SUM");//付款金额合计
+            try {
+                Double YBCR004_SUM = (Double) data.get("YBCR004_SUM");//退款金额合计
+                final Double REMAINING_SUM = YBCAC006_SUM - YBCR004_SUM;//实际付款金额 = 付款金额合计-退款金额合计
+                data.put("REMAINING_SUM", REMAINING_SUM);
+            } catch (NullPointerException e) { }//YBCR004_SUM 可能为空
+        }
+        return dataList;
+    }
+
+
+    /***
+     * 获得指定签单-结账明细
+     * @Param YBCS001
+     * @return
+     */
+    public List<PageData> getPageSettledStatement(Page page) {
+        return settleAccountsMapper.getPageSettledStatement(page);
+    }
+
+
+    /***
+     *
+     * 查询-根据签单获得所有的人员信息(添加账单结账页面-初始化数组)
+     * @desc 做单人员, 做单组长, 做单部长, 客户经理, 客户组长, 客户总监
+     * @return
+     */
+    public PageData getAddCheckoutInitialization(PageData pd) {
+        return settleAccountsMapper.getAddCheckoutInitialization(pd);
+    }
+
+    /***
+     * 查询-根据签单获得所有的渠道(添加账单结账页面-初始化数组)
+     * @desc 渠道
+     * @return
+     */
+    public List<PageData> getAllchannels(PageData pd) {
+        return settleAccountsMapper.getAllchannels(pd);
+    }
+
+    /**
+     * 添加账单
+     *
+     * @param pd
+     * @return
+     */
+    public int addAccount(PageData pd) {
+        int rs = 0;
+        settleAccountsMapper.addAccount(pd);
+        updSighYBCS056_TP(pd);
+        rs = 1;
+        return rs;
+    }
+
+    /**
+     * 修改账单
+     *
+     * @param pd
+     * @return
+     */
+    public int updAccount(PageData pd) {
+        int rs = 0;
+        settleAccountsMapper.updAccount(pd);
+        updSighYBCS056_TP(pd);
+        rs = 1;
+        return rs;
+    }
+
+
+    /**
+     * 修改签单表 - 结账状态
+     *
+     * @param pd YBCS056_TP=(0-未结账  1-未完全结账  2完全结账  ) YBCS001=签单id
+     * @return
+     */
+    private int updSighYBCS056_TP(PageData pd) {
+        if (pd.get("YBCS001") == null || pd.get("YBCS056_TP") == null) return 0;
+        return settleAccountsMapper.updSighYBCS056_TP(pd);
+    }
+
+    /********************************************** 退款处理 ***********************************************/
+
+
+    /***
+     * 获得指定签单-退款明细
+     * @param YBCS001
+     * @return
+     */
+    public List<PageData> getPageRefundListByYBCS001(Page page) {
+        return settleAccountsMapper.getPageRefundListByYBCS001(page);
+    }
+
+    /***
+     * 获得-退款列表
+     * @return
+     */
+    public PageData getRefundInitializationByYBCS001(PageData pd) {
+        return settleAccountsMapper.getRefundInitializationByYBCS001(pd);
+    }
+
+    /***
+     * 添加退款单
+     * @return
+     */
+    public int addRefund(PageData pd) {
+        return settleAccountsMapper.addRefund(pd);
+
+    }
+
+    /***
+     * 修改退款单
+     * @return
+     */
+    public int updRefund(PageData pd) {
+        return settleAccountsMapper.updRefund(pd);
+
+    }
+
+
+}

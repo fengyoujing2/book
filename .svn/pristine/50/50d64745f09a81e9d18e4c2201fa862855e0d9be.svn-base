@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.background.BacSituationMapper">
+<!-- 后台情况 -->
+
+	<select id="getPageBacSituationLst" parameterType="page" resultType="pd" useCache="false">
+		select 
+			m.*, 
+			(select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName, <!-- 产品类型名称 -->
+			(select YBTL002 from YBT_LIST where YBTL001 = m.YBTL001) as proName, <!-- 产品名称 -->
+			(
+				case m.YBCMA005_TP
+					when 1 then '已收件'
+					when 2 then '补资料'
+					when 3 then '评估中'
+					when 4 then '面签申请'
+					when 5 then '审核中'
+					when 6 then '审核通过'
+					when 7 then '审核拒绝'
+					when 8 then '签约'
+					when 9 then '已办抵押'
+					when 10 then '已放贷'
+					when 11 then '暂停暂缓'
+					when 12 then '退单'
+				end
+			) as singleFlwState, 
+			 <!-- 产品进度取什么 -->
+			 (
+			 	case m.YBCMA038_TP 
+			 		when 1 then "通过"
+			 		when 2 then "门拒"
+			 		when 3 then "客户不要"
+			 	end	
+			 ) as passState,
+			 (
+				case s.YBCS050_TP 
+					when 1 then m.YBCMA030*m.YBCMA033*s.YBCS006/1000+m.YBCMA030*s.YBCS003/100
+					when 2 then s.YBCS051
+				end
+			) as receivable<!-- 应收金额 -->
+			 
+		from ybc_match m, ybc_sign s, ybc c
+		where 1 = 1 
+		and m.ybcs001 = s.ybcs001 
+		and s.ybc001 = c.ybc001
+	<!-- 权限 start -->
+		and (
+				(
+					m.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+					and 
+					m.POSITION	= #{pd.POSITION}
+				)<!-- 做单主管 -->
+				or
+				m.USER_ID = #{pd.USER_ID} <!-- 做单员 -->
+		)
+	<!-- 权限 end -->
+	<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+			and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+		</if>
+		<if test="pd.YBC003 != null and pd.YBC003 != ''">
+			and c.YBC003 like concat_ws(#{pd.YBC003}, "%", "%")
+		</if>
+		<if test="pd.YBC008_TP != null and pd.YBC008_TP != ''">
+			and c.YBC008_TP = #{pd.YBC008_TP}
+		</if>
+		<if test="pd.introName != null and pd.introName != ''"><!-- 介绍人 -->
+			and (select c2.YBC002 from ybc c2 where c2.ybc001 = c.PYBC001 limit 0, 1) like concat_ws(#{pd.introName}, "%", "%")
+		</if>
+		<if test="pd.contanName != null and pd.contanName != ''"><!-- 联系人 -->
+			and (select YBCCO002 from YBC_CONTACTS where ybc001 = c.ybc001 limit 0, 1) like concat_ws(#{pd.contanName}, "%", "%")
+		</if>
+	<!-- 搜索 end -->
+		order by m.YBCMA003_TM desc<!-- 做单时间 -->
+	</select>
+	
+	<!-- 获取后台详情页数据 -->
+	<select id="getBacSitDetaBySingID" parameterType="pd" resultType="pd" useCache="false">
+		select 
+			m.*, 
+			(select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName, <!-- 产品类型名称 -->
+			 <!-- 产品进度取什么 -->
+			 (
+			 	case m.YBCMA038_TP 
+			 		when 1 then "通过"
+			 		when 2 then "门拒"
+			 		when 3 then "客户不要"
+			 	end	
+			 ) as passState,
+			 (
+				case s.YBCS050_TP 
+					when 1 then m.YBCMA030*m.YBCMA033*s.YBCS006/1000+m.YBCMA030*s.YBCS003/100
+					when 2 then s.YBCS051
+				end
+			) as receivable, <!-- 应收金额 -->
+			c.YBC002, 
+			c.YBC003,  
+			c.YBC005, <!-- 年龄 -->
+			c.YBC010, 
+			c.YBC011,
+			c.YBC012, 
+			c.YBC013, 
+			c.YBC018_TP, 
+			(
+				case c.YBC018_TP 
+					when 1 then 'A'
+					when 2 then 'B'
+					when 3 then 'C'
+					when 4 then 'D'
+				end 
+			) as level, 
+			c.YBC008_TP, 
+			(
+				case c.YBC008_TP 
+					when 0 then '临时（大类）' 
+					when 10 then '临时（小类）' 
+					when 1 then '意向'
+					when 2 then '上门'
+					when 3 then '签单'
+					when 4 then '回收'
+					when 5 then '再签单'
+				end
+			) as state, 
+			c.YBC004_TP, 
+			(
+				case c.YBC004_TP 
+					when 1 then '男'	
+					when 2 then '女'	
+				end
+			) as sex, 
+			c.YBC009_TP, 
+			(
+				case c.YBC009_TP 
+					when 1 then '未婚'
+					when 2 then '已婚' 
+				end
+			) as maritalStatus, 
+			
+			c.YBC029 as name<!-- 客户归属 -->
+			
+		from ybc_match m, ybc_sign s, ybc c
+		where 1 = 1 
+		and m.ybcs001 = s.ybcs001 
+		and s.ybc001 = c.ybc001 
+		and m.YBCMA001 = #{YBCMA001}
+	</select>
+	
+	<!-- 客户的做单产品 -->
+	<select id="getSinglesForCus" parameterType="pd" resultType="pd" useCache="false">
+		select
+			(select YBTL002 from YBT_LIST where YBTL001 = m.YBTL001) as proName, <!-- 产品名称 -->
+			(
+				case m.YBCMA005_TP
+					when 1 then '已收件'
+					when 2 then '补资料'
+					when 3 then '评估中'
+					when 4 then '面签申请'
+					when 5 then '审核中'
+					when 6 then '审核通过'
+					when 7 then '审核拒绝'
+					when 8 then '签约'
+					when 9 then '已办抵押'
+					when 10 then '已放贷'
+					when 11 then '暂停暂缓'
+					when 12 then '退单'
+				end
+			) as singleFlwState, 
+			m.YBCMA037, 
+			m.YBCMA039_TM, 
+			(
+				case m.YBCMA038_TP
+					when 1 then '通过'
+					when 2 then '门拒'
+					when 3 then '客户不要'
+				end
+			) as passState, <!-- 过件状态 -->
+			m.YBCMA030, <!-- 放贷金额 -->
+			m.YBCMA033, <!-- 放贷期数 -->
+			m.YBCMA029_TM,
+			m.YBCMA012, <!-- 实收金额 -->
+			m.YBCMA032  <!-- 还款金额 -->
+		from ybc_match m 
+		where 1 = 1 
+		and m.ybc001 = #{YBC001}
+	</select>
+	
+</mapper>

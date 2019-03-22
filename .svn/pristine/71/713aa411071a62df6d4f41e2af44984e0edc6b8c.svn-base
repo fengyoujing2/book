@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="../static/img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>梦想贷</title>
+    <link rel="stylesheet" href="../static/css/bootstrap9.min.css">
+    <link rel="stylesheet" href="../static/css/new.css"/>
+    <link rel="stylesheet" href="../static/css/tooltip.css"/>
+    <link rel="stylesheet" href="../static/css/home.css"/>
+    <link rel="stylesheet" href="../static/css/write_from.css"/>
+    <script src="../static/js/jquery9.min.js"></script>
+    <script src="../static/js/bootstrap9.min.js"></script>
+    <style>
+        a:hover{
+            text-decoration: none;
+        }
+
+        a:visited{
+            text-decoration: none;
+        }
+
+        a:active{
+            text-decoration: none;
+        }
+
+        .yangshi{
+            display: block;
+            padding: 3px 20px;
+            clear: both;
+            font-weight: 400;
+            line-height: 1.42857143;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        #mengban{
+            display: none;
+        }
+
+        #success{
+            display:none;
+        }
+
+
+        #feedback{
+            display: none;
+        }
+
+
+
+
+
+        .spinner {
+            margin:  auto;
+            width: 20px;
+            height: 20px;
+            position: relative;
+        }
+
+        .container1 > div, .container2 > div, .container3 > div {
+            width: 6px;
+            height: 6px;
+            background-color: #333;
+
+            border-radius: 100%;
+            position: absolute;
+            -webkit-animation: bouncedelay 1.2s infinite ease-in-out;
+            animation: bouncedelay 1.2s infinite ease-in-out;
+            -webkit-animation-fill-mode: both;
+            animation-fill-mode: both;
+        }
+
+        .spinner .spinner-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .container2 {
+            -webkit-transform: rotateZ(45deg);
+            transform: rotateZ(45deg);
+        }
+
+        .container3 {
+            -webkit-transform: rotateZ(90deg);
+            transform: rotateZ(90deg);
+        }
+
+        .circle1 { top: 0; left: 0; }
+        .circle2 { top: 0; right: 0; }
+        .circle3 { right: 0; bottom: 0; }
+        .circle4 { left: 0; bottom: 0; }
+
+        .container2 .circle1 {
+            -webkit-animation-delay: -1.1s;
+            animation-delay: -1.1s;
+        }
+
+        .container3 .circle1 {
+            -webkit-animation-delay: -1.0s;
+            animation-delay: -1.0s;
+        }
+
+        .container1 .circle2 {
+            -webkit-animation-delay: -0.9s;
+            animation-delay: -0.9s;
+        }
+
+        .container2 .circle2 {
+            -webkit-animation-delay: -0.8s;
+            animation-delay: -0.8s;
+        }
+
+        .container3 .circle2 {
+            -webkit-animation-delay: -0.7s;
+            animation-delay: -0.7s;
+        }
+
+        .container1 .circle3 {
+            -webkit-animation-delay: -0.6s;
+            animation-delay: -0.6s;
+        }
+
+        .container2 .circle3 {
+            -webkit-animation-delay: -0.5s;
+            animation-delay: -0.5s;
+        }
+
+        .container3 .circle3 {
+            -webkit-animation-delay: -0.4s;
+            animation-delay: -0.4s;
+        }
+
+        .container1 .circle4 {
+            -webkit-animation-delay: -0.3s;
+            animation-delay: -0.3s;
+        }
+
+        .container2 .circle4 {
+            -webkit-animation-delay: -0.2s;
+            animation-delay: -0.2s;
+        }
+
+        .container3 .circle4 {
+            -webkit-animation-delay: -0.1s;
+            animation-delay: -0.1s;
+        }
+
+        @-webkit-keyframes bouncedelay {
+            0%, 80%, 100% { -webkit-transform: scale(0.0) }
+            40% { -webkit-transform: scale(1.0) }
+        }
+
+        @keyframes bouncedelay {
+            0%, 80%, 100% {
+                transform: scale(0.0);
+                -webkit-transform: scale(0.0);
+            } 40% {
+                  transform: scale(1.0);
+                  -webkit-transform: scale(1.0);
+              }
+        }
+
+        #load{
+            display: none;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+        .gou_checked {
+            background: url("../static/img/duoxuan1.png") no-repeat center top;
+            background-size: 95%;
+            height: 17.32px;
+            width: 17.32px;
+           vertical-align: text-bottom;
+            display: inline-block;
+
+        }
+        .gou_unable {
+            background: url("../static/img/duoxuan2.png") no-repeat  center top;
+            background-size: 95%;
+            height: 17.32px;
+            width: 17.32px;
+            vertical-align: text-bottom;
+            display: inline-block;
+        }
+
+
+        .write_submit_unable {
+            background: #cccccc;
+            border-radius: 30px;
+            width: 100%;
+            font-size: 20.11px;
+            /*height: 1rem;*/
+            /*line-height: 1rem;*/
+            /*font-size: 0.35rem;*/
+            text-align: center;
+            color: #ffffff;
+            /*margin-top: 0.25rem;*/
+            border: 1px solid #cccccc;
+            padding: 8px 12px;
+        }
+
+        .write_submit_checked {
+            background: #FA9403;
+            border-radius: 30px;
+            border: 1px solid #FA9403;
+            width: 100%;
+            /*height: 1rem;*/
+            /*line-height: 1rem;*/
+            /*font-size: 0.47rem;*/
+            text-align: center;
+            color: white;
+            /*margin-top: 0.25rem;*/
+            font-size: 20.11px;
+            cursor: pointer;
+            padding: 8px 12px;
+        }
+
+
+
+
+    </style>
+
+    <script>
+    
+        $(document).ready(function(){
+
+            $("#icon").click(function(){
+                var icon= $("#icon").attr("class");
+                if(icon=="gou_checked"){
+                    $("#icon").attr("class","gou_unable");
+                    $("#submit").attr("class","write_submit_unable");
+                    $("#submit").text("立即拿钱");
+                }else{
+                    $("#icon").attr("class","gou_checked");
+                    $("#submit").attr("class","write_submit_checked");
+                    $("#submit").text("立即拿钱");
+                }
+            });
+
+
+            $(".information_box2").click(function(){
+                $(this).hide();
+            });
+        	
+            function getRealPath(){
+                var localObj = window.location;
+                var contextPath = localObj.pathname.split("/")[1];
+                var basePath = localObj.protocol + "//" + localObj.host + "/"+ contextPath;
+                return basePath ;
+            }
+
+            $("#slider-0").focus(function(){
+                $(this).css("outline","none")
+            });
+
+//          $("#mengban").hide();
+
+            $("#fankui").click(function(){
+                $("#mengban").show();
+            });
+
+            $("#quxiao").click(function(){
+                $("#mengban").hide();
+            });
+
+            $("#feedback").click(function(){
+                $("#feedback").hide();
+            })
+
+            $("#btn").click(function(){
+                var telephone1=$("#telephone").val();
+                if (telephone1 == "" || telephone1 == null ||telephone1 == "undefined") {
+                    ShowMsg("请输入您的手机号码！");
+                    return false;
+                } else {
+                    var regPhone1 = /^1[3|4|5|8][0-9]\d{8}$/;
+                    if (!regPhone1.test(telephone1)) {
+                        ShowMsg("请输入正确的手机号码！");
+                        return false;
+                    }
+                }
+
+                function ShowMsg(msg) {
+                    var str = "<div class='information_box1' style='z-index: 59999'>";
+                    str += "<div class='information_border1'>";
+                    str += "<div class='information_Info1'>";
+                    str += msg + "</div></div></div>";
+                    $("body").append(str);
+                    $(".information_box1").show(0,function () {
+
+                            $(".information_box1").click(function () {
+                                $(".information_box1").hide(0);
+                            });
+
+                    });
+
+                }
+
+                var path = getRealPath();
+                var telephone1=$("#telephone").val();
+                //限制获取手机验证码按钮，只能点击三次
+
+                /* 获取验证码 */
+                $.post(""+path+"/userMsg/sendCode.do",{YBWY0003:telephone1},function(data){
+                   //今日获取验证码次数已达上限！
+                   if(data.msg == "501" || data.msg == "505"){
+                	   //alert("已达上限");
+                       $(".information_box2").show();
+                       if(data.msg == "501"){
+                    	   $(".information_Info2 ").text("今日获取验证码次数已达上限！");
+                       }else{
+                    	   $(".information_Info2 ").text("该IP获取验证码次数已达上限！");
+                       }
+                       $("#btn10").show();
+                       $("#btn").remove();
+                       $("#ant").remove();
+                       $("#ant2").remove();
+                	   //将获取验证码置灰并且给予提示
+                   }else if(data.msg == "200"){
+                	   //alert("发送成功");
+//                       $(".information_box2").show();
+//                       $(".information_Info2 ").text("验证码发送成功！");
+                	   //验证码发送成功
+                   }
+                });
+
+                $("#btn").hide();
+                $("#ant").text("60s");
+
+                var odiv = document.getElementById("ant");
+                var count = 60;
+                var timer = null;
+                timer = setInterval(function () {
+                    if (count > 0) {
+                        count = count - 1;
+                        odiv.innerHTML = count+"s";
+                    }
+                    else {
+                        clearInterval(timer);
+                        $("#ant").text("");
+                        $("#btn_inner").text("重新获取");
+                        $("#btn").show();
+
+
+                    }
+                }, 1000);
+            });
+
+            $("#submit").click(function(){
+                var name= $("#name").val();
+                var telephone=$("#telephone").val();
+                var money=$("#slider-0").val();
+                var yanzheng=$("#yanzheng").val();
+
+
+                var btn_attr=$("#submit").attr("class");
+                if(btn_attr=="write_submit_checked"){
+                    console.log("按钮可用");
+                }else{
+                    console.log("按钮不可用");
+                    return false;
+                }
+
+
+                if (name == "" || name == null || name == "undefined") {
+                    ShowMsg("请输入您的姓名！");
+                    return false;
+                } else {
+                    var regex = /^[\u4e00-\u9fa5]{2,10}$/;
+                    if (!regex.test(name)) {
+                        ShowMsg("姓名由2-10个汉字组成");
+                        return false;
+                    }
+                }
+
+                if (telephone == "" || telephone == null ||telephone == "undefined") {
+                    ShowMsg("请输入您的手机号码！");
+                    return false;
+                } else {
+                    var regPhone = /^(((1[0-9][0-9]{1}))+\d{8})$/;
+                    if (!regPhone.test(telephone)) {
+                        ShowMsg("请输入正确的手机号码！");
+                        return false;
+                    }
+                }
+
+                if (yanzheng == "" || yanzheng  == null ||yanzheng  == "undefined") {
+                    ShowMsg("请输入您的验证码！");
+                    return false;
+                } else {
+                   var regyanzheng=/^\d{6}$/;
+                    if (!regyanzheng.test(yanzheng)) {
+                        ShowMsg("请输入正确的验证码！");
+                        return false;
+                    }
+
+                }
+
+                if (money == "" || money  == null ||money  == "undefined") {
+                    ShowMsg("请输入您贷款的金额！");
+                    return false;
+                } else {
+                    var regmoney= /^[1-9]\d{0,8}$/;
+                    if (!regmoney.test(money)) {
+                        ShowMsg("请输入正确的贷款金额！");
+                        return false;
+                    }else{
+                        if (money<1000) {
+                            ShowMsg("贷款金额必须大于等于1000");
+                            return false;
+                        }else if(money>10000){
+                            ShowMsg("贷款金额必须小于等于10000");
+                            return false;
+                        }
+                    }
+
+                }
+
+
+
+
+
+
+                function ShowMsg(msg) {
+                    var str = "<div class='information_box'>";
+                    str += "<div class='information_border'>";
+                    str += "<div class='information_Info'>";
+                    str += msg + "</div></div></div>";
+                    $("body").append(str);
+                    $(".information_box").show(0, function () {
+
+                            $(".information_box").click(function () {
+                                $(".information_box").hide(0);
+                            });
+                    });
+                }
+
+                flash();
+
+                /* 提交 */
+                function flash(){
+                    $("#load").show();
+                    var name= $("#name").val();
+                    var telephone=$("#telephone").val();
+                    /* 验证码 */
+                    var yanzheng = $("#yanzheng").val();
+                    var money=$("#slider-0").val();
+                    var path = getRealPath();
+                    var url9 = location.search;
+
+                    if (url9.indexOf("?") != -1) {
+                        var from = url9.substr(1);
+                    }
+
+					/* code:验证码；YBWY0007_TP：客户来源 */
+                    jQuery.ajax({
+                        url:""+path+"/userMsg/getUMsg.do",
+                        data:{YBWY0002:name,YBWY0003:telephone,YBWY0005:money,code:yanzheng,YBWY0007_TP:1},
+                        type:'POST',
+                        dataType:"json",
+                        async: false,
+                        success:function(result,status){
+                            //result.back:是服务器返回的值。1代表手机验证匹配错误。0代表手机验证匹配成功
+                            console.log(result);
+                            console.log(status);
+                            if(result.msg == "200"){
+                                //跳转页面
+                                $("#load").hide();
+                                $("#success").show();
+                            }else if(result.msg == "503"){
+                                $("#load").hide();
+                                $("#feedback").show(0,function(){
+                                    $("#error_show").text("手机验证码输入错误");
+                                });
+                            }else if(result.msg == "502"){
+                            	 $("#load").hide();
+                                 $("#feedback").show(0,function(){
+                                     $("#error_show").text("验证码过期");
+                                 });
+                            }else if(result.msg == "504"){
+	                           	 $("#load").hide();
+	                             $("#feedback").show(0,function(){
+	                                 $("#error_show").text("内部异常");
+	                             });
+                       		 }
+                        },
+                        error:function(result,status){
+                            //提示错误信息
+                            // parsererror:已发送成功，返回的时候解析错误
+                            // error：发送失败，没有发送过去
+                            // timeout：超时
+                            console.log(result);
+                            console.log(status);
+                            if(status=="parsererror"){
+                                $("#load").hide();
+                                $("#feedback").show(0,function(){
+                                    $("#error_show").text("解析出错");
+                                });
+                            }else if(status=="error"){
+                                $("#load").hide();
+                                $("#feedback").show(0,function(){
+                                    $("#error_show").text("信息提交失败");
+                                });
+                            }else if(status=="timeout"){
+                                $("#load").hide();
+                                $("#feedback").show(0,function(){
+                                    $("#error_show").text("发送超时");
+                                });
+                            }else{
+                                $("#load").hide();
+                                $("#feedback").show(0,function(){
+                                    $("#error_show").text("发送出错");
+                                });
+                            }
+
+                        }
+                    });
+
+                }
+            });
+
+        });
+    </script>
+
+</head>
+<body style="background:url('../static/img/back.jpg');background-size: 100% ;position: relative">
+
+<div class="information_box2">
+    <div class="information_border2">
+        <div class="information_Info2">今日获取验证码次数已达上限！</div>
+    </div>
+</div>
+
+<div style="width: 100%; height: 100%; color: rgb(0, 0, 0); position:fixed; top: 0px; left: 0px;z-index: 60000; background:white;padding: 10px;padding-top: 0;padding-left: 15px;padding-right: 15px" id="success">
+
+    <div style="padding-top: 95.69px;text-align: center"><img src="../static/img/gougou.png" style="width: 42.26px"></div>
+    <div style="text-align: center;font-size: 17px;padding-top: 13.12px">恭喜，您的贷款申请已提交！</div>
+    <div style="text-align: center;font-size: 14.57px;padding-top: 10px">梦想贷金融顾问将尽快联系您，请保持电话畅通！ </div>
+    <div style="padding: 14px;padding-top: 51px">
+        <a href="tel:400-820-8820">
+            <div style="text-align: center;height: 48.57px;border: 1px solid #FC763B;border-radius:5px;margin: auto;">
+                <div style="height: 39px;padding: 4px 0">
+                    <img src="../static/img/tel.png" style="width: 33.51px;vertical-align: middle;display: inline-block;padding-top: 3px">
+                    <span style="font-size: 17px;vertical-align: middle;color: #FC763B;margin-left: 11.17px;display: inline-block;padding-top: 6px">点击拨打 贷款联系电话</span>
+                </div>
+            </div>
+        </a>
+
+    </div>
+
+</div>
+
+<div style="width: 100%; height: 100%; color: rgb(0, 0, 0); position:fixed; top: 0px; left: 0px;z-index: 55500; background:url('../static/img/back2.png')" id="load">
+    <div style="opacity: 1">
+        <div style="position: absolute;width: 170px;height:90px;top: 50%;left: 50%;margin: -45px 0 0 -85px;border: 1px solid transparent;color: #ffffff;border-radius: 10px;background: #ffffff;color: #000000;text-align: center">
+            <div style="width: 100%;font-size: 16px;border-top-right-radius: 10px;border-top-left-radius: 10px;padding: 15px 0;">
+                <div class="spinner" style="">
+                    <div class="spinner-container container1">
+                        <div class="circle1"></div>
+                        <div class="circle2"></div>
+                        <div class="circle3"></div>
+                        <div class="circle4"></div>
+                    </div>
+                    <div class="spinner-container container2">
+                        <div class="circle1"></div>
+                        <div class="circle2"></div>
+                        <div class="circle3"></div>
+                        <div class="circle4"></div>
+                    </div>
+                    <div class="spinner-container container3">
+                        <div class="circle1"></div>
+                        <div class="circle2"></div>
+                        <div class="circle3"></div>
+                        <div class="circle4"></div>
+                    </div>
+                </div>
+                <div style="text-align: center;margin-top: 20px" >
+                   <div >正在提交, 请耐心等待</div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<div style="width: 100%; height: 100%; color: rgb(0, 0, 0); position:fixed; top: 0px; left: 0px;z-index: 55500; background:url('../static/img/back2.png')" id="feedback">
+    <div style="opacity: 1">
+        <div style="position: absolute;width: 170px;height:90px;top: 50%;left: 50%;margin: -45px 0 0 -85px;border: 1px solid transparent;color: #ffffff;border-radius: 10px;background: #ffffff;color: #000000;text-align: center">
+            <div style="width: 100%;font-size: 16px;border-top-right-radius: 10px;border-top-left-radius: 10px;padding: 15px 0;">
+                <div class="spinner" style="">
+                    <img src="../static/img/error.png" style="width: 100%;height: 100%">
+                </div>
+                <div style="text-align: center;margin-top: 20px" >
+                    <div id="error_show">手机验证码输入错误</div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div style="width: 100%; height: 100%; color: rgb(0, 0, 0); position:fixed; top: 0px; left: 0px;z-index: 55000; background:url('../static/img/back2.png')" id="mengban">
+    <div style="opacity: 1">
+        <div style="position: absolute;width: 300px;height: 350px;top: 50%;left: 50%;margin: -175px 0 0 -150px;border: 1px solid transparent;color: #ffffff;border-radius: 10px;background: #ffffff;color: #000000;text-align: center">
+            <div style="width: 100%;height: 15%;font-size: 16px;font-weight: bold;line-height: 56px;background:#F8F8F8;border-top-right-radius: 10px;border-top-left-radius: 10px">服务条款</div>
+            <div style="width: 100%;height: 70%;border-bottom: 1px solid rgb(231,231,231);    border-top: 1px solid rgb(231,231,231);text-align: left;padding: 10px;overflow: scroll">
+                <div>一、总则</div>
+                <div style="margin-top: 10px">1.1 瑞信贷的所有权和运营权归成都瑞信厚德非融资性担保有限公司所有。</div>
+                <div style="margin-top: 10px">1.2 用户在注册之前，应当仔细阅读本协议，并同意遵守本协议后方可成为注册用户。一旦注册成功，则用户与瑞信贷之间自动形成协议关系，用户应当受本协议的约束。用户在使用特殊的服务或产品时，应当同意接受协议后方能使用。</div>
+                <div style="margin-top: 10px">1.3 本协议可由瑞信贷随时更新，用户应当及时关注并同意。本应用不承担通知义务。本应用的通知、公告、声明或其他类似内容是本协议的一般分。</div>
+            </div>
+            <div style="width: 100%;height: 15%;font-weight: bold;line-height: 56px;font-size: 16px;border-bottom-right-radius: 10px;border-bottom-left-radius: 10px;background: #F8F8F8;color: #2E96FF" id="quxiao">明白了</div>
+        </div>
+    </div>
+</div>
+
+<div class="logo" style="position: absolute;width: 134.76px;height: 54.66px;z-index: 10000;top: 5px;left: 10px">
+    <img src="../static/img/logo8.png" style="width: 100%">
+</div>
+
+<div class="logo" style="position: absolute;width: 90.76px;height: 25.66px;z-index: 10000;top: 5px;right: 10px;opacity: 0">
+    <input name="value" type="text" value="1" readonly="readonly" style="width: 100%;height: 100%">
+</div>
+
+<div class="container-fluid jianju"  id="contain" >
+
+    <div class="row text-center">
+        <div class="col-lg-12" style="padding: 75px;padding-top:70.9px;padding-bottom: 0px">
+            <img src="../static/img/dengpao.png" style="width: 100%;">
+        </div>
+    </div>
+
+    <div class="row" style="margin-top: 12px">
+        <div class="col-xs-12  text-left" style="padding: 58px;margin-right: 0;padding-top: 0;padding-bottom: 37.89px">
+            <div style="padding: 0px;width: 100%;border-radius: 10px;padding-top: 0;padding-bottom: 0">
+
+                <div style="width: 100%;padding-right: 0px;padding-left: 0;">
+                    <div class="row text-primary" style="margin-left: 0;margin-right: 0;text-align: center;">
+                        <img src="../static/img/ruixindai.png" style="width: 100%">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" >
+        <div class="col-xs-12  text-left" style="padding: 43px;margin-right: 0;padding-top: 0;padding-bottom: 0">
+            <div style="width: 100%;padding-top: 0;padding-bottom: 0">
+
+                <div style="width: 100%;padding-right: 0px;padding-left: 0;border-radius: 30px;background: white;">
+                    <div class="row" style="margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-2  text-left  " style="padding: 10.82px;color:#0198EF;font-size: 14px;padding-right: 10px;color: rgb(100,100,100);padding-left: 17.86px">
+                            <img src="../static/img/touxiang.png" style="height: 27.61px">
+                        </div>
+                        <div class="col-xs-10" style="padding: 8px;color:#0198EF;font-size: 14px;padding-left: 14px;padding-right: 0;color: rgb(100,100,100);;padding-top: 15px">
+                            <input type="text" placeholder="姓名(2-10个汉字)" style="font-size: 16.24px;height: 22px;outline: none;border: none;background: transparent;width: 175px" id="name">
+                        </div>
+
+                    </div>
+                </div>
+
+                <div style="width: 100%;padding-right: 0px;padding-left: 0;border-radius: 30px;background: white;margin-top: 5.41px">
+                    <div class="row" style="margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-2  text-left  " style="padding: 10.28px;color:#0198EF;font-size: 14px;padding-right: 10px;color: rgb(100,100,100);padding-left: 17.86px">
+                            <img src="../static/img/phone.png" style="height: 29.23px">
+                        </div>
+                        <div class="col-xs-10" style="padding: 8px;color:#0198EF;font-size: 14px;padding-left: 14px;padding-right: 0;color: rgb(100,100,100);;padding-top: 15px">
+                            <input type="tel" placeholder="手机号" style="font-size: 16.24px;height: 22px;outline: none;border: none;background: transparent;width: 175px;" id="telephone">
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <div style="width: 100%;padding-right: 0px;padding-left: 0;border-radius: 30px;background: white;margin-top: 5.41px">
+
+                    <div class="row" style="margin-left: 0;margin-right: 0;position: relative">
+                        <div style="width:33.3333%;height: 100%;position: absolute;border-top-right-radius: 24px;border-bottom-right-radius: 24px;right: 0;z-index: 50000;" id="btn">
+                            <div style="text-align: center;font-size: 15.5px;padding: 14px 0;color: #FA9403" id="btn_inner">点击获取</div>
+                        </div>
+                        <div style="width:33.3333%;height: 100%;position: absolute;border-top-right-radius: 24px;border-bottom-right-radius: 24px;right: 0;z-index: 50001;" id="btn10">
+                            <div style="text-align: center;font-size: 15.5px;padding: 14px 0;color: #FA9403" id="btn_inner10">无法获取</div>
+                        </div>
+
+                        <div class="col-xs-2  text-left  " style="padding: 10.83px;color:#0198EF;font-size: 14px;padding-right: 10px;color: rgb(100,100,100);padding-left: 16.86px">
+                            <img src="../static/img/suo.png" style="height: 26.52px;width: 26.52px">
+                        </div>
+                        <div class="col-xs-6" style="padding: 8px;color:#0198EF;font-size: 14px;padding-left: 14px;padding-right: 0;color: rgb(100,100,100);;padding-top: 15px">
+                            <input type="tel" placeholder="手机验证码" style="font-size: 16.24px;height: 22px;outline: none;border: none;background: transparent;width: 100%;" id="yanzheng">
+                        </div>
+                        <div class="col-xs-4" id="random_out" style="padding: 8px;color:#0198EF;font-size: 14px;padding-left:0px;padding-right: 0;color: rgb(100,100,100);;padding-top: 15px;padding-bottom: 11px;border-top-right-radius: 24px;    border-bottom-right-radius: 24px;">
+                            <div style="color:#FA9403;font-size: 15.5px;height: 22px;outline: none;border: none;background: transparent;width: 100%;border-left: 1px solid #C8C8C8;text-align: center" id="random">
+                                <span id="ant"></span><span id="ant2" style="display: none">s</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div style="width: 100%;padding-right: 0px;padding-left: 0;border-radius: 30px;background: white;margin-top: 5.41px">
+                    <div class="row" style="margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-2  text-left  " style="padding: 10.83px;color:#0198EF;font-size: 14px;padding-right: 10px;color: rgb(100,100,100);padding-left: 16.86px">
+                            <img src="../static/img/qian.png" style="height: 26.52px">
+                        </div>
+                        <div class="col-xs-10" style="padding: 8px;color:#0198EF;font-size: 14px;padding-left: 14px;padding-right: 0;color: rgb(100,100,100);;padding-top: 15px">
+                            <input type="tel" placeholder="贷款金额(一千到一万元)" style="font-size: 16.24px;height: 22px;outline: none;border: none;background: transparent;width: 177px;" id="slider-0">
+                        </div>
+
+                    </div>
+                </div>
+
+
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-left  " style="padding: 15px 43px;padding-top: 27.06px;padding-bottom: 10.28px">
+            <div class="write_from_content_frist learnt1">
+
+                <div class="lg_login_footer_btn">
+                    <div  class="write_submit_checked" id="submit" style="">
+                        立即拿钱
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12" style="padding: 15px 30px;padding-top: 0;font-size: 12.99px;color: white">
+            <div style="width: 218px;margin: auto;text-align: center"> <i  class="gou_checked" id="icon"></i><span style="">我已阅读并同意<span style="text-decoration: underline" id="fankui">《用户服务协议》</span></span></div>
+        </div>
+    </div>
+
+</div>
+</div>
+
+
+
+
+</body>
+
+
+</html>

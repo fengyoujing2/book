@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+     <META NAME="keywords" CONTENT="后台管理模板|HTML5后台管理模板|Minimal-Admin|极简后台模板|创意工作室|Ideawr.com|fcode.me"/>
+    <META NAME="description" CONTENT="极简后台管理模板，最简单的操作，最完美的体验，功能完善中"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"/>
+    <link href="assets/js/zui/css/zui.css" rel="stylesheet"/>
+    <link rel="stylesheet" type="text/css" href="assets/css/uniform.default.min.css"/>
+    <link rel="stylesheet" type="text/css" href="assets/css/animate.min.css"/>
+    <link async="async" href="assets/js/plugins/iosOverlay/iosOverlay.css" rel="stylesheet"/>
+    <link async="async" href="assets/js/plugins/toastr/toastr.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" type="text/css" href="assets/css/login.css"/>
+    <style type="text/css"></style>
+</head>
+
+<body class="login">
+    <!-- PAGE -->
+    <section id="page">
+        <!-- HEADER -->
+        <header>
+            <!-- NAV-BAR -->
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-3">
+                        <div id="logo">
+                            <!--<a href="file:///C:/Users/Johnson/Desktop/mbts_20_CloudAdmin/index.html"><img src="./Cloud Admin _ Login_files/logo-alt.png" height="40" alt="logo name"></a>-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--/NAV-BAR -->
+        </header>
+        <!--/HEADER -->
+        <!-- LOGIN -->
+        <section id="login" class="visible">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-3">
+                        <div class="login-box-plain">
+                            <h2 class="bigintro">极简后台管理模板 登录</h2>
+                            <div class="divide-40"></div>
+                            <form role="form">
+                                <div class="form-group">
+                                    <label for="user">账号</label>
+                                    <i class="icon icon-user"></i>
+                                    <input type="text" class="form-control" id="user"/>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pwd">密码</label>
+                                    <i class="icon icon-lock"></i>
+                                    <input type="password" class="form-control" id="pwd"/>
+                                </div>
+                                <div class="form-actions">
+                                    <label class="checkbox">
+                                        <div class="checker">
+                                        <span>
+	                                        <div class="checker" id="uniform-remember"><span class="checked">
+	                                        	<input type="checkbox" id="remember" class="uniform" value="" checked="checked"/></span>
+	                                        </div>
+                                        </span>
+                                        </div> 
+                                        	记住我</label>
+                                    <button type="button" class="btn btn-danger" onclick="login()" id="submit-login">登 &nbsp; 录</button>
+                                </div>
+                            </form>
+                           <!--  <div class="login-helpers">
+                                <a href="#" onclick="javascript:madmin.tool.swapScreen(&#39;forgot&#39;);return false;">忘记密码?</a>
+                                <br/> 没有账户？ <a href="#" onclick="javascript:madmin.tool.swapScreen(&#39;register&#39;);return false;">马上注册</a>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </section>
+
+    <script src="assets/js/require.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/jquery.js"></script>
+    <script>
+        var madmin={};
+        //require(["login"]);
+        function login(){
+        var basePath = "/"+getContextPath();
+        var user = $("#user").val(); 
+        var password = $("#pwd").val();        
+        	 $.ajax({
+			        type: "get",
+			        url: basePath+"/loginPost",
+			        data: {"account":user,"password":password},
+			        success: function (data)
+			        {
+			            
+			            if(data.msg == "200"){
+			            	//登录验证成功进入主页
+			            	window.location.href=basePath+"/index";
+			            }else{
+			            	alert("验证错误!");
+			            }
+			        }
+			     });
+        
+        }
+        function getContextPath(){
+                var localObj = window.location;
+                var contextPath = localObj.pathname.split("/")[1];
+                return contextPath ;
+            }
+        
+    </script>
+</body>
+
+</html>

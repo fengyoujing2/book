@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.statistics.StatisticsMapper">
+
+	<!-- 后台签单量 -->
+	<select id="getPageChartSign" parameterType="page" resultType="pd" useCache="false">
+		select
+		s.YBCS020_TM, <!-- 接单时间 默认是以财务编号时间为接单时间 -->
+		s.YBCS007, <!-- 财务编号 -->
+		c.YBC002, <!-- 客户姓名 -->
+		c.YBC003, <!-- 客户电话 -->
+		c.YBC029, <!-- 客户经理 -->
+		(select DEPT_NAME from sys_dept where DEPT_LAYERORDER = c.DEPT_LAYERORDER)  DEPT_NAME<!-- 客户经理所在部门 -->
+		from ybc_sign s,ybc c
+		where c.ybc001 = s.ybc001
+		<!--and  s.YBCS012 = #{USER_ID} 做单分配人是自己则表明只需要读取自己部门下的数据 -->
+		and  s.YBCS007 is not null <!-- 财务编号不为空则表明签单是有效签单数据 -->
+		<if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+			and s.YBCS020_TM <![CDATA[>=]]> #{pd.startTime}
+		</if>
+		<if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+			and s.YBCS020_TM <![CDATA[<=]]> #{pd.endTime}
+		</if>
+	</select>
+	<!-- 后台签单当月总量 -->
+	<select id="getChartSignMonthSum" parameterType="pd" resultType="pd" useCache="false">
+		select
+		ifnull(count(*),0) as sumMonthNum
+		from ybc_sign s,ybc c
+		where c.ybc001 = s.ybc001
+		<!--and  s.YBCS012 = #{USER_ID} 做单分配人是自己则表明只需要读取自己部门下的数据 -->
+		AND  s.YBCS007 is not null <!-- 财务编号不为空则表明签单是有效签单数据 -->
+		AND  DATE_FORMAT( s.YBCS020_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+	</select>
+
+	<!-- 后台退单量 -->
+	<select id="getPageChartBackSign" parameterType="page" resultType="pd" useCache="false">
+		select
+		ifnull(s.YBCS020_TM,'1970-01-01') as YBCS020_TM, <!-- 接单时间 默认是以财务编号时间为接单时间 -->
+		m.YBCMA035_TM, <!-- 退单录入时间 -->
+		s.YBCS007, <!-- 财务编号 -->
+		c.YBC002, <!-- 客户姓名 -->
+		c.YBC003, <!-- 客户电话 -->
+		c.YBC029, <!-- 客户经理 -->
+		m.YBCMA041,<!-- 做单人员 -->
+		(select YBTL002 from YBT_LIST where YBTL001 = m.YBTL001)  YBTL002,<!-- 产品名称=跟进渠道 -->
+		(select DEPT_NAME from sys_dept where DEPT_LAYERORDER = c.DEPT_LAYERORDER)  DEPT_NAME<!-- 客户经理所在部门 -->
+		from ybc_sign s,ybc c, ybc_match m
+		WHERE c.ybc001 = s.ybc001
+		AND s.ybcs001 = m.YBCS001
+		AND m.YBCMA005_TP = '12' <!-- 状态等于退单-->
+		AND m.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+		<if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+			and m.YBCMA035_TM <![CDATA[>=]]> #{pd.startTime}
+		</if>
+		<if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+			and m.YBCMA035_TM <![CDATA[<=]]> #{pd.endTime}
+		</if>
+	</select>
+	<!-- 后台退单当月总量 -->
+	<select id="getChartBackSignMonthSum" parameterType="pd" resultType="pd" useCache="false">
+		select
+		IFNULL(count(*),0) as sumMonthNum
+		from ybc_sign s,ybc c, ybc_match m
+		WHERE c.ybc001 = s.ybc001
+		AND s.ybcs001 = m.YBCS001
+		AND m.YBCMA005_TP = '12' <!-- 状态等于退单-->
+		AND  DATE_FORMAT( m.YBCMA035_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+		AND m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+	</select>
+	<!-- 后台过件统计 -->
+	<select id="getPageChartPiece" parameterType="page" resultType="pd" useCache="false">
+		SELECT
+		s.YBCS007, <!-- 财务编号 -->
+		c.YBC002, <!-- 客户姓名 -->
+		c.YBC029, <!-- 客户经理 -->
+		c.YBC003, <!-- 客户电话 -->
+		(select YBTL002 from YBT_LIST where YBTL001 = m.YBTL001)  YBTL002,<!-- 产品名称=跟进渠道 -->
+		(select DEPT_NAME from sys_dept where DEPT_LAYERORDER = c.DEPT_LAYERORDER)  DEPT_NAME,<!-- 客户经理所在部门 -->
+		m.YBCMA041,<!-- 做单人员 -->
+		m.YBCMA039_TM, <!-- 过件时间 -->
+		m.YBCMA037, <!-- 过件金额 -->
+		m.YBCMA038_TP <!-- 过件客户状态 -->
+		FROM ybc_sign s, ybc c, ybc_match m
+		WHERE c.ybc001 = s.ybc001
+		AND s.ybcs001 = m.YBCS001
+		AND m.YBCMA037 is not null
+		AND m.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+		<if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+			and m.YBCMA039_TM <![CDATA[>=]]> #{pd.startTime}
+		</if>
+		<if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+			and m.YBCMA039_TM <![CDATA[<=]]> #{pd.endTime}
+		</if>
+	</select>
+	<!-- 后台过件当月总数量,当月总过件金额，当月总放贷金额 -->
+	<select id="getChartPieceMonthSum" parameterType="pd" resultType="pd" useCache="false">
+		select
+		IFNULL(count(*),0) as sumMonthNum, <!--过件数量-->
+		IFNULL(sum(m.ybcma037),0) as sumMonthPiece, <!--过件金额-->
+		IFNULL(sum(m.ybcma030),0) as sumLendMonth <!--放贷金额-->
+		from ybc_sign s,ybc c, ybc_match m
+		WHERE c.ybc001 = s.ybc001
+		AND s.ybcs001 = m.YBCS001
+		AND m.YBCMA037 is not null <!-- 过件金额不为空-->
+		AND  DATE_FORMAT( m.YBCMA039_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+		AND m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+	</select>
+	<!-- 后台过件总汇总 -->
+	<select id="getChartPieceAllSum" parameterType="pd" resultType="pd" useCache="false">
+		select
+		IFNULL(count(*),0) as sumAllNum, <!--过件数量-->
+		IFNULL(sum(m.ybcma037),0) as sumAllPiece, <!--过件金额-->
+		IFNULL(sum(m.ybcma030),0) as sumAllLend <!--放贷金额-->
+		from ybc_sign s,ybc c, ybc_match m
+		WHERE c.ybc001 = s.ybc001
+		AND s.ybcs001 = m.YBCS001
+		AND m.YBCMA037 is not null <!-- 过件金额不为空-->
+		AND m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+	</select>
+	<!-- 后台放贷统计 -->
+	<select id="getPageChartLending" parameterType="page" resultType="pd" useCache="false">
+		SELECT
+		m.YBCMA029_TM, <!-- 放贷日期 -->
+		s.YBCS007, <!-- 财务编号 -->
+		c.YBC002, <!-- 客户姓名 -->
+		c.YBC029, <!-- 客户经理 -->
+		c.YBC003, <!-- 客户电话 -->
+		(select YBTL002 from YBT_LIST where YBTL001 = m.YBTL001)  YBTL002,<!-- 产品名称=跟进渠道 -->
+		(select DEPT_NAME from sys_dept where DEPT_LAYERORDER = c.DEPT_LAYERORDER)  DEPT_NAME,<!-- 客户经理所在部门 -->
+		m.YBCMA030, <!-- 放贷金额 -->
+		m.YBCMA020, <!-- 后台成本 -->
+		m.YBCMA041<!-- 做单人员 -->
+		FROM ybc_sign s, ybc c, ybc_match m
+		WHERE c.ybc001 = s.ybc001
+		AND s.ybcs001 = m.YBCS001
+		AND m.ybcma030 is not null <!--放贷金额不为空 -->
+		AND m.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+		<if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+			and m.YBCMA029_TM <![CDATA[>=]]> #{pd.startTime}
+		</if>
+		<if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+			and m.YBCMA029_TM <![CDATA[<=]]> #{pd.endTime}
+		</if>
+	</select>
+
+	<!-- 后台放贷当月总数量,当月总放贷金额 -->
+	<select id="getChartLendMonthSum" parameterType="pd" resultType="pd" useCache="false">
+		select
+		IFNULL(count(*),0) as sumMonthNum, <!--放贷数量-->
+		IFNULL(sum(m.ybcma030),0) as sumLendMonth <!--放贷金额-->
+		from ybc_sign s,ybc c, ybc_match m
+		WHERE c.ybc001 = s.ybc001
+		AND s.ybcs001 = m.YBCS001
+		AND m.ybcma030 is not null <!--放贷金额不为空 -->
+		AND  DATE_FORMAT( m.YBCMA029_TM, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+		AND m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+	</select>
+	<!-- 后台过件总汇总 -->
+	<select id="getChartLendAllSum" parameterType="pd" resultType="pd" useCache="false">
+		select
+		IFNULL(count(*),0) as sumAllNum, <!--放贷数量-->
+		IFNULL(sum(m.ybcma030),0) as sumAllLend <!--放贷金额-->
+		from ybc_sign s,ybc c, ybc_match m
+		WHERE c.ybc001 = s.ybc001
+		AND s.ybcs001 = m.YBCS001
+		AND m.ybcma030 is not null <!--放贷金额不为空 -->
+		AND m.DEPT_LAYERORDER like concat(#{DEPT_LAYERORDER}, "%")
+	</select>
+
+<!--////////////////////////////////////////财务统计数据/////////////////////////-->
+	<!-- 财务收款明细表 -->
+	<select id="getPageChartReceivables" parameterType="page" resultType="pd" useCache="false">
+		select
+		m.YBCMA025_TM, <!-- 结账时间 -->
+		c.YBC002, <!-- 客户姓名 -->
+		c.YBC029, <!-- 客户经理 -->
+		m.YBCMA041,<!-- 做单人员 -->
+		m.YBCMA030,<!-- 放贷金额 -->
+		m.YBCMA020,<!-- 后台成本 -->
+		m.YBCMA022,<!-- 前台利润 -->
+		m.YBCMA012<!-- 实收金额=收款金额 -->
+		from ybc_sign s,ybc c, ybc_match m
+		WHERE c.ybc001 = s.ybc001
+		AND s.ybcs001 = m.YBCS001
+		AND s.YBCS009_TP in ('b1251ef4b74c4046966dc2125e6513ee','bb6718447a5a4db596417d5f8b621046') <!--贷款类型 房贷+信贷 -->
+		AND m.YBCMA022 is not null <!-- 前台利润不为空则表明可以读取-->
+		<if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+			and m.YBCMA025_TM <![CDATA[>=]]> #{pd.startTime}
+		</if>
+		<if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+			and m.YBCMA025_TM <![CDATA[<=]]> #{pd.endTime}
+		</if>
+	</select>
+	<!-- 财务网贷收款明细表 -->
+	<select id="getPageChartNetReceivables" parameterType="page" resultType="pd" useCache="false">
+		select
+		m.YBCMA025_TM, <!-- 结账时间 -->
+		c.YBC002, <!-- 客户姓名 -->
+		c.YBC029, <!-- 客户经理 -->
+		m.YBCMA041,<!-- 做单人员 -->
+		m.YBCMA030,<!-- 放贷金额 -->
+		m.YBCMA020,<!-- 后台成本 -->
+		m.YBCMA022,<!-- 前台利润 -->
+		m.YBCMA012<!-- 实收金额=收款金额 -->
+		from ybc_sign s,ybc c, ybc_match m
+		WHERE c.ybc001 = s.ybc001
+		AND s.ybcs001 = m.YBCS001
+		AND s.YBCS009_TP ='15d5af3b1ffd4e7e8f23968bd6280e3b' <!--贷款类型 网贷 -->
+		AND m.YBCMA022 is not null <!-- 前台利润不为空则表明可以读取-->
+		<if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+			and m.YBCMA025_TM <![CDATA[>=]]> #{pd.startTime}
+		</if>
+		<if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+			and m.YBCMA025_TM <![CDATA[<=]]> #{pd.endTime}
+		</if>
+	</select>
+	<!-- 财务渠道收款明细表 -->
+	<select id="getPageChartChannelReceivables" parameterType="page" resultType="pd" useCache="false">
+		select
+		m.YBCMA025_TM, <!-- 结账时间 -->
+		c.YBC002, <!-- 客户姓名 -->
+		c.YBC029, <!-- 客户经理 -->
+		m.YBCMA041,<!-- 做单人员 -->
+		m.YBCMA030,<!-- 放贷金额 -->
+		m.YBCMA020,<!-- 后台成本 -->
+		m.YBCMA022,<!-- 前台利润 -->
+		m.YBCMA012<!-- 实收金额=收款金额 -->
+		from ybc_sign s,ybc c, ybc_match m
+		WHERE c.ybc001 = s.ybc001
+		AND s.ybcs001 = m.YBCS001
+		<!--AND s.YBCS009_TP ='97770bb8f4b8486987bded34e84da31e' 贷款类型 市场部 渠道 -->
+		AND m.YBCMA022 is not null <!-- 前台利润不为空则表明可以读取-->
+		<if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+			and m.YBCMA025_TM <![CDATA[>=]]> #{pd.startTime}
+		</if>
+		<if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+			and m.YBCMA025_TM <![CDATA[<=]]> #{pd.endTime}
+		</if>
+	</select>
+	<!-- 财务已结账明细表 -->
+	<select id="getPageChartCheckoutReceivables" parameterType="page" resultType="pd" useCache="false">
+		select
+		m.YBCMA025_TM, <!-- 结账时间 -->
+		c.YBC002, <!-- 客户姓名 -->
+		c.YBC029, <!-- 客户经理 -->
+		(select name from sys_user where DEPT_LAYERORDER = c.DEPT_LAYERORDER and POSITION = '1')  nameTeam,<!-- 客户经理 组长-->
+		(select name from sys_user where DEPT_LAYERORDER = c.DEPT_LAYERORDER and POSITION = '1')  nameDept,<!-- 客户经理 部长-->
+		m.YBCMA041,<!-- 做单人员 -->
+		(select name from sys_user where DEPT_LAYERORDER = m.DEPT_LAYERORDER and POSITION = '1')  nameBackTeam,<!-- 做单人员 组长-->
+		s.YBCS039 as nameBackDept,<!-- 做单人员 部长-->
+		m.YBCMA030,<!-- 放贷金额 -->
+		m.YBCMA012,<!-- 实收金额 -->
+		m.YBCMA020,<!-- 后台成本 -->
+		s.YBCS007, <!-- 财务编号 -->
+		m.YBCMA021, <!-- 费用明细 -->
+		m.YBCMA022,<!-- 前台利润 -->
+		(
+		case s.YBCS050_TP
+		when 1 then m.YBCMA030*m.YBCMA033*s.YBCS006/1000+m.YBCMA030*s.YBCS003/100
+		when 2 then s.YBCS051
+		end
+		) as receivable <!-- 应收金额 -->
+		from ybc_sign s,ybc c, ybc_match m
+		WHERE c.ybc001 = s.ybc001
+		AND s.ybcs001 = m.YBCS001
+		<!--AND s.YBCS009_TP ='97770bb8f4b8486987bded34e84da31e' 贷款类型  所有 -->
+		AND m.YBCMA022 is not null <!-- 前台利润不为空则表明可以读取-->
+		<if test="pd.startTime != null and pd.startTime != ''"><!-- 最后更新时间 -->
+			and m.YBCMA025_TM <![CDATA[>=]]> #{pd.startTime}
+		</if>
+		<if test="pd.endTime != null and pd.endTime != ''"><!-- 最后更新时间 -->
+			and m.YBCMA025_TM <![CDATA[<=]]> #{pd.endTime}
+		</if>
+	</select>
+
+</mapper>

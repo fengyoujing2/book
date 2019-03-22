@@ -1,0 +1,367 @@
+package com.dbsun.controller.wechat;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dbsun.controller.WeixinController;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.WbYbcService;
+import com.dbsun.util.Const;
+import com.dbsun.util.SmsUtil;
+import com.dbsun.util.Tools;
+
+/**
+ * 用户账号
+ * 
+ * @author DongZai
+ * 
+ */
+@Controller
+@RequestMapping("/wc_wbybc")
+public class WbYbcController extends WeixinController {
+
+	@Autowired
+	private WbYbcService wbYbcService;
+
+	/**
+	 * 提交：处理从不同入口提交的信息，由此统计用户来源
+	 * @return
+	 */
+	@RequestMapping(value="/getUMsg", method=RequestMethod.POST, produces="application/json;charset=UTF-8")
+	@ResponseBody
+	public String getUserMsg() throws Exception{
+		JSONObject json = new JSONObject();
+		PageData pd = new PageData();
+		pd = this.getPageData();
+		//验证验证码
+		int status = Integer.parseInt(SmsUtil.validateCode(pd.getString("YBWY0003"), pd.getString("code")));
+		
+		//验证码不通过直接返回信息
+		switch(status){
+			case 1:
+				json.put("msg", "502");
+				json.put("result", "验证码过期");
+				return json.toString();
+			case 3:
+				json.put("msg", "503");
+				json.put("result", "验证码错误");
+				return json.toString();
+			default:;
+		}
+		
+		//验证码通过
+		//客户来源（1：微信）
+		
+		String from = pd.getString("YBWY0007_TP");
+		if(Tools.notEmpty(from) && from.equals("1")){
+			// shiro管理的session
+			HttpSession session = this.session;
+			
+			//比较前端传进来的openId与sessions中的openId是否一致
+			//不一致输出日志信息
+			if(!session.getAttribute(Const.SESSION_WX_CODE).equals(pd.getString("WXCode"))){
+			}
+			
+			//验证码通过后加入数据库
+			pd.put("YBWY0010", String.valueOf(session.getAttribute(Const.SESSION_WX_OPENID)));
+			
+		}else{
+			//验证码通过后加入数据库
+			//其他来源无openId
+			pd.put("YBWY0010", "");
+		}
+		
+		try {
+			wbYbcService.addWbYbc(pd);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		json.put("msg", "200");
+		json.put("result", "success");
+		return json.toString();
+	}
+	
+	/**
+	 * 推广统一入口
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/extendEntry", method=RequestMethod.POST)
+	@ResponseBody
+	public JSONObject extendEnter() throws Exception{
+		JSONObject json = new JSONObject();
+		int ret = 0; 
+		PageData pd = this.getPageData();
+		//判断参数是否完整
+		if(Tools.isObjEmpty(pd.get("token")) || Tools.isObjEmpty(pd.get("phone"))
+				|| Tools.isObjEmpty(pd.get("sourceType"))){
+			json.put("msg", "504");
+			json.put("result", "参数不完整");
+			return json;
+		}
+		
+		//参数完整再判定验证码
+		//验证码不能为空
+		if(Tools.isObjEmpty(pd.get("code"))){
+			json.put("msg", "505");
+			json.put("result", "验证码为空");
+			return json;
+		}
+		
+		//验证验证码
+		int status = Integer.parseInt(SmsUtil.validateCode(pd.getString("phone"), pd.getString("code")));
+		
+		//验证码不通过直接返回信息
+		switch(status){
+			case 1:
+				json.put("msg", "502");
+				json.put("result", "验证码过期");
+				return json;
+			case 3:
+				json.put("msg", "503");
+				json.put("result", "验证码错误");
+				return json;
+			default:;
+		}
+		
+		//验证码通过
+		
+		//验证token
+		
+		//验证提交的数据来源是否合法
+		if(pd.get("token").equals("ruisun")){
+			try {
+				pd.put("YBWY0002", pd.get("name"));//姓名
+				pd.put("YBWY0003", pd.get("phone"));//电话
+				pd.put("YBWY0007_TP", pd.get("sourceType"));//类型
+				pd.put("YBWY0012", pd.get("from"));
+				pd.put("YBWY0010", "");
+				
+				wbYbcService.addWbYbc(pd);
+				ret = 1;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+		
+		if(ret == 1){
+			json.put("msg", "200");
+			json.put("result", "success");
+			return json;
+		}else{
+			json.put("msg", "500");
+			json.put("result", "field");
+			return json;
+		}
+		
+	}
+	
+	/**
+	 * 推广统一入口 -- 跳转网页
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/goExtendEntry", method=RequestMethod.GET)
+	public String goExtendEntry(Model model) throws Exception{
+		PageData pd = this.getPageData();
+		model.addAttribute("from", pd.get("from"));
+		return "/html/wechat/headline/wt_sub";
+	}
+	
+	@RequestMapping(value="/goExtendEntrySec", method=RequestMethod.GET)
+	public String goExtendEntrySec(Model model) throws Exception{
+		PageData pd = this.getPageData();
+		model.addAttribute("from", pd.get("from"));
+		return "/html/wechat/headline/wt_sub2";
+	}
+	
+	
+	
+	/**
+	 * 发送验证码
+	 * @return
+	 */
+	@RequestMapping("/sendCode")
+	@ResponseBody
+	public String sendCode() {
+		System.out.println("smsMap的2个T:"+SmsUtil.SmsMap);
+		System.out.println("IPMap的2个T:"+SmsUtil.IPMap);
+		PageData pd = this.getPageData();
+		return SmsUtil.sendSms(pd.getString("YBWY0003"), this.getIp());
+	}
+	
+	/**今日头条-----------*/
+	
+	/**
+	 * 头条地址（1.微信/2.今日头条/3.短信/4.360）
+	 * @return
+	 */
+	@RequestMapping(value="/goHeadline")
+	public String goHeadline(HttpServletResponse resp, Model model) {
+		PageData pd = this.getPageData();
+		PageData addPd = new PageData();
+		String code = null;
+		//分析请求是否有参数：yes、取拼接的参数；no、短信接口
+		String YBWY0007_TP = pd.getString("YBWY0007_TP");
+		if( Tools.isEmpty(YBWY0007_TP) )YBWY0007_TP="3";
+		
+		System.out.println("*********"+YBWY0007_TP);
+		try {
+			
+			code = pd.getString("code");
+			
+			//code为空
+			if(Tools.isEmpty(code)){
+				//不走微信方，直接跳网页
+				model.addAttribute("YBWY0007_TP", YBWY0007_TP);
+				model.addAttribute("msg", 508);
+				return "/html/wechat/headline/wbybc";
+			}
+			//将code放入session
+			HttpSession session = this.session;
+			
+			session.setAttribute(Const.SESSION_WX_CODE, code);
+			//获取用户openId(code5分钟不使用失效)
+			//用户等待时间不能太长，采用异步的方式
+			//asynGetOpenIdTask();
+			
+			//将获取到的openId,access_token放入session
+			// shiro管理的session
+			JSONObject json = null;
+			
+			//session中要存在code
+			Object sessionOpenId;
+			if(session.getAttribute(Const.SESSION_WX_CODE) != null){
+				//不允许重复获取openId
+				sessionOpenId = session.getAttribute(Const.SESSION_WX_OPENID);
+			
+				addPd.put("YBWY0010", sessionOpenId);
+				//sessionId不为空，并且wx_user中不存在就不用再获取
+		    	if(sessionOpenId != null && wbYbcService.getWbYbcByOpenId(addPd).size() == 1){
+		    		model.addAttribute("YBWY0007_TP", YBWY0007_TP);
+					model.addAttribute("msg", 509);
+					return "/html/wechat/headline/wbybc";
+		    	}
+				//通过code获取openId
+		    	json = getOpenIdByCode((String)session.getAttribute(Const.SESSION_WX_CODE));
+			}
+			
+			if(json == null) {
+				model.addAttribute("YBWY0007_TP", YBWY0007_TP);
+				model.addAttribute("msg", 510);
+				return "/html/wechat/headline/wbybc";
+			}
+			
+	    	String openId = json.getString("openid");
+	    	
+			session.setAttribute(Const.SESSION_WX_OPENID, openId);
+			
+			//通过openId、access_token获取微信用户信息
+			String requestUrl = Const.GETUSERINFOURL
+					.replace("ACCESS_TOKEN", json.getString("access_token"))//网页授权接口调用凭证,注意：此access_token与基础支持的access_token不同
+					.replace("OPENID", openId);
+			
+			JSONObject jsonObject = httpRequst(requestUrl, "GET", null); 
+    		
+    		try {
+    			//openId不能为空
+    			if(Tools.notEmpty(openId)){
+    				addPd.put("YBWY0009", 12);//年龄
+		    		addPd.put("YBWY0011", json.getString("access_token"));
+		    		addPd.put("YBWY0012", jsonObject.getString("nickname"));
+		    		addPd.put("YBWY0008_TP", jsonObject.getString("sex"));
+		    		addPd.put("YBWY0013", jsonObject.getString("province"));
+		    		addPd.put("YBWY0014", jsonObject.getString("city"));
+		    		addPd.put("YBWY0015", jsonObject.getString("country"));
+		    		addPd.put("YBWY0016", jsonObject.getString("headimgurl"));
+		    		addPd.put("YBWY0017", jsonObject.getString("privilege"));//用户特权信息，json 数组，如微信沃卡用户为（chinaunicom）
+    				//在wx_users不存在才执行
+    				if( wbYbcService.getWbYbcByOpenId(addPd).size() == 0)wbYbcService.addWXUser(addPd);
+    			}
+    			
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		//将code传回页面与session中的code对比
+		model.addAttribute("YBWY0007_TP", YBWY0007_TP);
+		model.addAttribute("code", code);
+		return "/html/wechat/headline/wbybc";
+	}
+	
+	/**
+	 * 创建菜单
+	 * @return
+	 */
+	@SuppressWarnings({ "deprecation", "unused" })
+	@RequestMapping("/createMenuForHeadline")
+	@ResponseBody
+	public String createMenuForHeadline(){
+		String requestUrl = redisutil.CREATEMENUURL
+				.replace("ACCESS_TOKEN",redisutil.readWxToken());		
+		
+		//组装菜单的json数据
+		JSONObject btnJson = new JSONObject();
+		JSONArray btnJsonAry = new JSONArray();
+		
+		JSONObject btnJson1 = new JSONObject();
+		btnJson1.put("type", "view");
+		btnJson1.put("name", "在线申请");
+		btnJson1.put("url", "http://wx.resunruixin.com/dbSun/wc_wbybc/goHeadline");
+		btnJsonAry.add(btnJson1);
+		
+		JSONObject btnJson2 = new JSONObject();
+		btnJson2.put("type", "click");
+		btnJson2.put("name", "联系我们");
+		btnJson2.put("key", "ContactUs");
+		btnJsonAry.add(btnJson2);
+		
+		JSONObject btnJson3 = new JSONObject();
+		btnJson3.put("type", "media_id");
+		btnJson3.put("name", "公司介绍");
+		btnJson3.put("media_id", "mgOlwkWdm7rel2lnJDnlToztA1AJ8V74KPhEDA7NXLM");
+		btnJsonAry.add(btnJson3);
+		
+		btnJson.put("button", btnJsonAry);
+		System.out.println("创建菜单返回josn"+ btnJson);
+		
+		JSONObject jsonObject = httpRequst(requestUrl, "POST", btnJson.toString());
+		return btnJson.toString();
+	}
+	
+	/**
+	 * 通过code获取openId
+	 */
+	public JSONObject getOpenIdByCode(String code) {
+		JSONObject json = new JSONObject();
+		try {
+			String requestUrl = Const.GETPAGEAKURL
+					.replace("APPID", redisutil.weixin_appid)
+					.replace("SECRET", redisutil.weixin_secret)
+					.replace("CODE", code);
+			
+			json = httpRequst(requestUrl, "GET", null);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return json;
+	}
+	
+	/**今日头条-----------*/
+	
+}

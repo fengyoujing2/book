@@ -1,0 +1,13 @@
+package com.dbsun.mapper.phonesys;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+import java.util.List;
+
+public interface PhoDtaMapper {
+	//获取呼叫总次数，呼出总时长
+	public PageData getTodayPhoCount(PageData pd);
+	//获取呼叫接通次数
+	public PageData getTodayPhoOpenCount(PageData pd);
+}

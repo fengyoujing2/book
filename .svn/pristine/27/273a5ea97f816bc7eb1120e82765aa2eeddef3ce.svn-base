@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.background.BacRevkMapper">
+<!-- 可撤销列表 -->
+
+	<select id="getPageRevkLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			s.*, 
+			b.YBCBR001, <!-- 分配表主ID -->
+			c.YBC002,
+			c.YBC003, 
+			(select YBCT002 from ybc_type where YBCT001 = s.YBCS009_TP) as proTypeName<!-- 产品类型名称 -->
+			
+		from ybc_sign s, ybc_branch2 b, ybc c 
+		where s.ybcs001 = b.ybcs001 <!-- 已分配过（匹配出来的数据） -->	
+		and s.ybc001 = c.ybc001 
+		and b.YBCBR010_TM is null <!-- 最新做单时间为空（未做单） -->
+	<!-- 权限 start -->
+		and s.YBCS012 = #{pd.USER_ID} <!-- 产品负责人 --> 	
+	<!-- 权限 end-->
+	<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+			and c.YBC002 like concat_ws(#{pd.YBC002}, "%", "%")
+		</if>
+		<if test="pd.YBC003 != null and pd.YBC003 != ''">
+			and c.YBC003 like concat_ws(#{pd.YBC003}, "%", "%")
+		</if>
+		<if test="pd.YBCS017 != null and pd.YBCS017 != ''"><!-- 合同编号 -->
+			and s.YBCS017 like concat_ws(#{pd.YBCS017}, "%", "%")
+		</if>
+		<if test="pd.YBCS038 != null and pd.YBCS038 != ''"><!-- 签单客户经理 -->
+			and s.YBCS038 like concat_ws(#{pd.YBCS038}, "%", "%")
+		</if>
+		<if test="pd.signTmStart != null and pd.signTmStart != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[>=]]> #{pd.signTmStart} 
+		</if>
+		<if test="pd.signTmEnd != null and pd.signTmEnd != ''"><!-- 签单时间 -->
+			and s.YBCS002_TM <![CDATA[<=]]> #{pd.signTmEnd} 
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and s.USER_ID = #{pd.USER_ID_Sea} 
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and s.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+		</if>
+	<!-- 搜索 end -->
+		order by b.YBCBR003_TM desc <!-- 以部长分配时间排序 -->
+	</select>
+
+	<!-- 撤销 -->
+	<delete id="delAlt" parameterType="pd" flushCache="false">
+		delete from ybc_branch2 where YBCBR001 = #{YBCBR001}
+	</delete>
+	
+	<!-- 初始化分配时间 -->
+	<update id="updateAltTime" parameterType="pd" flushCache="false">
+		update
+			ybc_sign 
+				<set>
+					YBCS052_TM	= null<!-- 部长分配时间 -->
+					,YBCS053_TM	= null<!-- 组长分配时间 -->
+					,YBCS054_TM	= null<!-- 分配到做单员的时间 -->
+				</set>
+			where 
+					YBCS001 	= #{YBCS001} 
+	</update>
+	
+</mapper>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+
+    <title> - 后台统计</title>
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+
+    <link rel="shortcut icon" href="favicon.ico"/>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    
+    <script src="https://img.highcharts.com.cn/highcharts/highcharts.js"></script>
+    <script src="https://img.highcharts.com.cn/highcharts/modules/exporting.js"></script>
+    <script src="https://img.hcharts.cn/highcharts-plugins/highcharts-zh_CN.js"></script>
+
+
+    <style>
+        html,body{
+            margin: 10px;
+            padding: 0;
+        }
+        #container{
+            display: none;
+        }
+        #container2{
+            display: none;
+        }
+        .login{
+            width: 200px;
+            margin: 20% auto;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="countApp">
+        <div class="login" v-if="loginFlag">
+            <el-form :model="form" status-icon :rules="rules" ref="form" label-width="80px" class="demo-ruleForm">
+              <el-form-item label="账号" prop="name">
+                <el-input v-model.number="form.name" id="account"></el-input>
+              </el-form-item>
+              <el-form-item label="密码" prop="pwd">
+                <el-input type="password" v-model="form.pwd" autocomplete="off"></el-input>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" @click="submitForm('form')">立即登录</el-button>
+              </el-form-item>
+            </el-form>
+        </div>
+        <div v-else>
+            <el-radio-group v-model="radio" @change="changeRadio">
+              <el-radio-button :label="1">柱形图</el-radio-button>
+              <el-radio-button :label="2">折线图</el-radio-button>
+            </el-radio-group>
+        </div>
+    </div>
+    
+    <div id="container" style="min-width:1000px;height:500px"></div>
+    <div id="container2" style="min-width:1000px;height:500px"></div>
+</body>
+
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+	<script>
+        var basePath="/"+window.location.pathname.split("/")[1];
+        function prom() {  
+                var pwd = prompt("请输入管理后台的密码", ""); //将输入的内容赋给变量 name ，  
+
+                //这里需要注意的是，prompt有两个参数，前面是提示的话，后面是当对话框出来后，在对话框里的默认值  
+                if (pwd=="admin")//如果返回的有内容  
+                {  
+                    alert("欢迎您!")  
+                }  
+
+        }
+        var loginApp=new Vue({
+            el:"#countApp",
+            data(){
+                return {
+                    loginFlag:true,
+                    form:{
+                        name:'',
+                        pwd:''
+                    },
+                    rules:{
+                        name:[{ required: true, message: '请输入账号', trigger: 'blur' }],
+                        pwd:[{ required: true, message: '请输入密码', trigger: 'blur' }]
+                    },
+                    radio:'1'
+                }
+            },
+            mounted(){
+
+            },
+            methods:{
+                submitForm(formName) {
+                    this.$refs[formName].validate((valid) => {
+                      if (valid) {
+                            let that=this;
+                            if(that.form.name=="admin" && that.form.pwd=="admin"){
+                                that.loginFlag=false;
+                                document.getElementById('container').style.display="block";
+                            }
+                      } else {
+                        console.log('error submit!!');
+                        return false;
+                      }
+                    });
+                },
+                changeRadio(){
+                    console.log(this.radio);
+                    if(this.radio=="1"){
+                        document.getElementById('container').style.display="block";
+                        document.getElementById('container2').style.display="none";
+                    }else if(this.radio=="2"){
+                        document.getElementById('container2').style.display="block";
+                        document.getElementById('container').style.display="none";
+                    }
+                }
+            }
+        })
+        
+        getList();
+        function chartInit(title,clickNum,colNum,time){
+            console.log(111);
+            console.log(title);
+            console.log(clickNum);
+            console.log(colNum);
+            console.log(time);
+            var chart = Highcharts.chart('container',{
+                chart: {
+                    type: 'column'
+                },
+                title: {
+                    text: '后台新闻数据统计'
+                },
+                xAxis: {
+                    categories: title,
+                    crosshair: true
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: '次数/时长(min)'
+                    }
+                },
+                plotOptions: {
+                    column: {
+                        borderWidth: 0
+                    }
+                },
+                series: [{
+                    name: '浏览次数',
+                    data: clickNum
+                }, {
+                    name: '收藏次数',
+                    data: colNum
+                }, {
+                    name: '浏览时长',
+                    data: time
+                }]
+            });
+            
+            var chart2 = Highcharts.chart('container2',{
+                    title: {
+				        text: '后台新闻数据统计'
+                    },
+                    xAxis: {
+                        categories: title
+                    },
+                    yAxis: {
+                            title: {
+                                    text: '次数/时长(min)'
+                            }
+                    },
+                    legend: {
+                            layout: 'vertical',
+                            align: 'right',
+                            verticalAlign: 'middle'
+                    },
+                    plotOptions: {
+                            line: {
+                                dataLabels: {
+                                    // 开启数据标签
+                                    enabled: true          
+                                }
+                            }
+                    },
+                    series: [{
+                            name: '浏览次数',
+                            data: clickNum
+                        }, {
+                            name: '收藏次数',
+                            data: colNum
+                        }, {
+                            name: '浏览时长',
+                            data: time
+                        }],
+                    responsive: {
+                            rules: [{
+                                    condition: {
+                                            maxWidth: 500
+                                    },
+                                    chartOptions: {
+                                            legend: {
+                                                    layout: 'horizontal',
+                                                    align: 'center',
+                                                    verticalAlign: 'bottom'
+                                            }
+                                    }
+                            }]
+                    }
+            });
+        }
+        function getList(){
+            $.ajax({
+                type: "get",
+                url: basePath+"/gd_/getPageNewsLst",
+                async: false,
+                data: {currentPage:1},
+                success: function (data){
+                    console.log(data.rows);
+                    var arr=data.rows;
+                    var title=new Array();
+                    var clickNum=new Array();
+                    var colNum=new Array();
+                    var times=new Array();
+                    for(var i=0;i<arr.length;i++){
+                        title.push(arr[i].title);
+                        clickNum.push(arr[i].click_number);
+                        colNum.push(arr[i].collection);
+                        times.push(Math.ceil(arr[i].time_length/60000));
+                        if(i==arr.length-1){
+                            chartInit(title,clickNum,colNum,times);
+                        }
+                    }
+
+                }
+             }); 
+        }
+        
+        
+
+    </script>
+</html>

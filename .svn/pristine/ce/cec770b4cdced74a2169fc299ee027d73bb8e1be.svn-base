@@ -1,0 +1,211 @@
+package com.dbsun.controller.vip;
+
+import com.dbsun.base.BaseController;
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+import com.dbsun.service.customer.CusService;
+import com.dbsun.service.vip.CusVipService;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
+
+/**
+ * 所有会员基础数据相关操作
+ *
+ * @author DongZai
+ * @create 2018-04-08 下午 2:05
+ * @desc
+ **/
+@Controller
+@RequestMapping("/cus_vip")
+public class CusVipController extends BaseController {
+
+    @Autowired
+    private CusVipService cusVipService;
+
+    @Autowired
+    private CusService cusService;
+
+    /***
+     *
+     * 会员入会列表
+     */
+    public static final String MENBER_JOIN = "html/system/member/menberJoin";
+    /***
+     *
+     * 会员维护管理
+     */
+    public static final String MENBER_MAINTAIN = "html/system/member/menberMaintain";
+
+    /***
+     *
+     * 会员维护管理
+     */
+    public static final String MENBER_MANAGER = "html/system/member/menberCusMaintain";
+
+    /***
+     *
+     * VIP详情页面
+     */
+    public static final String VIP_DETAIL = "html/system/member/vipcus_details";
+
+    /**
+     * 会员跳转
+     *
+     * @method:showVipDetail
+     * @param:[]
+     * @return:java.lang.String
+     */
+    @RequestMapping("/detail")
+    public String showVipDetail(Model model) {
+        PageData pd = this.getPageData();
+        model.addAttribute("json", this.getSucJson(cusService.getCusById(pd)));
+        return VIP_DETAIL;
+    }
+
+    /***
+     * 页面跳转会员入会
+     * @return
+     */
+    @RequestMapping("/intoMenberJoin")
+    public String showMenberJoin() {
+        return MENBER_JOIN;
+    }
+
+    /***
+     * 页面跳转会员入会
+     * @return
+     */
+    @RequestMapping("/intoMenberVip")
+    public String showMenberVip() {
+        return MENBER_MANAGER;
+    }
+
+
+    /***
+     * 页面跳转会员维护
+     * @return
+     */
+    @RequestMapping("/intoMenberMaintain")
+    public String showMenberMaintain() {
+        return MENBER_MAINTAIN;
+    }
+
+    /**
+     * 获取可加入vip列表(包括准会员和正式会员)
+     *
+     * @method:getPageInVipList
+     * @param:[]
+     * @return:net.sf.json.JSONObject
+     */
+    @RequestMapping("/getPageInVipList")
+    @ResponseBody
+    public JSONObject getPageInVipList() {
+        PageData pageData = this.getPageData();
+        Page page = this.getPage();
+        page.setPd(pageData);
+        List<PageData> vipList = this.cusVipService.getPageInVipList(page);
+        return viewReturnPageData(page, vipList);
+    }
+
+    /**
+     * 获取vip列表(包括准会员和正式会员)
+     *
+     * @method:getPageVipList
+     * @param:[]
+     * @return:net.sf.json.JSONObject
+     */
+    @RequestMapping("/getPageVipList")
+    @ResponseBody
+    public JSONObject getPageVipList() {
+        PageData pageData = this.getPageData();
+        Page page = this.getPage();
+        page.setPd(pageData);
+        List<PageData> vipList = this.cusVipService.getPageVipList(page);
+        return viewReturnPageData(page, vipList);
+    }
+
+
+    /**
+     * 修改VIP状态
+     *
+     * @return
+     */
+    @RequestMapping("/updateVip")
+    @ResponseBody
+    public JSONObject updateVip() {
+        PageData pd = this.getPageData();
+        PageData userPd = this.getUserPd();
+        //添加用户权限部门信息
+        pd = this.putUserPd(pd);
+        return getAddOrUpdJson(this.cusVipService.updateVip(pd, userPd));
+    }
+
+    /**
+     * 获取会员等级
+     *
+     * @method:getPageDateInVip
+     * @param:[]
+     * @return:net.sf.json.JSONObject
+     */
+    @RequestMapping("/getVipLevel")
+    @ResponseBody
+    public JSONObject getPageDateInVip() {
+        return getSucJson(this.cusVipService.getPageDateInVip());
+    }
+
+
+    /**
+     * 给客户添加联系方式
+     *
+     * @return
+     */
+    @RequestMapping("/addContact")
+    @ResponseBody
+    public JSONObject addContact() {
+        PageData pd = this.getPageData();
+        return getAddOrUpdJson(this.cusVipService.addContact(pd));
+    }
+
+    /**
+     * 修改客户联系方式
+     *
+     * @return
+     */
+    @RequestMapping("/updateContact")
+    @ResponseBody
+    public JSONObject updateContact() {
+        PageData pd = this.getPageData();
+        return getAddOrUpdJson(this.cusVipService.updateContact(pd));
+    }
+
+    /**
+     * 删除联系方式
+     *
+     * @return
+     */
+    @RequestMapping("/deleteContact")
+    @ResponseBody
+    public JSONObject deleteContact() {
+        PageData pd = this.getPageData();
+        return getAddOrUpdJson(this.cusVipService.deleteContact(pd));
+    }
+
+    /**
+     * 初始化该客户联系方式
+     *
+     * @return
+     */
+    @RequestMapping("/getAllContactByCus")
+    @ResponseBody
+    public JSONObject getAllContactByCus() {
+        PageData pd = this.getPageData();
+        return getSucJson(this.cusVipService.getAllContactByCus(pd));
+    }
+
+}

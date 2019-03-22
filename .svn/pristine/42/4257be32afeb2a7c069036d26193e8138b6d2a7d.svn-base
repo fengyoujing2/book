@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>完善资料(贷款资料)</title>
+    <style>
+        a:hover{
+            text-decoration: none;
+        }
+
+        a:visited{
+            text-decoration: none;
+        }
+
+        a:active{
+            text-decoration: none;
+        }
+		#showImg{
+			display: none;
+		}
+        .yangshi{
+            display: block;
+            padding: 3px 20px;
+            clear: both;
+            font-weight: 400;
+            line-height: 1.42857143;
+            color: #333;
+            white-space: nowrap;
+        }
+        
+        #wanshan{
+        	display: none;
+        }
+
+    </style>
+
+</head>
+<body style="background:white">
+
+<div class="container-fluid jianju"  id="contain" >
+
+    <div class="row" style="margin-top: 15px">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 0;padding-bottom: 2px">
+            <div style="padding: 29px;width: 100%;border-radius: 10px;background: #ffffff;padding-top: 0;padding-bottom: 0">
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <img src="../static/img/daikuanzizhi2_03.png" style="width: 100%">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-6  text-left" style="padding: 15px;margin-right: 0;padding-top: 0">
+            <div style="padding: 35px;width: 100%;border-radius: 10px;background: #ffffff;padding-top: 0;padding-bottom: 0">
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                       	基本资料
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-6  text-right" style="padding: 15px;margin-right: 0;padding-top: 0">
+            <div style="padding: 35px;width: 100%;border-radius: 10px;background: #ffffff;padding-top: 0;padding-bottom: 0">
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                     	 贷款资质
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" >
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 0;padding-bottom: 0">
+            <div style="padding: 15px;border: 1px solid white;width: 100%;border-radius: 10px;background: #ffffff;box-shadow: 0px 1px 9px #ecd1c2;padding-top: 0;padding-bottom: 0">
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;border-bottom: 1px solid rgb(239,239,239);">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-6  text-left  " style="padding: 15px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                           	 身份证
+                        </div>
+                        <div id="chooseSFZImage" class="col-xs-6" style="padding: 15px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);;padding-top: 17px;text-align: right;padding-bottom: 13px">
+                            <!-- <div><img id="SFZImage" src="" width="20px" height="20px" class="showImg"/></div> -->
+                            <i class="fa fa-camera" style="font-size: 16px;color: #B8D5FB"></i>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;border-bottom: 1px solid rgb(239,239,239);">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-6  text-left  " style="padding: 15px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                            	房产证
+                        </div>
+                        <div id="chooseFCZImage" class="col-xs-6" style="padding: 15px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);;padding-top: 17px;text-align: right;padding-bottom: 13px">
+                           <!--  <div><img id="FCZImage" src="" width="20px" height="20px" class="showImg"/></div> -->
+                            <i class="fa fa-camera" style="font-size: 16px;color: #B8D5FB"></i>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div style="width: 100%;background:white;padding-right: 0px;padding-left: 0;">
+                    <div class="row" style="background: white;margin-left: 0;margin-right: 0;">
+                        <div class="col-xs-6  text-left  " style="padding: 15px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);padding-left: 0">
+                           	 行驶证
+                        </div>
+                        <div id="chooseXSZImage" class="col-xs-6" style="padding: 15px;color:#0198EF;font-size: 14px;padding-right: 0;color: rgb(100,100,100);;padding-top: 17px;text-align: right;padding-bottom: 13px">
+                            <!-- <div><img id="XSZImage" src="" width="20px" height="20px" class="showImg"/></div> -->
+                            <i class="fa fa-camera" style="font-size: 16px;color: #B8D5FB"></i>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-left" style="padding: 15px;margin-right: 0;padding-top: 0">
+            <div style="padding: 15px;width: 100%;border-radius: 10px;padding-top: 0;padding-bottom: 0;padding-left: 0">
+                <div style="width: 100%;padding-top: 15px;padding-bottom: 15px">
+                    <div style="display:inline-block;vertical-align: middle">
+                       <span style="font-size: 14px;color: #FC6C6C">只有真实有效的信息测能通过审核哦</span>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12  text-left  " style="padding: 15px 30px;">
+            <button onclick="apply();" type="button" class="btn btn-primary btn-lg btn-block" style="border-radius: 20px;background:#FC8B4D;border: 1px solid transparent;outline: none;font-size: 17px">完成</button>
+        </div>
+    </div>
+    
+    <div style="width: 100%; color: rgb(0, 0, 0); position: fixed; top: 0px; left: 0px; z-index: 55500; background: url('../static/img/back2.png'); " id="wanshan">
+    <div style="opacity: 1">
+        <div style="position: absolute;width: 250px;height:182px;top: 50%;left: 50%;margin: -91px 0 0 -125px;border: 1px solid transparent;color: #ffffff;border-radius: 10px;background: #ffffff;color: #000000;text-align: center">
+            <div style="width: 100%;font-size: 16px;border-top-right-radius: 10px;border-top-left-radius: 10px;padding: 23px 0;overflow: hidden">
+                <div>
+                    	您的资料已上传，请耐心等待审核
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 50%;float: left;text-align: center;padding: 0 15px">
+                        <a th:href="@{/wx_index/goIndex}" class="btn btn-primary btn-sm btn-block" style="text-decoration:none;border-radius: 20px;background:#FC8B4D;;border: 1px solid transparent;font-size: 13px" id="quxiao">返回首页</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+	</div>
+	</div>
+
+</div>
+<div th:include="html/wechat/public/tip :: tip"></div>
+<div th:include="html/page/contentpublic :: html"></div>
+<script>
+
+	var basePath = "/"+getContextPath();
+	
+	function check(){
+		
+		if(imagesSFZ.serverId == '' || imagesSFZ.serverId == null){
+			tip("请上传身份证");
+			return false;
+		}
+		if(imagesFCZ.serverId == '' || imagesFCZ.serverId == null){
+			tip("请上传房产证");
+			return false;
+		}
+		if(imagesXSZ.serverId == '' ||imagesXSZ.serverId == null){
+			tip("请上传行驶证");
+			return false;
+		}
+		
+		return true;
+	}
+	
+	/* 提交更新资料 */
+	function apply(){
+		
+		if(!check())return;
+		
+		$.ajax({
+			type : "POST",
+			url : basePath + "/wx_ywData/updateYwData",
+			data : {
+				YWDATA0010 : imagesSFZ.serverId,//身份证
+				YWDATA0011 : imagesFCZ.serverId,//房产证
+				YWDATA0012 : imagesXSZ.serverId//行驶证
+			},
+			success : function(data) {
+				if(data == "success"){
+					window.location.href=basePath+"/wx_index/goIndex";
+					/* $("#wanshan").show(); */
+				}else{
+					tip("服务器开小差了，请稍后再试(*^▽^*)");
+				}
+			},
+			error:function(result, status){
+                if(status=="parsererror"){
+               	 tip("解析出错");
+                }else if(status=="error"){
+               	 tip("信息提交失败");
+                }else if(status=="timeout"){
+               	 tip("发送超时");
+                }else{
+               	 tip("发送出错");
+                }
+		    }
+		});
+		
+	}
+
+</script>
+
+<script>
+	// 5 图片接口
+    // 5.1 拍照、本地选图
+    var imagesSFZ = {
+      localId: [],
+      serverId: []
+    };
+    var imagesFCZ = {
+      localId: [],
+      serverId: []
+    };
+    var imagesXSZ = {
+      localId: [],
+      serverId: []
+    };
+    //房产证
+    document.querySelector('#chooseFCZImage').onclick = function () {
+      wx.chooseImage({
+        success: function (res) {
+          //images.localId = res.localIds;
+          	wx.uploadImage({
+			    localId: res.localIds.toString(), // 需要上传的图片的本地ID，由chooseImage接口获得
+			    isShowProgressTips: 1, // 默认为1，显示进度提示
+			    success: function (res) {
+			        imagesFCZ.serverId = res.serverId; // 返回图片的服务器端ID
+			        //并更新选中的值为空
+			        //imagesFCZ.localId = null;
+			        wx.getLocalImgData({
+					    localId: imagesFCZ.localId, // 图片的localID
+					    success: function (res) {
+					        $("#FCZImage").attr("src",res.localData); // localData是图片的base64数据，可以用img标签显示
+					        $("#FCZImage").show();
+					    }
+					});
+			    }
+			});
+        }
+      });
+    };
+    //身份证
+    document.querySelector('#chooseSFZImage').onclick = function () {
+      wx.chooseImage({
+        success: function (res) {
+          //images.localId = res.localIds;
+          wx.uploadImage({
+			    localId: res.localIds.toString(), // 需要上传的图片的本地ID，由chooseImage接口获得
+			    isShowProgressTips: 1, // 默认为1，显示进度提示
+			    success: function (res) {
+			        imagesSFZ.serverId = res.serverId; // 返回图片的服务器端ID
+			        //并更新选中的值为空
+			        //imagesSFZ.localId = null;
+			        wx.getLocalImgData({
+					    localId: imagesSFZ.localId, // 图片的localID
+					    success: function (res) {
+					        $("#SFZImage").attr("src",res.localData); // localData是图片的base64数据，可以用img标签显示
+					        $("#SFZImage").show();
+					    }
+					});
+			    }
+			});
+        }
+      });
+    };
+    //行驶证
+    document.querySelector('#chooseXSZImage').onclick = function () {
+      wx.chooseImage({
+        success: function (res) {
+          //images.localId = res.localIds;
+          wx.uploadImage({
+			    localId: res.localIds.toString(), // 需要上传的图片的本地ID，由chooseImage接口获得
+			    isShowProgressTips: 1, // 默认为1，显示进度提示
+			    success: function (res) {
+			        imagesXSZ.serverId = res.serverId; // 返回图片的服务器端ID
+			        //并更新选中的值为空
+			        //imagesXSZ.localId = null;
+			        wx.getLocalImgData({
+					    localId: imagesXSZ.localId, // 图片的localID
+					    success: function (res) {
+					        $("#XSZImage").attr("src",res.localData); // localData是图片的base64数据，可以用img标签显示
+					        $("#XSZImage").show();
+					    }
+					});
+			    }
+			});
+        }
+      });
+    };
+	function getRealPath(){
+                var localObj = window.location;
+                var contextPath = localObj.pathname.split("/")[1];
+                var basePath = localObj.protocol + "//" + localObj.host + "/"+ contextPath;
+                return basePath ;
+            }	
+
+ $(document).ready(function(){
+	var url = window.location.href;
+        var path = getRealPath();
+        	jQuery.ajax({
+                url:path+"/wechat/getJssdk",
+                data:{URL:url},
+                type:'POST',
+                dataType:"json",
+                async: false,
+                success:function(result,status){
+                    wx.config({
+                        debug : false, //
+                        appId : result.appId, // 必填，公众号的唯一标识
+                        timestamp : result.timestamp, // 必填，生成签名的时间戳
+                        nonceStr : result.nonceStr, // 必填，生成签名的随机串
+                        signature : result.signature,// 必填，签名，见附录1
+                        jsApiList : [
+                            'hideMenuItems',
+                            'chooseImage',
+                            'uploadImage'
+                        ]
+                        // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+                    });
+                }
+
+            });
+        	wx.ready(function(){
+    			// config信息验证后会执行ready方法，所有接口调用都必须在config接口获得结果之后，config是一个客户端的异步操作，所以如果需要在页面加载时就调用相关接口，则须把相关接口放在ready函数中调用来确保正确执行。对于用户触发时才调用的接口，则可以直接调用，不需要放在ready函数中。
+				wx.hideMenuItems({
+	              menuList: [
+	                  'menuItem:openWithQQBrowser', //禁止在QQ浏览器中代开
+	                  'menuItem:openWithSafari',   //禁止在safari浏览器中打开
+	                  'menuItem:copyUrl' // 复制链接
+	              ],
+	              success: function (res) {
+	                  
+	              },
+	              fail: function (res) {
+	                 
+	              }
+          	});
+			});
+		});
+</script>
+
+</body>
+</html>

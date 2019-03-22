@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dbsun.mapper.customer.CusReAllotMapper">
+	<!-- 客户重分配 -->
+	
+	<parameterMap type="java.util.Map" id="getUserCountMap">
+        <parameter property="inybc001" mode="IN" jdbcType="VARCHAR"/>
+        <parameter property="inuserid" mode="IN" jdbcType="VARCHAR"/>
+        <parameter property="state" mode="OUT" jdbcType="INTEGER"/>
+    </parameterMap>
+	
+	<select id="distributionAgainMany" parameterMap="getUserCountMap" statementType="CALLABLE">
+        CALL distributionAgainMany(?,?,?,?)
+    </select>
+    
+    <!-- 选客户重分配 -->
+    <parameterMap type="java.util.Map" id="getCusAltCountMap">
+        <parameter property="inybc001" mode="IN" jdbcType="VARCHAR"/>
+        <parameter property="inUserid" mode="IN" jdbcType="VARCHAR"/>
+        <parameter property="userid" mode="IN" jdbcType="VARCHAR"/>
+        <parameter property="DEPT_LAYERORDER" mode="IN" jdbcType="VARCHAR"/>
+        <parameter property="state" mode="OUT" jdbcType="INTEGER"/>
+    </parameterMap>
+	
+	<select id="backUser_oneOrMany" parameterMap="getCusAltCountMap" statementType="CALLABLE">
+        CALL backUser_oneOrMany(?,?,?,?,?)
+    </select>
+    
+    <!-- 将客户经理下的客户重分配 -->
+    <parameterMap type="java.util.Map" id="getCusAltForCusCountMap">
+        <parameter property="inUserid" mode="IN" jdbcType="VARCHAR"/>
+        <parameter property="outUserid" mode="IN" jdbcType="VARCHAR"/>
+        <parameter property="userid" mode="IN" jdbcType="VARCHAR"/>
+        <parameter property="DEPT_LAYERORDER" mode="IN" jdbcType="VARCHAR"/>
+        <parameter property="POSITION" mode="IN" jdbcType="INTEGER"/>
+        <parameter property="state" mode="OUT" jdbcType="INTEGER"/>
+    </parameterMap>
+	
+	<select id="backUser_forUser" parameterMap="getCusAltForCusCountMap" statementType="CALLABLE">
+        CALL backUser_forUser(?,?,?,?,?,?)
+    </select>
+    
+<!-- 选择分配 start -->	
+	<select id="getPageCanReAllotLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			c.*, 
+			(
+				case c.YBC018_TP 
+					when 1 then 'A'
+					when 2 then 'B'
+					when 3 then 'C'
+					when 4 then 'D'
+				end 
+			) as level, 
+			(
+				case c.YBC008_TP 
+					when 0 then '临时（大类）' 
+					when 10 then '临时（小类）' 
+					when 1 then '意向'
+					when 2 then '上门'
+					when 3 then '签单'
+					when 4 then '回收'
+					when 5 then '再签单'
+				end
+			) as state, 
+			(
+				case c.YBC004_TP 
+					when 1 then '男'	
+					when 2 then '女'	
+				end
+			) as sex, 
+			(
+				case c.YBC009_TP 
+					when 1 then '未婚'
+					when 2 then '已婚' 
+				end
+			) as maritalStatus
+			
+		from ybc c
+		where 1 = 1 <!-- 客户状态在签单前 -->
+		and c.USER_ID is not null <!-- 客户已经分配 -->
+	<!-- 权限 start -->
+		and (
+				c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER}, "%")
+				and 
+				c.POSITION	= #{pd.POSITION}
+				<!-- 主管 -->
+		)
+	<!-- 权限 end -->
+	<!-- 搜索 start -->
+		<if test="pd.YBC002 != null and pd.YBC002 != ''">
+			and c.YBC002 like concat(#{pd.YBC002}, "%")
+		</if>
+		<if test="pd.YBC003 != null and pd.YBC003 != ''">
+			and c.YBC003 like concat(#{pd.YBC003}, "%")
+		</if>
+		<if test="pd.YBC008_TP != null and pd.YBC008_TP != ''">
+			and c.YBC008_TP = #{pd.YBC008_TP}
+		</if>
+		<if test="pd.introName != null and pd.introName != ''"><!-- 介绍人 -->
+			and (select c2.YBC002 from ybc c2 where c2.ybc001 = c.PYBC001 limit 0, 1) like concat(#{pd.introName}, "%")
+		</if>
+		<if test="pd.contanName != null and pd.contanName != ''"><!-- 联系人 -->
+			and (select YBCCO002 from YBC_CONTACTS where ybc001 = c.ybc001 limit 0, 1) like concat(#{pd.contanName}, "%")
+		</if>
+		<if test="pd.YBC015_TMStart != null and pd.YBC015_TMStart != ''"><!-- 最后更新时间 -->
+			and c.YBC015_TM <![CDATA[>=]]> #{pd.YBC015_TMStart}
+		</if>
+		<if test="pd.YBC015_TMEnd != null and pd.YBC015_TMEnd != ''"><!-- 最后更新时间 -->
+			and c.YBC015_TM <![CDATA[<=]]> #{pd.YBC015_TMEnd}
+		</if>
+		<if test="pd.USER_ID_Sea != null and pd.USER_ID_Sea != ''"><!-- 按签单人员搜索 -->
+			and c.USER_ID = #{pd.USER_ID_Sea} 
+		</if>
+		<if test="pd.DEPT_LAYERORDER_Sea != null and pd.DEPT_LAYERORDER_Sea != ''"><!-- 按选中的部门搜索 -->
+			and c.DEPT_LAYERORDER like concat(#{pd.DEPT_LAYERORDER_Sea}, "%") 
+		</if>
+	<!-- 搜索 end -->
+		order by c.YBC015_TM desc
+	</select>
+<!-- 选择分配 end -->	
+
+<!-- 全分配 statrt -->
+	
+	<!-- 按客户经理分配 -->
+	<select id="getPageCusesByUserIdLst" parameterType="page" resultType="pd" useCache="false">
+		select
+			c.* 
+		from ybc c
+		where 
+			c.user_id = #{pd.USER_ID}
+	</select>
+	
+	<select id="getUserids" parameterType="pd" resultType="pd" useCache="false">
+		SELECT 
+			GROUP_CONCAT(YBC001) as ids 
+		FROM ybc 
+		where user_id = #{OLD_USER_ID}
+	</select>
+<!-- 全分配 end -->
+</mapper>

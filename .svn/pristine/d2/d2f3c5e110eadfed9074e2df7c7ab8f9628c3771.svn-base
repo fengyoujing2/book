@@ -1,0 +1,37 @@
+package com.dbsun.mapper.vip;
+
+import com.dbsun.entity.system.Page;
+import com.dbsun.entity.system.PageData;
+
+import java.util.List;
+
+/**
+ * @author user
+ * @create 2018-04-08 10:30
+ * @desc 用户回访表
+ **/
+public interface CutVisitMapper {
+
+
+    /***
+     * 查询客户的回访表
+     * @return
+     */
+    public List<PageData> getPageYbcCutVisitLst(Page page);
+
+
+
+    /***
+     *  未用 更新回访状态(回访状态,失败说明,时间)
+     * @param pd
+     * @return
+     */
+    @Deprecated
+    public int updateYbcVisitStatu(PageData pd);
+
+
+    /***
+     * 新增回访
+     */
+    public int addYbcVisit(PageData pd);
+}
